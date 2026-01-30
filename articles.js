@@ -118,9 +118,14 @@ async function loadArticles() {
         articlesGrid.innerHTML =
             '<div class="loading"><i class="fas fa-spinner fa-spin"></i><p>Chargement...</p></div>';
 
-        const snapshot = await getDocs(
-            query(collection(db, 'articles'), orderBy('createdAt', 'desc'))
+        // 🔧 CORRECTION: Ne récupérer que les articles publiés
+        const q = query(
+            collection(db, 'articles'),
+            where('status', '==', 'published'),
+            orderBy('createdAt', 'desc')
         );
+        
+        const snapshot = await getDocs(q);
 
         allArticles = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
         filteredArticles = [...allArticles];
@@ -217,10 +222,10 @@ function createFeaturedCard(article) {
     `;
 }
 
-// Cards secondaires — grille 2 colonnes
+// Card normale — grille
 function createArticleCard(article) {
     const date         = getArticleDate(article);
-    const imgUrl       = article.imageUrl || 'https://images.unsplash.com/photo-1518770660439-4636190af475?w=800';
+    const imgUrl       = article.imageUrl || 'https://images.unsplash.com/photo-1518770660439-4636190af475?w=600';
     const categoryClass = getCategoryClass(article.category);
     const articleUrl   = getArticleUrl(article);
 
@@ -231,7 +236,7 @@ function createArticleCard(article) {
                      alt="${escapeHtml(article.title)}"
                      class="article-image"
                      loading="lazy"
-                     onerror="this.src='https://images.unsplash.com/photo-1518770660439-4636190af475?w=800'">
+                     onerror="this.src='https://images.unsplash.com/photo-1518770660439-4636190af475?w=600'">
             </div>
             <div class="article-content">
                 <div class="article-meta">
@@ -245,9 +250,9 @@ function createArticleCard(article) {
                         <span><i class="fas fa-eye"></i> ${article.views || 0}</span>
                         <span><i class="fas fa-comment"></i> ${article.commentsCount || 0}</span>
                     </div>
-                    <button class="btn-read-more">
-                        Lire la suite <i class="fas fa-arrow-right"></i>
-                    </button>
+                    <span class="read-more-link">
+                        Lire <i class="fas fa-arrow-right"></i>
+                    </span>
                 </div>
             </div>
         </article>
@@ -259,6 +264,7 @@ function createArticleCard(article) {
 // ============================================
 function displayPagination() {
     const totalPages = Math.ceil(filteredArticles.length / ARTICLES_PER_PAGE);
+    pagination.innerHTML = '';
 
     if (totalPages <= 1) {
         pagination.classList.add('hidden');
@@ -266,7 +272,6 @@ function displayPagination() {
     }
 
     pagination.classList.remove('hidden');
-    pagination.innerHTML = '';
 
     const prevBtn = document.createElement('button');
     prevBtn.className = 'pagination-btn';
@@ -275,19 +280,45 @@ function displayPagination() {
     prevBtn.onclick   = () => changePage(currentPage - 1);
     pagination.appendChild(prevBtn);
 
-    for (let i = 1; i <= totalPages; i++) {
-        if (i === 1 || i === totalPages || (i >= currentPage - 1 && i <= currentPage + 1)) {
-            const btn = document.createElement('button');
-            btn.className = `pagination-btn ${i === currentPage ? 'active' : ''}`;
-            btn.textContent = i;
-            btn.onclick = () => changePage(i);
-            pagination.appendChild(btn);
-        } else if (i === currentPage - 2 || i === currentPage + 2) {
+    const startPage = Math.max(1, currentPage - 2);
+    const endPage   = Math.min(totalPages, currentPage + 2);
+
+    if (startPage > 1) {
+        const firstBtn = document.createElement('button');
+        firstBtn.className = 'pagination-btn';
+        firstBtn.textContent = '1';
+        firstBtn.onclick   = () => changePage(1);
+        pagination.appendChild(firstBtn);
+
+        if (startPage > 2) {
             const dots = document.createElement('span');
-            dots.className   = 'pagination-dots';
-            dots.textContent = '…';
+            dots.className = 'pagination-dots';
+            dots.textContent = '...';
             pagination.appendChild(dots);
         }
+    }
+
+    for (let i = startPage; i <= endPage; i++) {
+        const btn = document.createElement('button');
+        btn.className = `pagination-btn ${i === currentPage ? 'active' : ''}`;
+        btn.textContent = i;
+        btn.onclick = () => changePage(i);
+        pagination.appendChild(btn);
+    }
+
+    if (endPage < totalPages) {
+        if (endPage < totalPages - 1) {
+            const dots = document.createElement('span');
+            dots.className = 'pagination-dots';
+            dots.textContent = '...';
+            pagination.appendChild(dots);
+        }
+
+        const lastBtn = document.createElement('button');
+        lastBtn.className = 'pagination-btn';
+        lastBtn.textContent = totalPages;
+        lastBtn.onclick = () => changePage(totalPages);
+        pagination.appendChild(lastBtn);
     }
 
     const nextBtn = document.createElement('button');
@@ -309,9 +340,15 @@ function changePage(page) {
 // ============================================
 async function loadPopularArticles() {
     try {
-        const snapshot = await getDocs(
-            query(collection(db, 'articles'), orderBy('views', 'desc'), limit(5))
+        // 🔧 CORRECTION: Ne récupérer que les articles publiés
+        const q = query(
+            collection(db, 'articles'),
+            where('status', '==', 'published'),
+            orderBy('views', 'desc'),
+            limit(5)
         );
+        
+        const snapshot = await getDocs(q);
 
         popularArticles.innerHTML = snapshot.docs.map(doc => {
             const article    = { id: doc.id, ...doc.data() };
