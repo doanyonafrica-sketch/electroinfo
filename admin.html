@@ -1,36 +1,19 @@
 <!DOCTYPE html>
 <html lang="fr">
 <head>
-    <!-- Encodage et viewport -->
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    
-    <!-- Titre et description -->
-    <title>Administration | Électro-Actu</title>
-    <meta name="description" content="Panneau d'administration - Électro-Actu">
+    <title>Administration | ElectroInfo</title>
+    <meta name="description" content="Panneau d'administration - ElectroInfo">
     
     <!-- Favicons -->
     <link rel="icon" type="image/x-icon" href="/images/favicon.ico">
     <link rel="icon" type="image/png" sizes="48x48" href="/images/logo-small.png">
-    <link rel="icon" type="image/png" sizes="512x512" href="/images/logo.png">
-    <link rel="apple-touch-icon" sizes="180x180" href="/images/apple-touch-icon.png">
-
-    <!-- Open Graph (Facebook, LinkedIn) -->
-    <meta property="og:title" content="Administration | Électro-Actu">
-    <meta property="og:description" content="Panneau d'administration">
-    <meta property="og:image" content="https://electroinfo.online/images/logo.png">
-    <meta property="og:url" content="https://electroinfo.online">
-    <meta property="og:type" content="website">
     
-    <!-- Twitter Card -->
-    <meta name="twitter:card" content="summary_large_image">
-    <meta name="twitter:title" content="Administration | Électro-Actu">
-    <meta name="twitter:description" content="Panneau d'administration">
-    <meta name="twitter:image" content="https://electroinfo.online/images/logo.png">
-    
-    <!-- Styles - CHEMINS ABSOLUS -->
+    <!-- Styles -->
     <link rel="stylesheet" href="/styles.css">
     <link rel="stylesheet" href="/admin-styles.css">
+    <link rel="stylesheet" href="/admin-improvements.css">
     <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
     <link href="https://cdn.quilljs.com/1.3.6/quill.snow.css" rel="stylesheet">
 </head>
@@ -40,12 +23,17 @@
         <div class="container">
             <div class="nav-brand">
                 <i class="fas fa-user-shield"></i>
-                <span>ADMIN - ÉLECTRO-ACTU</span>
+                <span>ADMIN - ELECTROINFO</span>
             </div>
             <div class="nav-actions">
                 <a href="/index.html" class="btn btn-outline">
                     <i class="fas fa-home"></i> Accueil
                 </a>
+
+                  <a href="/admin-courses.html" class="btn btn-outline">
+                    <i class="fas fa-home"></i> Cours panelle
+                </a>
+
                 <button id="logoutBtn" class="btn btn-danger">
                     <i class="fas fa-sign-out-alt"></i> Déconnexion
                 </button>
@@ -53,7 +41,7 @@
         </div>
     </nav>
 
-    <!-- Loading / Vérification accès -->
+    <!-- Loading -->
     <div id="loadingSection" class="loading-section">
         <div class="loading-content">
             <i class="fas fa-spinner fa-spin loading-icon"></i>
@@ -67,7 +55,6 @@
             <i class="fas fa-ban error-icon"></i>
             <h2>Accès Refusé</h2>
             <p>Vous n'avez pas les droits administrateur.</p>
-            <p>Seuls les comptes avec le rôle "admin" peuvent accéder à cette page.</p>
             <a href="/index.html" class="btn btn-primary">
                 <i class="fas fa-home"></i> Retour à l'accueil
             </a>
@@ -97,7 +84,6 @@
                         <p class="stat-value" id="totalArticles">0</p>
                     </div>
                 </div>
-
                 <div class="stat-card">
                     <div class="stat-icon green">
                         <i class="fas fa-check-circle"></i>
@@ -107,7 +93,6 @@
                         <p class="stat-value" id="publishedArticles">0</p>
                     </div>
                 </div>
-
                 <div class="stat-card">
                     <div class="stat-icon yellow">
                         <i class="fas fa-clock"></i>
@@ -117,7 +102,6 @@
                         <p class="stat-value" id="scheduledArticles">0</p>
                     </div>
                 </div>
-
                 <div class="stat-card">
                     <div class="stat-icon purple">
                         <i class="fas fa-file-alt"></i>
@@ -189,33 +173,29 @@
                         <div class="form-row">
                             <div class="form-group">
                                 <label>Tags (séparés par des virgules)</label>
-                                <input type="text" id="tags" class="input" placeholder="électrique, innovation, technologie">
+                                <input type="text" id="tags" class="input" placeholder="Ex: électricité, innovation, IoT">
                             </div>
                         </div>
 
-                        <!-- 🆕 SECTION PUBLICATION -->
-                        <div class="card-divider"></div>
-                        
                         <div class="form-row">
                             <div class="form-group">
-                                <label><i class="fas fa-broadcast-tower"></i> Statut de publication *</label>
+                                <label>Statut de publication</label>
                                 <select id="publicationStatus" class="input" onchange="toggleScheduleFields()">
-                                    <option value="published">✅ Publier immédiatement</option>
-                                    <option value="scheduled">⏰ Programmer la publication</option>
-                                    <option value="draft">📝 Enregistrer comme brouillon</option>
+                                    <option value="published">Publier immédiatement</option>
+                                    <option value="draft">Enregistrer comme brouillon</option>
+                                    <option value="scheduled">Programmer la publication</option>
                                 </select>
                             </div>
                         </div>
 
-                        <!-- Champs de programmation (cachés par défaut) -->
                         <div id="scheduleFields" class="form-row" style="display: none;">
                             <div class="form-group">
-                                <label><i class="fas fa-calendar-alt"></i> Date de publication</label>
+                                <label>Date de publication</label>
                                 <input type="date" id="scheduleDate" class="input">
                             </div>
                             <div class="form-group">
-                                <label><i class="fas fa-clock"></i> Heure de publication</label>
-                                <input type="time" id="scheduleTime" class="input" value="08:00">
+                                <label>Heure de publication</label>
+                                <input type="time" id="scheduleTime" class="input">
                             </div>
                         </div>
 
@@ -239,53 +219,77 @@
                 </div>
             </div>
 
-            <!-- 🆕 SECTION : ARTICLES PUBLIÉS -->
-            <div class="card">
-                <div class="card-header">
-                    <h2><i class="fas fa-check-circle"></i> Articles Publiés</h2>
-                    <span class="count-badge" id="publishedCount">0</span>
+            <!-- Barre de recherche -->
+            <div class="search-articles-section">
+                <div class="search-bar-admin">
+                    <i class="fas fa-search"></i>
+                    <input 
+                        type="text" 
+                        id="adminSearchInput" 
+                        placeholder="Rechercher un article par titre, catégorie ou tag..."
+                        class="search-input-admin"
+                    >
+                    <button id="clearSearch" class="btn-clear-search hidden" onclick="clearAdminSearch()">
+                        <i class="fas fa-times"></i>
+                    </button>
                 </div>
-                <div class="card-body">
-                    <div id="publishedArticlesList">
-                        <div class="loading">
-                            <i class="fas fa-spinner fa-spin"></i>
-                            <p>Chargement...</p>
-                        </div>
+                <div id="searchResultsCount" class="search-results-count hidden"></div>
+            </div>
+
+            <!-- Articles Publiés -->
+            <div class="card accordion-card">
+                <div class="card-header accordion-header" onclick="toggleAccordion('published')">
+                    <div class="accordion-title">
+                        <i class="fas fa-chevron-down accordion-icon" id="publishedIcon"></i>
+                        <h2><i class="fas fa-check-circle"></i> Articles Publiés</h2>
+                        <span class="count-badge" id="publishedCount">0</span>
                     </div>
+                </div>
+                <div class="card-body accordion-body" id="publishedAccordion">
+                    <div id="publishedArticlesList">
+                        <div class="loading"><i class="fas fa-spinner fa-spin"></i><p>Chargement...</p></div>
+                    </div>
+                    <div id="publishedPagination" class="admin-pagination hidden"></div>
                 </div>
             </div>
 
-            <!-- 🆕 SECTION : ARTICLES PROGRAMMÉS -->
-            <div class="card">
-                <div class="card-header">
-                    <h2><i class="fas fa-clock"></i> Articles Programmés</h2>
-                    <span class="count-badge" id="scheduledCount">0</span>
+            <!-- Articles Programmés -->
+            <div class="card accordion-card">
+                <div class="card-header accordion-header" onclick="toggleAccordion('scheduled')">
+                    <div class="accordion-title">
+                        <i class="fas fa-chevron-down accordion-icon" id="scheduledIcon"></i>
+                        <h2><i class="fas fa-clock"></i> Articles Programmés</h2>
+                        <span class="count-badge" id="scheduledCount">0</span>
+                    </div>
                 </div>
-                <div class="card-body">
+                <div class="card-body accordion-body" id="scheduledAccordion">
                     <div id="scheduledArticlesList">
                         <div class="empty-state">
                             <i class="fas fa-clock"></i>
                             <p>Aucun article programmé</p>
-                            <small>Les articles programmés apparaîtront ici</small>
                         </div>
                     </div>
+                    <div id="scheduledPagination" class="admin-pagination hidden"></div>
                 </div>
             </div>
 
-            <!-- 🆕 SECTION : BROUILLONS -->
-            <div class="card">
-                <div class="card-header">
-                    <h2><i class="fas fa-file-alt"></i> Brouillons</h2>
-                    <span class="count-badge" id="draftsCount">0</span>
+            <!-- Brouillons -->
+            <div class="card accordion-card">
+                <div class="card-header accordion-header" onclick="toggleAccordion('drafts')">
+                    <div class="accordion-title">
+                        <i class="fas fa-chevron-down accordion-icon" id="draftsIcon"></i>
+                        <h2><i class="fas fa-file-alt"></i> Brouillons</h2>
+                        <span class="count-badge" id="draftsCount">0</span>
+                    </div>
                 </div>
-                <div class="card-body">
+                <div class="card-body accordion-body" id="draftsAccordion">
                     <div id="draftsArticlesList">
                         <div class="empty-state">
                             <i class="fas fa-file-alt"></i>
                             <p>Aucun brouillon</p>
-                            <small>Vos brouillons apparaîtront ici</small>
                         </div>
                     </div>
+                    <div id="draftsPagination" class="admin-pagination hidden"></div>
                 </div>
             </div>
 
@@ -300,12 +304,8 @@
                             <i class="fas fa-download"></i> Exporter CSV
                         </button>
                     </div>
-
                     <div id="newsletterList">
-                        <div class="loading">
-                            <i class="fas fa-spinner fa-spin"></i>
-                            <p>Chargement...</p>
-                        </div>
+                        <div class="loading"><i class="fas fa-spinner fa-spin"></i><p>Chargement...</p></div>
                     </div>
                 </div>
             </div>
@@ -335,10 +335,8 @@
     <!-- Notification -->
     <div id="notification" class="notification hidden"></div>
 
-    <!-- Quill Editor -->
+    <!-- Scripts -->
     <script src="https://cdn.quilljs.com/1.3.6/quill.js"></script>
-
-    <!-- Script pour gérer les champs de programmation -->
     <script>
         function toggleScheduleFields() {
             const status = document.getElementById('publicationStatus').value;
@@ -354,12 +352,7 @@
             } else {
                 scheduleFields.style.display = 'none';
                 scheduleInfo.style.display = 'none';
-                
-                if (status === 'draft') {
-                    submitBtn.textContent = 'Enregistrer brouillon';
-                } else {
-                    submitBtn.textContent = 'Publier';
-                }
+                submitBtn.textContent = status === 'draft' ? 'Enregistrer brouillon' : 'Publier';
             }
         }
         
@@ -370,33 +363,23 @@
             
             if (dateInput.value && timeInput.value) {
                 const date = new Date(dateInput.value + 'T' + timeInput.value);
-                const options = { 
-                    weekday: 'long', 
-                    year: 'numeric', 
-                    month: 'long', 
-                    day: 'numeric',
-                    hour: '2-digit',
-                    minute: '2-digit'
-                };
+                const options = { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric', hour: '2-digit', minute: '2-digit' };
                 preview.textContent = 'L\'article sera publié le ' + date.toLocaleDateString('fr-FR', options);
             }
         }
         
-        // Écouter les changements de date/heure
         document.addEventListener('DOMContentLoaded', function() {
             const dateInput = document.getElementById('scheduleDate');
             const timeInput = document.getElementById('scheduleTime');
             
-            if (dateInput) dateInput.addEventListener('change', updateSchedulePreview);
+            if (dateInput) {
+                dateInput.addEventListener('change', updateSchedulePreview);
+                dateInput.setAttribute('min', new Date().toISOString().split('T')[0]);
+            }
             if (timeInput) timeInput.addEventListener('change', updateSchedulePreview);
-            
-            // Définir la date minimale à aujourd'hui
-            const today = new Date().toISOString().split('T')[0];
-            if (dateInput) dateInput.setAttribute('min', today);
         });
     </script>
-
-    <!-- Firebase & Script -->
     <script type="module" src="/admin.js"></script>
+    <script type="module" src="/admin-enhancements.js"></script>
 </body>
 </html>

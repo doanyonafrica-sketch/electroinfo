@@ -13,14 +13,13 @@ import {
 // CONFIGURATION FIREBASE
 // ============================================
 const firebaseConfig = {
-    apiKey: "AIzaSyAlBDedWLbHG-3UnijsSfocm77sNpn15Wg",
-    authDomain: "electroactu-b6050.firebaseapp.com",
-    projectId: "electroactu-b6050",
-    storageBucket: "electroactu-b6050.firebasestorage.app",
-    messagingSenderId: "890343912768",
-    appId: "1:890343912768:web:87de595f6df3c3f434f6a5"
+  apiKey: "AIzaSyCuFgzytJXD6jt4HUW9LVSD_VpGuFfcEAk",
+  authDomain: "electroino-app.firebaseapp.com",
+  projectId: "electroino-app",
+  storageBucket: "electroino-app.firebasestorage.app",
+  messagingSenderId: "864058526638",
+  appId: "1:864058526638:web:17b821633c7cc99be1563f"
 };
-
 const app  = initializeApp(firebaseConfig);
 const db   = getFirestore(app);
 const auth = getAuth(app);
@@ -118,17 +117,29 @@ async function loadArticles() {
         articlesGrid.innerHTML =
             '<div class="loading"><i class="fas fa-spinner fa-spin"></i><p>Chargement...</p></div>';
 
-        // 🔧 CORRECTION: Ne récupérer que les articles publiés
+        // 🔧 CORRECTION: Charger TOUS les articles puis filtrer côté client
+        // Cela évite les erreurs d'index Firestore
         const q = query(
             collection(db, 'articles'),
-            where('status', '==', 'published'),
             orderBy('createdAt', 'desc')
         );
         
         const snapshot = await getDocs(q);
 
-        allArticles = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
+        // Filtrer pour ne garder que les articles publiés
+        // Un article est considéré comme publié si :
+        // - status === 'published' OU
+        // - status n'existe pas (anciens articles)
+        allArticles = snapshot.docs
+            .map(doc => ({ id: doc.id, ...doc.data() }))
+            .filter(article => {
+                const status = article.status || 'published'; // Par défaut: published
+                return status === 'published';
+            });
+
         filteredArticles = [...allArticles];
+
+        console.log(`📰 ${allArticles.length} articles publiés chargés`);
 
         // Filtre par catégorie depuis l'URL
         const categoryParam = new URLSearchParams(window.location.search).get('category');
@@ -340,18 +351,21 @@ function changePage(page) {
 // ============================================
 async function loadPopularArticles() {
     try {
-        // 🔧 CORRECTION: Ne récupérer que les articles publiés
-        const q = query(
-            collection(db, 'articles'),
-            where('status', '==', 'published'),
-            orderBy('views', 'desc'),
-            limit(5)
+        // 🔧 CORRECTION: Charger tous les articles puis filtrer et trier côté client
+        const snapshot = await getDocs(
+            query(collection(db, 'articles'), orderBy('views', 'desc'), limit(20))
         );
-        
-        const snapshot = await getDocs(q);
 
-        popularArticles.innerHTML = snapshot.docs.map(doc => {
-            const article    = { id: doc.id, ...doc.data() };
+        // Filtrer pour ne garder que les articles publiés
+        const published = snapshot.docs
+            .map(doc => ({ id: doc.id, ...doc.data() }))
+            .filter(article => {
+                const status = article.status || 'published';
+                return status === 'published';
+            })
+            .slice(0, 5); // Garder les 5 premiers
+
+        popularArticles.innerHTML = published.map(article => {
             const imgUrl     = article.imageUrl ||
                 'https://images.unsplash.com/photo-1518770660439-4636190af475?w=400';
             const articleUrl = article.slug
