@@ -5,12 +5,12 @@ import { getFirestore, collection, addDoc, getDocs, doc, getDoc, updateDoc, dele
 
 // Configuration Firebase
 const firebaseConfig = {
-    apiKey: "AIzaSyAlBDedWLbHG-3UnijsSfocm77sNpn15Wg",
-    authDomain: "electroactu-b6050.firebaseapp.com",
-    projectId: "electroactu-b6050",
-    storageBucket: "electroactu-b6050.firebasestorage.app",
-    messagingSenderId: "890343912768",
-    appId: "1:890343912768:web:87de595f6df3c3f434f6a5"
+    apiKey: "AIzaSyCuFgzytJXD6jt4HUW9LVSD_VpGuFfcEAk",
+    authDomain: "electroino-app.firebaseapp.com",
+    projectId: "electroino-app",
+    storageBucket: "electroino-app.firebasestorage.app",
+    messagingSenderId: "864058526638",
+    appId: "1:864058526638:web:17b821633c7cc99be1563f"
 };
 
 // Initialisation
@@ -140,7 +140,7 @@ onAuthStateChanged(auth, async (user) => {
 
         const userData = userDoc.data();
 
-        if (userData.role !== 'admin') {
+        if (userData.role !== 'admin' && userData.role !== 'superadmin') {
             showAccessDenied();
             return;
         }

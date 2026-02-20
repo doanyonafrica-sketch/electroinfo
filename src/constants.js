@@ -83,8 +83,8 @@ export const ARTICLE_CATEGORIES = {
     NEWS: 'NOUVEAUTÉ',
     TUTORIAL: 'TUTO',
     DOMOTICS: 'DOMOTIQUE'
+   
 };
-
 /**
  * Configuration des catégories avec couleurs et icônes
  * @constant {Object}

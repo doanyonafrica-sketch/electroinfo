@@ -5,7 +5,7 @@ import { getAuth, onAuthStateChanged, signOut } from 'https://www.gstatic.com/fi
 
 // Configuration Firebase
 
-const firebaseConfig = {
+  const firebaseConfig = {
   apiKey: "AIzaSyCuFgzytJXD6jt4HUW9LVSD_VpGuFfcEAk",
   authDomain: "electroino-app.firebaseapp.com",
   projectId: "electroino-app",

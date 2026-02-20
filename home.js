@@ -12,7 +12,6 @@ const firebaseConfig = {
   messagingSenderId: "864058526638",
   appId: "1:864058526638:web:17b821633c7cc99be1563f"
 };
-
 // Initialisation
 const app = initializeApp(firebaseConfig);
 const db = getFirestore(app);
@@ -52,7 +51,7 @@ onAuthStateChanged(auth, async (user) => {
             const userDoc = await getDocs(query(collection(db, 'users'), where('__name__', '==', user.uid)));
             if (!userDoc.empty) {
                 const userData = userDoc.docs[0].data();
-                if (userData.role === 'admin') {
+                if (userData.role === 'admin' || userData.role === 'superadmin') {
                     adminLink.classList.remove('hidden');
                     adminDivider.classList.remove('hidden');
                 }

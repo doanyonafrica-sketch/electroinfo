@@ -3,14 +3,13 @@ import { initializeApp } from 'https://www.gstatic.com/firebasejs/10.7.1/firebas
 import { getFirestore, doc, getDoc } from 'https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js';
 import { getAuth, onAuthStateChanged, signOut } from 'https://www.gstatic.com/firebasejs/10.7.1/firebase-auth.js';
 
-// Configuration Firebase
 const firebaseConfig = {
-    apiKey: "AIzaSyAlBDedWLbHG-3UnijsSfocm77sNpn15Wg",
-    authDomain: "electroactu-b6050.firebaseapp.com",
-    projectId: "electroactu-b6050",
-    storageBucket: "electroactu-b6050.firebasestorage.app",
-    messagingSenderId: "890343912768",
-    appId: "1:890343912768:web:87de595f6df3c3f434f6a5"
+  apiKey: "AIzaSyCuFgzytJXD6jt4HUW9LVSD_VpGuFfcEAk",
+  authDomain: "electroino-app.firebaseapp.com",
+  projectId: "electroino-app",
+  storageBucket: "electroino-app.firebasestorage.app",
+  messagingSenderId: "864058526638",
+  appId: "1:864058526638:web:17b821633c7cc99be1563f"
 };
 
 // Initialisation
