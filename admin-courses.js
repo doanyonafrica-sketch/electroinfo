@@ -51,7 +51,7 @@ let allCourses = [];
 // ============================================
 onAuthStateChanged(auth, async (user) => {
     if (!user) {
-        window.location.href = 'auth.html';
+        window.location.href = 'auth.html?redirect=admin-courses.html';
         return;
     }
 
@@ -61,7 +61,8 @@ onAuthStateChanged(auth, async (user) => {
         const userDocRef = doc(db, 'users', user.uid);
         const userDoc = await getDoc(userDocRef);
         
-        if (!userDoc.exists() || userDoc.data().role !== 'admin') {
+        const role = userDoc.data()?.role;
+        if (!userDoc.exists() || (role !== 'admin' && role !== 'superadmin')) {
             alert('Accès refusé. Vous devez être administrateur.');
             window.location.href = 'index.html';
             return;
