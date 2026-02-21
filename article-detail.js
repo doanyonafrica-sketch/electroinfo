@@ -28,7 +28,7 @@ const db  = getFirestore(app);
 // ============================================
 const urlParams      = new URLSearchParams(window.location.search);
 const articleIdParam = urlParams.get('id');
-const slugParam      = urlParams.get('slug'); // GitHub Pages 404 redirect
+const slugParam      = urlParams.get('slug') ? decodeURIComponent(urlParams.get('slug')) : null; // GitHub Pages 404 redirect
 const lastSegment    = window.location.pathname.split('/').filter(Boolean).pop() || '';
 
 const isSlug = !articleIdParam &&
@@ -136,6 +136,7 @@ function initUserToken() {
 // CHARGEMENT PAR SLUG
 // ============================================
 async function loadArticleBySlug(slug) {
+    console.log('🔍 Recherche slug:', slug);
     try {
         const q   = query(collection(db, 'articles'), where('slug', '==', slug), limit(1));
         const snap = await getDocs(q);
