@@ -69,7 +69,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
     if (!identifier) { showError(); return; }
 
-    isSlug
+    (slugParam || isSlug)
         ? loadArticleBySlug(identifier)
         : loadArticleById(identifier);
 });
