@@ -51,7 +51,7 @@ let allCourses = [];
 // ============================================
 onAuthStateChanged(auth, async (user) => {
     if (!user) {
-        window.location.href = 'auth.html?redirect=admin-courses.html';
+        window.location.href = 'auth.html';
         return;
     }
 
@@ -61,8 +61,7 @@ onAuthStateChanged(auth, async (user) => {
         const userDocRef = doc(db, 'users', user.uid);
         const userDoc = await getDoc(userDocRef);
         
-        const role = userDoc.data()?.role;
-        if (!userDoc.exists() || (role !== 'admin' && role !== 'superadmin')) {
+        if (!userDoc.exists() || userDoc.data().role !== 'admin') {
             alert('Accès refusé. Vous devez être administrateur.');
             window.location.href = 'index.html';
             return;
@@ -327,15 +326,27 @@ function addSequenceToForm(sequenceData = null, index = 0) {
     `;
     
     container.appendChild(sequenceDiv);
+    
+    // Init CodeMirror pour chaque séance existante
+    const sessions = sequenceData?.sessions || [];
+    sessions.forEach((_, sIndex) => {
+        const editorId = `cm-editor-${index}-${sIndex}`;
+        const hiddenId = `cm-hidden-${index}-${sIndex}`;
+        setTimeout(() => initCodeMirrorForSession(editorId, hiddenId), 50);
+    });
 }
 
 // ============================================
-// CRÉER HTML POUR UNE SÉANCE - 3 MÉTHODES PDF
+// CRÉER HTML POUR UNE SÉANCE - ÉDITEUR CODE + 3 MÉTHODES PDF
 // ============================================
 function createSessionHtml(seqIndex, sessionIndex, sessionData = null) {
     const pdfMethod = sessionData?.pdfMethod || 'none';
     const pdfValue = sessionData?.pdfUrl || '';
-    
+    const editorId = `cm-editor-${seqIndex}-${sessionIndex}`;
+    const hiddenId = `cm-hidden-${seqIndex}-${sessionIndex}`;
+    const previewId = `cm-preview-${seqIndex}-${sessionIndex}`;
+    const content = sessionData?.content || '';
+
     return `
         <div class="session-item" data-seq="${seqIndex}" data-session="${sessionIndex}">
             <div class="session-header">
@@ -350,16 +361,39 @@ function createSessionHtml(seqIndex, sessionIndex, sessionData = null) {
                 <input type="text" class="session-title" value="${escapeHtml(sessionData?.title || '')}" placeholder="Ex: Les bases de l'électricité">
             </div>
             
+            <!-- ÉDITEUR HTML AVANCÉ -->
             <div class="form-group">
-                <label>Contenu (HTML)</label>
-                <textarea class="session-content" rows="6" placeholder="<h2>Introduction</h2><p>Contenu de la séance...</p>">${escapeHtml(sessionData?.content || '')}</textarea>
+                <div class="editor-toolbar">
+                    <span class="editor-label"><i class="fas fa-code"></i> Contenu HTML de la séance</span>
+                    <div class="editor-actions">
+                        <button type="button" class="editor-btn" onclick="insertSnippet('${editorId}', 'heading')" title="Titre h2">H2</button>
+                        <button type="button" class="editor-btn" onclick="insertSnippet('${editorId}', 'paragraph')" title="Paragraphe"><i class="fas fa-paragraph"></i></button>
+                        <button type="button" class="editor-btn" onclick="insertSnippet('${editorId}', 'table')" title="Tableau"><i class="fas fa-table"></i></button>
+                        <button type="button" class="editor-btn" onclick="insertSnippet('${editorId}', 'image')" title="Image"><i class="fas fa-image"></i></button>
+                        <button type="button" class="editor-btn" onclick="insertSnippet('${editorId}', 'list')" title="Liste"><i class="fas fa-list"></i></button>
+                        <button type="button" class="editor-btn" onclick="insertSnippet('${editorId}', 'alert')" title="Alerte"><i class="fas fa-exclamation-circle"></i></button>
+                        <button type="button" class="editor-btn" onclick="insertSnippet('${editorId}', 'grid')" title="Grille"><i class="fas fa-th"></i></button>
+                        <button type="button" class="editor-btn btn-format" onclick="formatCode('${editorId}')" title="Formater"><i class="fas fa-magic"></i></button>
+                        <button type="button" class="editor-btn btn-preview" onclick="togglePreview('${editorId}', '${previewId}')" title="Aperçu"><i class="fas fa-eye"></i> Aperçu</button>
+                    </div>
+                </div>
+                <div class="editor-container">
+                    <div id="${editorId}" class="codemirror-wrapper"></div>
+                    <textarea id="${hiddenId}" class="session-content" style="display:none;">${escapeHtml(content)}</textarea>
+                </div>
+                <div id="${previewId}" class="html-preview hidden">
+                    <div class="preview-header"><i class="fas fa-eye"></i> Aperçu du rendu</div>
+                    <div class="preview-body"></div>
+                </div>
+                <div class="editor-footer">
+                    <span class="char-count" id="count-${editorId}">0 caractères</span>
+                    <span class="editor-hint">💡 Collez votre HTML complet ici — tables, flex, grid, images, styles inline supportés</span>
+                </div>
             </div>
             
-            <!-- NOUVELLE SECTION : 3 MÉTHODES PDF -->
+            <!-- 3 MÉTHODES PDF -->
             <div class="form-group pdf-methods">
                 <label>📄 Document PDF (optionnel)</label>
-                
-                <!-- Sélecteur de méthode -->
                 <div class="pdf-method-selector">
                     <label class="radio-option">
                         <input type="radio" name="pdf-method-${seqIndex}-${sessionIndex}" value="none" 
@@ -367,63 +401,165 @@ function createSessionHtml(seqIndex, sessionIndex, sessionData = null) {
                             onchange="changePdfMethod(this, ${seqIndex}, ${sessionIndex})">
                         <span>🚫 Aucun PDF</span>
                     </label>
-                    
                     <label class="radio-option">
                         <input type="radio" name="pdf-method-${seqIndex}-${sessionIndex}" value="github" 
                             ${pdfMethod === 'github' ? 'checked' : ''} 
                             onchange="changePdfMethod(this, ${seqIndex}, ${sessionIndex})">
-                        <span>📁 Dossier GitHub (cours-pdf/)</span>
+                        <span>📁 Dossier GitHub</span>
                     </label>
-                    
                     <label class="radio-option">
                         <input type="radio" name="pdf-method-${seqIndex}-${sessionIndex}" value="firebase" 
                             ${pdfMethod === 'firebase' ? 'checked' : ''} 
                             onchange="changePdfMethod(this, ${seqIndex}, ${sessionIndex})">
                         <span>🔥 Firebase Storage</span>
                     </label>
-                    
                     <label class="radio-option">
                         <input type="radio" name="pdf-method-${seqIndex}-${sessionIndex}" value="url" 
                             ${pdfMethod === 'url' ? 'checked' : ''} 
                             onchange="changePdfMethod(this, ${seqIndex}, ${sessionIndex})">
-                        <span>🔗 Lien URL externe</span>
+                        <span>🔗 URL externe</span>
                     </label>
                 </div>
-                
-                <!-- Option 1 : GitHub (chemin du fichier) -->
                 <div class="pdf-input pdf-github ${pdfMethod === 'github' ? '' : 'hidden'}" data-method="github">
                     <label>Nom du fichier dans cours-pdf/</label>
-                    <input type="text" class="pdf-github-path" 
-                        value="${pdfMethod === 'github' ? pdfValue : ''}" 
-                        placeholder="Ex: electricite-chap1.pdf">
-                    <small>📁 Le fichier doit être dans le dossier <code>cours-pdf/</code></small>
-                    <small>💡 URL finale : <code>cours-pdf/electricite-chap1.pdf</code></small>
+                    <input type="text" class="pdf-github-path" value="${pdfMethod === 'github' ? pdfValue : ''}" placeholder="Ex: electricite-chap1.pdf">
+                    <small>📁 Fichier dans <code>cours-pdf/</code> sur GitHub</small>
                 </div>
-                
-                <!-- Option 2 : Firebase Storage (upload) -->
                 <div class="pdf-input pdf-firebase ${pdfMethod === 'firebase' ? '' : 'hidden'}" data-method="firebase">
                     <input type="file" class="pdf-firebase-file" accept=".pdf">
-                    ${sessionData?.pdfUrl && pdfMethod === 'firebase' ? `
-                        <div class="current-file">
-                            <i class="fas fa-file-pdf"></i>
-                            <a href="${sessionData.pdfUrl}" target="_blank">PDF actuel</a>
-                        </div>
-                    ` : ''}
+                    ${sessionData?.pdfUrl && pdfMethod === 'firebase' ? `<div class="current-file"><i class="fas fa-file-pdf"></i> <a href="${sessionData.pdfUrl}" target="_blank">PDF actuel</a></div>` : ''}
                     <input type="hidden" class="pdf-firebase-url" value="${pdfMethod === 'firebase' ? pdfValue : ''}">
                 </div>
-                
-                <!-- Option 3 : URL externe -->
                 <div class="pdf-input pdf-url ${pdfMethod === 'url' ? '' : 'hidden'}" data-method="url">
                     <label>URL complète du PDF</label>
-                    <input type="url" class="pdf-url-input" 
-                        value="${pdfMethod === 'url' ? pdfValue : ''}" 
-                        placeholder="https://example.com/document.pdf">
-                    <small>🔗 Collez l'URL complète du PDF hébergé ailleurs</small>
+                    <input type="url" class="pdf-url-input" value="${pdfMethod === 'url' ? pdfValue : ''}" placeholder="https://example.com/document.pdf">
+                    <small>🔗 URL directe vers un PDF hébergé ailleurs</small>
                 </div>
             </div>
         </div>
     `;
 }
+
+// ============================================
+// INITIALISER CODEMIRROR SUR UNE SÉANCE
+// ============================================
+window.initCodeMirrorForSession = function(editorId, hiddenId) {
+    const wrapper = document.getElementById(editorId);
+    const hidden = document.getElementById(hiddenId);
+    if (!wrapper || !hidden) return;
+
+    // Créer le textarea CodeMirror
+    const textarea = document.createElement('textarea');
+    textarea.value = hidden.value
+        ? hidden.value
+            .replace(/&lt;/g, '<')
+            .replace(/&gt;/g, '>')
+            .replace(/&amp;/g, '&')
+            .replace(/&#39;/g, "'")
+            .replace(/&quot;/g, '"')
+        : '';
+    wrapper.appendChild(textarea);
+
+    const cm = CodeMirror.fromTextArea(textarea, {
+        mode: 'htmlmixed',
+        theme: 'dracula',
+        lineNumbers: true,
+        lineWrapping: true,
+        autoCloseTags: true,
+        autoCloseBrackets: true,
+        matchTags: { bothTags: true },
+        foldGutter: true,
+        gutters: ['CodeMirror-linenumbers', 'CodeMirror-foldgutter'],
+        extraKeys: {
+            'Ctrl-Space': 'autocomplete',
+            'Ctrl-/': 'toggleComment',
+            'Ctrl-F': 'findPersistent',
+            'Tab': function(cm) {
+                const spaces = Array(cm.getOption('indentUnit') + 1).join(' ');
+                cm.replaceSelection(spaces);
+            }
+        },
+        indentUnit: 4,
+        tabSize: 4,
+        scrollbarStyle: 'overlay'
+    });
+
+    cm.setSize('100%', '350px');
+
+    // Sync CodeMirror → hidden textarea
+    cm.on('change', function() {
+        hidden.value = cm.getValue();
+        const count = document.getElementById(`count-${editorId}`);
+        if (count) count.textContent = cm.getValue().length + ' caractères';
+    });
+
+    // Initialiser le compteur
+    const count = document.getElementById(`count-${editorId}`);
+    if (count) count.textContent = cm.getValue().length + ' caractères';
+
+    // Stocker l'instance
+    window._cmInstances = window._cmInstances || {};
+    window._cmInstances[editorId] = cm;
+};
+
+// ============================================
+// SNIPPETS HTML PRÉDÉFINIS
+// ============================================
+window.insertSnippet = function(editorId, type) {
+    const cm = window._cmInstances?.[editorId];
+    if (!cm) return;
+
+    const snippets = {
+        heading: `<h2 style="border-bottom: 2px solid #0056b3; color: #0056b3; padding-bottom: 5px;">Titre de section</h2>\n`,
+        paragraph: `<p>Votre paragraphe ici...</p>\n`,
+        table: `<table style="width:100%; border-collapse:collapse; margin:20px 0;">\n    <thead>\n        <tr style="background:#f2f2f2;">\n            <th style="border:1px solid #ddd; padding:12px;">Colonne 1</th>\n            <th style="border:1px solid #ddd; padding:12px;">Colonne 2</th>\n            <th style="border:1px solid #ddd; padding:12px;">Colonne 3</th>\n        </tr>\n    </thead>\n    <tbody>\n        <tr>\n            <td style="border:1px solid #ddd; padding:12px;">Donnée 1</td>\n            <td style="border:1px solid #ddd; padding:12px;">Donnée 2</td>\n            <td style="border:1px solid #ddd; padding:12px;">Donnée 3</td>\n        </tr>\n    </tbody>\n</table>\n`,
+        image: `<div style="text-align:center; margin:20px 0;">\n    <img src="https://URL_IMAGE" alt="Description" style="width:100%; max-width:600px; border-radius:10px; box-shadow:0 4px 8px rgba(0,0,0,0.1);">\n    <p style="font-size:0.9em; color:#666;">Légende de l'image</p>\n</div>\n`,
+        list: `<ul style="line-height:2;">\n    <li><strong>Élément 1 :</strong> Description.</li>\n    <li><strong>Élément 2 :</strong> Description.</li>\n    <li><strong>Élément 3 :</strong> Description.</li>\n</ul>\n`,
+        alert: `<div style="margin:20px 0; padding:20px; border-left:5px solid #ff9800; background:#fff4e5; border-radius:4px;">\n    <strong>⚠️ Important :</strong> Votre message d'alerte ici.\n</div>\n`,
+        grid: `<div style="display:grid; grid-template-columns:repeat(auto-fit, minmax(200px, 1fr)); gap:15px; margin:20px 0;">\n    <div style="padding:15px; border:1px solid #eee; text-align:center; border-bottom:4px solid #0056b3;">\n        <strong>Titre 1</strong><br>Contenu 1\n    </div>\n    <div style="padding:15px; border:1px solid #eee; text-align:center; border-bottom:4px solid #0056b3;">\n        <strong>Titre 2</strong><br>Contenu 2\n    </div>\n    <div style="padding:15px; border:1px solid #eee; text-align:center; border-bottom:4px solid #0056b3;">\n        <strong>Titre 3</strong><br>Contenu 3\n    </div>\n</div>\n`,
+    };
+
+    const snippet = snippets[type];
+    if (snippet) {
+        const cursor = cm.getCursor();
+        cm.replaceRange(snippet, cursor);
+        cm.focus();
+    }
+};
+
+// ============================================
+// FORMATER LE CODE HTML
+// ============================================
+window.formatCode = function(editorId) {
+    const cm = window._cmInstances?.[editorId];
+    if (!cm) return;
+    
+    let code = cm.getValue();
+    // Indentation simple : ajouter des sauts de ligne après les balises block
+    const blockTags = ['div', 'section', 'header', 'footer', 'table', 'thead', 'tbody', 'tr', 'ul', 'ol', 'li', 'h1', 'h2', 'h3', 'h4', 'p'];
+    blockTags.forEach(tag => {
+        code = code.replace(new RegExp(`></${tag}>`, 'gi'), `>\n</${tag}>`);
+        code = code.replace(new RegExp(`<${tag}([^>]*)>`, 'gi'), `\n<${tag}$1>`);
+    });
+    code = code.replace(/\n{3,}/g, '\n\n').trim();
+    cm.setValue(code);
+};
+
+// ============================================
+// APERÇU HTML EN DIRECT
+// ============================================
+window.togglePreview = function(editorId, previewId) {
+    const cm = window._cmInstances?.[editorId];
+    const previewEl = document.getElementById(previewId);
+    if (!cm || !previewEl) return;
+
+    if (previewEl.classList.contains('hidden')) {
+        previewEl.querySelector('.preview-body').innerHTML = cm.getValue();
+        previewEl.classList.remove('hidden');
+    } else {
+        previewEl.classList.add('hidden');
+    }
+};
 
 // ============================================
 // CHANGER LA MÉTHODE PDF
@@ -452,13 +588,15 @@ window.addSession = function(seqIndex) {
     const sessionsContainer = document.getElementById(`sessions-${seqIndex}`);
     const sessionCount = sessionsContainer.querySelectorAll('.session-item').length;
     
-    const sessionDiv = document.createElement('div');
-    sessionDiv.innerHTML = createSessionHtml(seqIndex, sessionCount);
-    sessionDiv.className = sessionDiv.firstElementChild.className;
-    sessionDiv.dataset.seq = seqIndex;
-    sessionDiv.dataset.session = sessionCount;
+    const wrapper = document.createElement('div');
+    wrapper.innerHTML = createSessionHtml(seqIndex, sessionCount);
+    const sessionEl = wrapper.firstElementChild;
+    sessionsContainer.appendChild(sessionEl);
     
-    sessionsContainer.appendChild(sessionDiv.firstElementChild);
+    // Init CodeMirror
+    const editorId = `cm-editor-${seqIndex}-${sessionCount}`;
+    const hiddenId = `cm-hidden-${seqIndex}-${sessionCount}`;
+    setTimeout(() => initCodeMirrorForSession(editorId, hiddenId), 50);
 };
 
 // ============================================
