@@ -15,7 +15,8 @@ import {
 } from 'https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js';
 import { 
     getAuth, 
-    onAuthStateChanged 
+    onAuthStateChanged,
+    signOut
 } from 'https://www.gstatic.com/firebasejs/10.7.1/firebase-auth.js';
 import { 
     getStorage, 
@@ -72,6 +73,16 @@ onAuthStateChanged(auth, async (user) => {
     } catch (error) {
         console.error('Erreur vérification admin:', error);
         window.location.href = 'index.html';
+    }
+});
+
+// DÉCONNEXION
+document.getElementById('logoutBtn')?.addEventListener('click', async () => {
+    try {
+        await signOut(auth);
+        window.location.href = 'index.html';
+    } catch (error) {
+        console.error('Erreur déconnexion:', error);
     }
 });
 
