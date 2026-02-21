@@ -28,15 +28,18 @@ const db  = getFirestore(app);
 // ============================================
 const urlParams      = new URLSearchParams(window.location.search);
 const articleIdParam = urlParams.get('id');
+const slugParam      = urlParams.get('slug'); // GitHub Pages 404 redirect
 const lastSegment    = window.location.pathname.split('/').filter(Boolean).pop() || '';
 
 const isSlug = !articleIdParam &&
+    !slugParam &&
     lastSegment !== '' &&
     !lastSegment.includes('.html') &&
     lastSegment !== 'article' &&
     lastSegment !== 'article-detail';
 
-const identifier = articleIdParam || (isSlug ? lastSegment : null);
+// Priorité : ?id= > ?slug= > slug dans le path
+const identifier = articleIdParam || slugParam || (isSlug ? lastSegment : null);
 
 // ============================================
 // ÉTAT GLOBAL
