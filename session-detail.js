@@ -1,12 +1,11 @@
 // session-detail.js
-// Affiche le contenu d'une séance en pleine page
-// Paramètres URL : courseId, seqIndex, sessionIndex
+// Page de lecture plein écran d'une séance
+// URL params : courseId, seqIndex, sessionIndex
 
 import { initializeApp } from 'https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js';
 import { getFirestore, doc, getDoc } from 'https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js';
 import { getAuth, onAuthStateChanged, signOut } from 'https://www.gstatic.com/firebasejs/10.7.1/firebase-auth.js';
 
-// Configuration Firebase
 const firebaseConfig = {
     apiKey: "AIzaSyCuFgzytJXD6jt4HUW9LVSD_VpGuFfcEAk",
     authDomain: "electroino-app.firebaseapp.com",
@@ -16,328 +15,248 @@ const firebaseConfig = {
     appId: "1:864058526638:web:17b821633c7cc99be1563f"
 };
 
-const app = initializeApp(firebaseConfig);
-const db  = getFirestore(app);
+const app  = initializeApp(firebaseConfig);
+const db   = getFirestore(app);
 const auth = getAuth(app);
 
-// ── Variables globales ──
-let currentCourse   = null;
-let currentSeqIdx   = 0;
-let currentSessIdx  = 0;
+let course       = null;
+let seqIdx       = 0;
+let sessIdx      = 0;
 
-// ============================================
-// AUTH — navbar
-// ============================================
-onAuthStateChanged(auth, (user) => {
-    const loginBtn   = document.getElementById('loginBtn');
-    const userMenu   = document.getElementById('userMenu');
-    const userName   = document.getElementById('userName');
-    const userAvatar = document.getElementById('userAvatar');
-
-    if (user) {
-        loginBtn?.classList.add('hidden');
-        userMenu?.classList.remove('hidden');
-        const name = user.displayName || user.email.split('@')[0];
-        if (userName)   userName.textContent = name;
-        if (userAvatar) userAvatar.src = user.photoURL ||
-            `https://ui-avatars.com/api/?name=${encodeURIComponent(name)}&background=1e40af&color=fff`;
-    } else {
-        loginBtn?.classList.remove('hidden');
-        userMenu?.classList.add('hidden');
-    }
-});
-
-document.getElementById('logoutBtn')?.addEventListener('click', async () => {
-    await signOut(auth);
-    window.location.href = 'index.html';
-});
-
-document.getElementById('userMenuToggle')?.addEventListener('click', (e) => {
-    e.stopPropagation();
-    document.getElementById('userDropdown')?.classList.toggle('hidden');
-});
-
-document.addEventListener('click', (e) => {
-    const dd = document.getElementById('userDropdown');
-    if (dd && !dd.contains(e.target) && e.target !== document.getElementById('userMenuToggle')) {
-        dd.classList.add('hidden');
-    }
-});
-
-document.getElementById('mobileToggle')?.addEventListener('click', () => {
-    document.getElementById('navMenu')?.classList.toggle('active');
-});
-
-// ============================================
-// RÉCUPÉRER LES PARAMÈTRES URL
-// ============================================
-function getUrlParams() {
-    const params = new URLSearchParams(window.location.search);
+// ── Params URL ──
+function getParams() {
+    const p = new URLSearchParams(window.location.search);
     return {
-        courseId:     params.get('courseId'),
-        seqIndex:     parseInt(params.get('seqIndex')     || '0', 10),
-        sessionIndex: parseInt(params.get('sessionIndex') || '0', 10)
+        courseId: p.get('courseId'),
+        seqIndex: parseInt(p.get('seqIndex')     || '0', 10),
+        sessIndex: parseInt(p.get('sessionIndex') || '0', 10)
     };
 }
 
-// ============================================
-// CHARGER LE COURS
-// ============================================
-async function loadCourse() {
-    const { courseId, seqIndex, sessionIndex } = getUrlParams();
+// ── Auth navbar (minimal) ──
+onAuthStateChanged(auth, () => {});
 
-    if (!courseId) {
-        showError('Paramètre courseId manquant dans l\'URL.');
-        return;
-    }
+// ── Chargement principal ──
+async function init() {
+    const { courseId, seqIndex, sessIndex } = getParams();
+    seqIdx  = seqIndex;
+    sessIdx = sessIndex;
+
+    if (!courseId) { showError('Aucun cours spécifié dans l\'URL.'); return; }
 
     try {
-        const docRef  = doc(db, 'courses', courseId);
-        const docSnap = await getDoc(docRef);
-
-        if (!docSnap.exists()) {
-            showError('Ce cours est introuvable ou a été supprimé.');
-            return;
-        }
-
-        currentCourse  = { id: docSnap.id, ...docSnap.data() };
-        currentSeqIdx  = seqIndex;
-        currentSessIdx = sessionIndex;
-
-        renderPage();
-
-    } catch (err) {
-        console.error('Erreur chargement cours:', err);
-        showError('Impossible de charger le cours. Vérifiez votre connexion.');
+        const snap = await getDoc(doc(db, 'courses', courseId));
+        if (!snap.exists()) { showError('Cours introuvable.'); return; }
+        course = { id: snap.id, ...snap.data() };
+        render();
+    } catch (e) {
+        console.error(e);
+        showError('Erreur de connexion. Vérifiez votre réseau.');
     }
 }
 
-// ============================================
-// RENDRE LA PAGE
-// ============================================
-function renderPage() {
-    document.getElementById('loadingState').style.display = 'none';
-    document.getElementById('sessionPage').style.display  = 'block';
+// ── Render complet ──
+function render() {
+    // Cacher loading
+    document.getElementById('loading-screen').style.display = 'none';
 
-    // Titre onglet navigateur
-    const sess = getCurrentSession();
-    if (sess) document.title = `${sess.title || 'Séance'} | ElectroInfo`;
+    // Topbar nom du cours
+    const tbName = document.getElementById('tbCourseName');
+    if (tbName) tbName.innerHTML = `<strong>${esc(course.title)}</strong>`;
 
-    // Lien retour vers course-detail
-    const backLink = document.getElementById('backToCourse');
-    if (backLink) backLink.href = `course-detail.html?id=${currentCourse.id}`;
+    // Lien retour
+    const backLink = document.getElementById('backLink');
+    if (backLink) backLink.href = `course-detail.html?id=${course.id}`;
 
-    renderSidebar();
-    renderSessionContent();
+    buildSidebar();
+    renderSession();
 }
 
-// ============================================
-// SIDEBAR
-// ============================================
-function renderSidebar() {
-    const sidebar = document.getElementById('sidebarNav');
-    if (!sidebar) return;
+// ── Construire la sidebar ──
+function buildSidebar() {
+    const nav = document.getElementById('sidebarNav');
+    if (!nav) return;
+    const sequences = course.sequences || [];
 
-    const sequences = currentCourse.sequences || [];
-
-    if (sequences.length === 0) {
-        sidebar.innerHTML = '<p style="color:#9ca3af; font-size:0.85rem; padding:0.5rem;">Aucune séquence.</p>';
-        return;
-    }
-
-    sidebar.innerHTML = sequences.map((seq, si) => `
-        <div class="sidebar-seq-title">${escapeHtml(seq.title || `Séquence ${si + 1}`)}</div>
-        ${(seq.sessions || []).map((sess, ssi) => `
-            <a onclick="goToSession(${si}, ${ssi}); return false;" href="#"
-               class="sidebar-session-link ${si === currentSeqIdx && ssi === currentSessIdx ? 'active' : ''}"
-               id="nav-link-${si}-${ssi}">
-                <i class="fas fa-file-alt" style="font-size:0.75rem; flex-shrink:0;"></i>
-                ${escapeHtml(sess.title || `Séance ${ssi + 1}`)}
-            </a>
-        `).join('')}
+    nav.innerHTML = sequences.map((seq, si) => `
+        <div class="seq-block">
+            <div class="seq-title-row">
+                <i class="fas fa-folder"></i>
+                ${esc(seq.title || `Séquence ${si + 1}`)}
+            </div>
+            ${(seq.sessions || []).map((sess, ssi) => `
+                <div class="sess-item ${si === seqIdx && ssi === sessIdx ? 'active' : ''}"
+                     id="nav-${si}-${ssi}"
+                     onclick="goTo(${si}, ${ssi})">
+                    <div class="sess-icon">
+                        <i class="fas fa-${si === seqIdx && ssi === sessIdx ? 'play' : 'file-alt'}"></i>
+                    </div>
+                    <div class="sess-text">
+                        <div class="sess-num">Séance ${ssi + 1}</div>
+                        <div class="sess-name">${esc(sess.title || `Séance ${ssi + 1}`)}</div>
+                    </div>
+                </div>
+            `).join('')}
+        </div>
     `).join('');
 }
 
-// ============================================
-// CONTENU DE LA SÉANCE
-// ============================================
-function renderSessionContent() {
-    const sequences = currentCourse.sequences || [];
-    const seq  = sequences[currentSeqIdx];
-    const sess = seq?.sessions?.[currentSessIdx];
+// ── Afficher la séance courante ──
+function renderSession() {
+    const sequences = course.sequences || [];
+    const seq  = sequences[seqIdx];
+    const sess = seq?.sessions?.[sessIdx];
 
-    // Fil d'Ariane
-    setText('breadCourseTitle', currentCourse.title || 'Cours');
-    setText('breadSeqTitle',    seq?.title  || `Séquence ${currentSeqIdx + 1}`);
-    setText('breadSessTitle',   sess?.title || `Séance ${currentSessIdx + 1}`);
+    // Titre onglet
+    document.title = `${sess?.title || 'Séance'} | ElectroInfo`;
 
-    // Titre principal
-    setText('sessionMainTitle',    sess?.title || `Séance ${currentSessIdx + 1}`);
-    setText('sessionContentTitle', sess?.title || `Séance ${currentSessIdx + 1}`);
-
-    // Badge séquence
-    const badge = document.getElementById('sessionBadge');
-    if (badge) badge.textContent = seq?.title || `Séquence ${currentSeqIdx + 1}`;
+    // Bandeau
+    setText('bandSeq',   seq?.title  || `Séquence ${seqIdx + 1}`);
+    setText('bandTitle', sess?.title || `Séance ${sessIdx + 1}`);
 
     // Contenu HTML
-    const contentEl = document.getElementById('sessionHtmlContent');
+    const contentEl = document.getElementById('session-content');
     if (contentEl) {
-        if (sess?.content) {
-            contentEl.innerHTML = sess.content;
-        } else {
-            contentEl.innerHTML = `
-                <div style="text-align:center; padding:3rem; color:#9ca3af;">
-                    <i class="fas fa-inbox" style="font-size:3rem; margin-bottom:1rem; display:block;"></i>
-                    <p>Aucun contenu disponible pour cette séance.</p>
-                </div>
-            `;
-        }
+        contentEl.innerHTML = sess?.content
+            ? sess.content
+            : `<div style="text-align:center;padding:4rem;color:#94a3b8;">
+                   <i class="fas fa-inbox" style="font-size:3rem;margin-bottom:1rem;display:block;"></i>
+                   <p style="font-size:1rem;">Aucun contenu disponible pour cette séance.</p>
+               </div>`;
     }
 
     // PDF
-    const pdfSection = document.getElementById('pdfSection');
-    const pdfLink    = document.getElementById('pdfLink');
+    const pdfBlock = document.getElementById('pdf-block');
+    const pdfLink  = document.getElementById('pdfLink');
     if (sess?.pdfUrl) {
-        pdfSection.style.display = 'flex';
+        pdfBlock.style.display = 'flex';
         pdfLink.href = sess.pdfUrl;
     } else {
-        pdfSection.style.display = 'none';
+        pdfBlock.style.display = 'none';
     }
 
-    // Navigation prev/next
-    updateNavButtons();
+    // Barre de navigation
+    updateNav();
 
-    // Mettre à jour sidebar highlight
+    // Sidebar highlight
     updateSidebarHighlight();
 
-    // Scroll haut
-    window.scrollTo({ top: 0, behavior: 'smooth' });
+    // Scroll haut du reader
+    const reader = document.getElementById('reader');
+    if (reader) reader.scrollTop = 0;
 }
 
-// ============================================
-// NAVIGATION PRÉCÉDENT / SUIVANT
-// ============================================
-window.navigate = function(direction) {
-    const sequences = currentCourse?.sequences || [];
+// ── Navigation Précédent / Suivant ──
+function updateNav() {
+    const sequences = course.sequences || [];
 
-    if (direction === -1) {
-        // Précédent
-        if (currentSessIdx > 0) {
-            currentSessIdx--;
-        } else if (currentSeqIdx > 0) {
-            currentSeqIdx--;
-            currentSessIdx = (sequences[currentSeqIdx]?.sessions?.length || 1) - 1;
+    // Compter position globale
+    let total = 0, current = 0;
+    sequences.forEach((seq, si) => {
+        const len = seq.sessions?.length || 0;
+        for (let ssi = 0; ssi < len; ssi++) {
+            total++;
+            if (si < seqIdx || (si === seqIdx && ssi <= sessIdx)) current = total;
         }
+    });
+
+    const isFirst = seqIdx === 0 && sessIdx === 0;
+    const lastSi  = sequences.length - 1;
+    const lastSsi = (sequences[lastSi]?.sessions?.length || 1) - 1;
+    const isLast  = seqIdx === lastSi && sessIdx === lastSsi;
+
+    const prev = document.getElementById('prevBtn');
+    const next = document.getElementById('nextBtn');
+    if (prev) prev.disabled = isFirst;
+    if (next) next.disabled = isLast;
+
+    // Compteur
+    const sess = course.sequences?.[seqIdx]?.sessions?.[sessIdx];
+    setText('navTitle',   sess?.title || `Séance ${sessIdx + 1}`);
+    setText('navCounter', `${current} / ${total}`);
+
+    // Barre de progression topbar
+    const pct = total > 0 ? Math.round((current / total) * 100) : 0;
+    const fill = document.getElementById('progressFill');
+    const text = document.getElementById('progressText');
+    if (fill) fill.style.width = `${pct}%`;
+    if (text) text.textContent = `${pct}%`;
+}
+
+window.navigate = function(dir) {
+    const sequences = course.sequences || [];
+
+    if (dir === -1) {
+        if (sessIdx > 0) { sessIdx--; }
+        else if (seqIdx > 0) { seqIdx--; sessIdx = (sequences[seqIdx]?.sessions?.length || 1) - 1; }
     } else {
-        // Suivant
-        const sessLen = sequences[currentSeqIdx]?.sessions?.length || 0;
-        if (currentSessIdx < sessLen - 1) {
-            currentSessIdx++;
-        } else if (currentSeqIdx < sequences.length - 1) {
-            currentSeqIdx++;
-            currentSessIdx = 0;
-        }
+        const len = sequences[seqIdx]?.sessions?.length || 0;
+        if (sessIdx < len - 1) { sessIdx++; }
+        else if (seqIdx < sequences.length - 1) { seqIdx++; sessIdx = 0; }
     }
 
-    // Mettre à jour l'URL sans recharger
+    // Mettre à jour URL sans rechargement
     const url = new URL(window.location.href);
-    url.searchParams.set('seqIndex',     currentSeqIdx);
-    url.searchParams.set('sessionIndex', currentSessIdx);
+    url.searchParams.set('seqIndex',     seqIdx);
+    url.searchParams.set('sessionIndex', sessIdx);
     window.history.pushState({}, '', url);
 
-    renderSessionContent();
+    renderSession();
 };
 
-window.goToSession = function(si, ssi) {
-    currentSeqIdx  = si;
-    currentSessIdx = ssi;
+window.goTo = function(si, ssi) {
+    seqIdx  = si;
+    sessIdx = ssi;
 
     const url = new URL(window.location.href);
     url.searchParams.set('seqIndex',     si);
     url.searchParams.set('sessionIndex', ssi);
     window.history.pushState({}, '', url);
 
-    renderSessionContent();
+    renderSession();
 };
 
-// ============================================
-// METTRE À JOUR LES BOUTONS NAV
-// ============================================
-function updateNavButtons() {
-    const sequences = currentCourse?.sequences || [];
-    const prevBtn = document.getElementById('prevBtn');
-    const nextBtn = document.getElementById('nextBtn');
-    const navInfo = document.getElementById('navInfo');
+function updateSidebarHighlight() {
+    document.querySelectorAll('.sess-item').forEach(el => el.classList.remove('active'));
+    document.querySelectorAll('.sess-icon i').forEach(el => {
+        el.className = 'fas fa-file-alt';
+    });
 
-    const isFirst = currentSeqIdx === 0 && currentSessIdx === 0;
-    const lastSi  = sequences.length - 1;
-    const lastSsi = (sequences[lastSi]?.sessions?.length || 1) - 1;
-    const isLast  = currentSeqIdx === lastSi && currentSessIdx === lastSsi;
+    const active = document.getElementById(`nav-${seqIdx}-${sessIdx}`);
+    if (active) {
+        active.classList.add('active');
+        const icon = active.querySelector('.sess-icon i');
+        if (icon) icon.className = 'fas fa-play';
 
-    if (prevBtn) prevBtn.disabled = isFirst;
-    if (nextBtn) nextBtn.disabled = isLast;
-
-    // Info "Séance X / Y"
-    if (navInfo) {
-        let totalSessions = 0;
-        let currentTotal  = 0;
-        sequences.forEach((seq, si) => {
-            const sessCount = seq.sessions?.length || 0;
-            if (si < currentSeqIdx) currentTotal += sessCount;
-            else if (si === currentSeqIdx) currentTotal += currentSessIdx + 1;
-            totalSessions += sessCount;
-        });
-        navInfo.textContent = `Séance ${currentTotal} / ${totalSessions}`;
+        // Auto-scroll sidebar vers l'élément actif
+        active.scrollIntoView({ block: 'nearest', behavior: 'smooth' });
     }
 }
 
-// ============================================
-// METTRE À JOUR LE HIGHLIGHT SIDEBAR
-// ============================================
-function updateSidebarHighlight() {
-    document.querySelectorAll('.sidebar-session-link').forEach(el => {
-        el.classList.remove('active');
-    });
-    const activeLink = document.getElementById(`nav-link-${currentSeqIdx}-${currentSessIdx}`);
-    if (activeLink) activeLink.classList.add('active');
-}
-
-// ============================================
-// UTILITAIRES
-// ============================================
-function getCurrentSession() {
-    return currentCourse?.sequences?.[currentSeqIdx]?.sessions?.[currentSessIdx] || null;
-}
-
-function setText(id, text) {
-    const el = document.getElementById(id);
-    if (el) el.textContent = text;
-}
-
-function escapeHtml(text) {
-    if (!text) return '';
-    const div = document.createElement('div');
-    div.textContent = text;
-    return div.innerHTML;
-}
-
+// ── Erreur ──
 function showError(msg) {
-    document.getElementById('loadingState').innerHTML = `
-        <div style="text-align:center; padding:5rem 1rem; color:#6b7280;">
-            <i class="fas fa-exclamation-triangle" style="font-size:3rem; color:#ef4444; margin-bottom:1rem; display:block;"></i>
-            <h2 style="color:#1f2937; margin-bottom:0.75rem;">Erreur</h2>
-            <p>${msg}</p>
-            <a href="courses.html" style="display:inline-flex; align-items:center; gap:0.5rem; margin-top:1.5rem;
-               background:#1e40af; color:white; padding:0.75rem 1.5rem; border-radius:8px; text-decoration:none; font-weight:600;">
-                <i class="fas fa-arrow-left"></i> Retour aux cours
-            </a>
-        </div>
+    document.getElementById('loading-screen').innerHTML = `
+        <i class="fas fa-exclamation-triangle" style="color:#ef4444;"></i>
+        <p style="font-size:1rem;font-weight:600;">${msg}</p>
+        <a href="courses.html" style="margin-top:1rem;padding:0.6rem 1.5rem;background:#1d4ed8;color:white;
+           border-radius:7px;text-decoration:none;font-weight:700;display:flex;align-items:center;gap:0.5rem;">
+            <i class="fas fa-arrow-left"></i> Retour aux cours
+        </a>
     `;
 }
 
-// ============================================
-// INITIALISATION
-// ============================================
-document.addEventListener('DOMContentLoaded', () => {
-    loadCourse();
-});
+// ── Utilitaires ──
+function setText(id, val) {
+    const el = document.getElementById(id);
+    if (el) el.textContent = val;
+}
+
+function esc(text) {
+    if (!text) return '';
+    const d = document.createElement('div');
+    d.textContent = text;
+    return d.innerHTML;
+}
+
+// ── Démarrage ──
+document.addEventListener('DOMContentLoaded', init);
