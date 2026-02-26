@@ -5,137 +5,174 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Administration | ElectroInfo</title>
     <meta name="description" content="Panneau d'administration - ElectroInfo">
-    
-    <!-- Favicons -->
     <link rel="icon" type="image/x-icon" href="/images/favicon.ico">
     <link rel="icon" type="image/png" sizes="48x48" href="/images/logo-small.png">
-    
-    <!-- Styles -->
     <link rel="stylesheet" href="/styles.css">
     <link rel="stylesheet" href="/admin-styles.css">
     <link rel="stylesheet" href="/admin-improvements.css">
     <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
     <link href="https://cdn.quilljs.com/1.3.6/quill.snow.css" rel="stylesheet">
-    <!-- CodeMirror pour mode HTML -->
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.16/codemirror.min.css">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.16/theme/dracula.min.css">
     <style>
-        /* ── Sélecteur de mode éditeur ── */
-        .editor-mode-selector {
-            display: flex;
-            gap: 0.5rem;
-            margin-bottom: 0.75rem;
-            background: #f1f5f9;
-            padding: 0.4rem;
-            border-radius: 10px;
-            width: fit-content;
+        /* ── Mode selector ── */
+        .editor-mode-selector { display:flex; gap:.5rem; margin-bottom:.75rem; background:#f1f5f9; padding:.4rem; border-radius:10px; width:fit-content; }
+        .mode-btn { padding:.45rem 1.1rem; border:none; border-radius:7px; cursor:pointer; font-weight:600; font-size:.875rem; transition:all .2s; color:#64748b; background:transparent; display:flex; align-items:center; gap:.4rem; }
+        .mode-btn.active { background:white; color:#7c3aed; box-shadow:0 2px 6px rgba(0,0,0,.12); }
+        .mode-btn:hover:not(.active) { background:#e2e8f0; color:#374151; }
+
+        /* ── CodeMirror section ── */
+        #htmlEditorSection .editor-toolbar { display:flex; justify-content:space-between; align-items:center; background:#282a36; padding:.5rem .75rem; border-radius:8px 8px 0 0; flex-wrap:wrap; gap:.5rem; }
+        #htmlEditorSection .editor-label { color:#f8f8f2; font-weight:600; font-size:.9rem; }
+        #htmlEditorSection .editor-actions { display:flex; gap:.35rem; flex-wrap:wrap; }
+        #htmlEditorSection .editor-btn { background:#44475a; color:#f8f8f2; border:none; padding:.3rem .6rem; border-radius:4px; cursor:pointer; font-size:.78rem; font-weight:600; transition:background .2s; }
+        #htmlEditorSection .editor-btn:hover { background:#6272a4; }
+        #htmlEditorSection .editor-btn.btn-format { background:#bd93f9; color:#282a36; }
+        #htmlEditorSection .editor-btn.btn-format:hover { background:#caa9fa; }
+        #htmlEditorSection .editor-container { border:2px solid #282a36; border-top:none; }
+        #htmlEditorSection .CodeMirror { height:350px; font-size:.9rem; font-family:'Fira Code','Consolas',monospace; }
+        #htmlEditorSection .editor-footer { display:flex; justify-content:space-between; align-items:center; padding:.4rem .75rem; background:#1e1f29; border-radius:0 0 8px 8px; font-size:.8rem; flex-wrap:wrap; gap:.5rem; }
+        #htmlEditorSection .char-count { color:#6272a4; }
+        #htmlEditorSection .editor-hint { color:#6272a4; font-style:italic; }
+
+        /* ── Sub tabs ── */
+        .html-sub-tabs { display:flex; border-bottom:2px solid #282a36; margin-bottom:0; }
+        .sub-tab-btn { padding:.5rem 1.25rem; border:none; background:#1e1f29; color:#6272a4; cursor:pointer; font-size:.85rem; font-weight:600; border-radius:6px 6px 0 0; display:flex; align-items:center; gap:.4rem; transition:all .2s; }
+        .sub-tab-btn.active { background:#282a36; color:#f8f8f2; }
+        .sub-tab-btn:hover:not(.active) { background:#282a36; color:#bd93f9; }
+
+        /* ══════════════════════════════════════════
+           WYSIWYG WORD-LIKE EDITOR
+        ══════════════════════════════════════════ */
+        .wy-wrap { border:2px solid #e2e8f0; border-radius:10px; overflow:visible; background:#fff; position:relative; }
+
+        /* Toolbar sticky */
+        .wy-toolbar {
+            display:flex; flex-wrap:wrap; align-items:center; gap:2px;
+            padding:5px 8px; background:#1e293b;
+            border-radius:8px 8px 0 0;
+            position:sticky; top:58px; z-index:200;
+            border-bottom:2px solid #334155;
+            box-shadow:0 2px 8px rgba(0,0,0,.25);
         }
-        .mode-btn {
-            padding: 0.45rem 1.1rem;
-            border: none;
-            border-radius: 7px;
-            cursor: pointer;
-            font-weight: 600;
-            font-size: 0.875rem;
-            transition: all 0.2s;
-            color: #64748b;
-            background: transparent;
-            display: flex;
-            align-items: center;
-            gap: 0.4rem;
+        .wy-tb-group { display:flex; align-items:center; gap:1px; }
+        .wy-tb-sep { width:1px; height:22px; background:#334155; margin:0 3px; flex-shrink:0; }
+        .wy-tb-btn {
+            background:transparent; border:none; color:#94a3b8;
+            width:28px; height:26px; border-radius:4px; cursor:pointer;
+            font-size:.8rem; display:flex; align-items:center; justify-content:center;
+            transition:background .12s,color .12s; padding:0; flex-shrink:0;
         }
-        .mode-btn.active {
-            background: white;
-            color: #7c3aed;
-            box-shadow: 0 2px 6px rgba(0,0,0,0.12);
+        .wy-tb-btn:hover  { background:#334155; color:#f1f5f9; }
+        .wy-tb-btn.active { background:#2563eb; color:white; }
+        .wy-tb-btn-wide { width:auto !important; padding:0 8px !important; font-size:.72rem; font-weight:700; gap:3px; }
+        .wy-tb-select {
+            background:#334155; color:#f1f5f9; border:none; border-radius:4px;
+            padding:2px 5px; font-size:.75rem; cursor:pointer; height:26px; max-width:110px;
         }
-        .mode-btn:hover:not(.active) {
-            background: #e2e8f0;
-            color: #374151;
+        .wy-tb-select:focus { outline:1px solid #2563eb; }
+
+        /* Couleur texte / fond */
+        .wy-color-wrap { position:relative; width:28px; height:26px; display:flex; flex-direction:column; align-items:center; justify-content:center; cursor:pointer; border-radius:4px; transition:background .12s; }
+        .wy-color-wrap:hover { background:#334155; }
+        .wy-color-wrap i { color:#94a3b8; font-size:.75rem; pointer-events:none; }
+        .wy-color-wrap input[type=color] { position:absolute; opacity:0; width:100%; height:100%; cursor:pointer; border:none; padding:0; }
+        .wy-color-bar { width:18px; height:3px; border-radius:2px; margin-top:1px; pointer-events:none; }
+
+        /* Corps éditeur */
+        .wy-body {
+            min-height:380px; max-height:620px; overflow-y:auto;
+            padding:1.75rem 2.25rem; background:white; outline:none;
+            font-size:1rem; line-height:1.85; color:#1f2937;
+            border-radius:0 0 8px 8px; cursor:text;
         }
-        /* ── Éditeur HTML (CodeMirror) dans admin articles ── */
-        #htmlEditorSection .editor-toolbar {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            background: #282a36;
-            padding: 0.5rem 0.75rem;
-            border-radius: 8px 8px 0 0;
-            flex-wrap: wrap;
-            gap: 0.5rem;
+        .wy-body:empty::before { content:attr(data-ph); color:#9ca3af; pointer-events:none; font-style:italic; }
+        .wy-body h1 { font-size:2rem; font-weight:800; color:#111827; margin:1.5rem 0 .5rem; }
+        .wy-body h2 { font-size:1.5rem; font-weight:700; color:#1e40af; margin:1.25rem 0 .5rem; border-left:4px solid #2563eb; padding-left:.75rem; }
+        .wy-body h3 { font-size:1.2rem; font-weight:700; color:#1e293b; margin:1rem 0 .4rem; }
+        .wy-body h4 { font-size:1rem; font-weight:700; color:#374151; margin:.75rem 0 .3rem; }
+        .wy-body p  { margin:.4rem 0; }
+        .wy-body blockquote { border-left:4px solid #cbd5e1; padding:.5rem 1rem; margin:1rem 0; color:#6b7280; font-style:italic; background:#f9fafb; border-radius:0 4px 4px 0; }
+        .wy-body pre { background:#1e293b; color:#f8fafc; padding:1rem 1.25rem; border-radius:6px; font-family:'Fira Code',Consolas,monospace; font-size:.9rem; overflow-x:auto; margin:1rem 0; }
+        .wy-body ul,.wy-body ol { padding-left:2rem; margin:.5rem 0; }
+        .wy-body li { margin:.2rem 0; }
+        .wy-body table { border-collapse:collapse; width:100%; margin:1rem 0; }
+        .wy-body td,.wy-body th { border:1px solid #e2e8f0; padding:8px 12px; }
+        .wy-body th { background:#1e40af; color:white; }
+        .wy-body a  { color:#2563eb; text-decoration:underline; }
+        .wy-body img { max-width:100%; cursor:pointer; border-radius:6px; }
+        .wy-body hr  { border:none; border-top:2px solid #e2e8f0; margin:1.5rem 0; }
+
+        /* Drop overlay */
+        .wy-drop { display:none; position:absolute; inset:0; background:rgba(37,99,235,.08); border:3px dashed #2563eb; border-radius:10px; z-index:20; flex-direction:column; align-items:center; justify-content:center; gap:1rem; color:#1e40af; font-weight:700; font-size:1.1rem; pointer-events:none; }
+        .wy-drop i { font-size:2.5rem; }
+        .wy-drop.show { display:flex; }
+
+        /* ── Image resize overlay ── */
+        #wyImgBox {
+            display:none; position:fixed; z-index:9999; pointer-events:none;
+            border:2px solid #2563eb; border-radius:3px; box-sizing:border-box;
         }
-        #htmlEditorSection .editor-label {
-            color: #f8f8f2;
-            font-weight: 600;
-            font-size: 0.9rem;
+        .wy-rh {
+            position:absolute; width:9px; height:9px;
+            background:#2563eb; border:1.5px solid white; border-radius:2px;
+            pointer-events:all; z-index:10000;
         }
-        #htmlEditorSection .editor-actions {
-            display: flex;
-            gap: 0.35rem;
-            flex-wrap: wrap;
+        .wy-rh.nw { top:-5px; left:-5px; cursor:nw-resize; }
+        .wy-rh.ne { top:-5px; right:-5px; cursor:ne-resize; }
+        .wy-rh.sw { bottom:-5px; left:-5px; cursor:sw-resize; }
+        .wy-rh.se { bottom:-5px; right:-5px; cursor:se-resize; }
+        .wy-rh.n  { top:-5px; left:50%; transform:translateX(-50%); cursor:n-resize; }
+        .wy-rh.s  { bottom:-5px; left:50%; transform:translateX(-50%); cursor:s-resize; }
+        .wy-rh.e  { right:-5px; top:50%; transform:translateY(-50%); cursor:e-resize; }
+        .wy-rh.w  { left:-5px; top:50%; transform:translateY(-50%); cursor:w-resize; }
+
+        /* Floating image toolbar */
+        #wyImgToolbar {
+            display:none; position:fixed; z-index:10001;
+            background:#1e293b; border-radius:7px; padding:4px 6px;
+            box-shadow:0 4px 16px rgba(0,0,0,.35); gap:2px;
+            flex-wrap:nowrap; align-items:center;
         }
-        #htmlEditorSection .editor-btn {
-            background: #44475a;
-            color: #f8f8f2;
-            border: none;
-            padding: 0.3rem 0.6rem;
-            border-radius: 4px;
-            cursor: pointer;
-            font-size: 0.78rem;
-            font-weight: 600;
-            transition: background 0.2s;
+        #wyImgToolbar button {
+            background:transparent; border:none; color:#94a3b8;
+            width:26px; height:24px; border-radius:4px; cursor:pointer;
+            font-size:.75rem; display:flex; align-items:center; justify-content:center;
+            transition:background .12s; white-space:nowrap;
         }
-        #htmlEditorSection .editor-btn:hover { background: #6272a4; }
-        #htmlEditorSection .editor-btn.btn-preview { background: #50fa7b; color: #282a36; }
-        #htmlEditorSection .editor-btn.btn-preview:hover { background: #69ff94; }
-        #htmlEditorSection .editor-btn.btn-format { background: #bd93f9; color: #282a36; }
-        #htmlEditorSection .editor-btn.btn-format:hover { background: #caa9fa; }
-        #htmlEditorSection .editor-container {
-            border: 2px solid #282a36;
-            border-top: none;
-        }
-        #htmlEditorSection .CodeMirror {
-            height: 350px;
-            font-size: 0.9rem;
-            font-family: 'Fira Code', 'Consolas', monospace;
-        }
-        #htmlEditorSection .editor-footer {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            padding: 0.4rem 0.75rem;
-            background: #1e1f29;
-            border-radius: 0 0 8px 8px;
-            font-size: 0.8rem;
-            flex-wrap: wrap;
-            gap: 0.5rem;
-        }
-        #htmlEditorSection .char-count { color: #6272a4; }
-        #htmlEditorSection .editor-hint { color: #6272a4; font-style: italic; }
-        .article-html-preview {
-            margin-top: 0.75rem;
-            border: 2px solid #e5e7eb;
-            border-radius: 8px;
-            overflow: hidden;
-        }
-        .article-html-preview.hidden { display: none; }
-        .article-html-preview .preview-header {
-            background: #f9fafb;
-            padding: 0.6rem 1rem;
-            font-weight: 600;
-            color: #374151;
-            border-bottom: 1px solid #e5e7eb;
-            font-size: 0.9rem;
-        }
-        .article-html-preview .preview-body {
-            padding: 1.5rem;
-            background: white;
-            min-height: 100px;
-            overflow-x: auto;
-        }
+        #wyImgToolbar button:hover { background:#334155; color:#f1f5f9; }
+        #wyImgToolbar .wy-sep2 { width:1px; height:16px; background:#334155; margin:0 2px; }
+        #wyImgToolbar span.wy-img-size { color:#64748b; font-size:.7rem; padding:0 4px; min-width:60px; text-align:center; }
     </style>
 </head>
 <body>
+    <!-- Image resize box (global) -->
+    <div id="wyImgBox">
+        <div class="wy-rh nw" data-d="nw"></div>
+        <div class="wy-rh n"  data-d="n"></div>
+        <div class="wy-rh ne" data-d="ne"></div>
+        <div class="wy-rh e"  data-d="e"></div>
+        <div class="wy-rh se" data-d="se"></div>
+        <div class="wy-rh s"  data-d="s"></div>
+        <div class="wy-rh sw" data-d="sw"></div>
+        <div class="wy-rh w"  data-d="w"></div>
+    </div>
+    <!-- Image floating toolbar (global) -->
+    <div id="wyImgToolbar">
+        <button data-ia="left"   title="Gauche"><i class="fas fa-align-left"></i></button>
+        <button data-ia="center" title="Centrer"><i class="fas fa-align-center"></i></button>
+        <button data-ia="right"  title="Droite"><i class="fas fa-align-right"></i></button>
+        <div class="wy-sep2"></div>
+        <button data-ia="full"   title="Pleine largeur"><i class="fas fa-expand-alt"></i></button>
+        <button data-ia="half"   title="Moitié largeur"><i class="fas fa-compress-alt"></i></button>
+        <div class="wy-sep2"></div>
+        <span class="wy-img-size" id="wyImgSize">0×0</span>
+        <div class="wy-sep2"></div>
+        <button data-ia="url"    title="Changer URL"><i class="fas fa-link"></i></button>
+        <button data-ia="alt"    title="Texte alternatif"><i class="fas fa-tag"></i></button>
+        <button data-ia="del"    title="Supprimer" style="color:#f87171;"><i class="fas fa-trash"></i></button>
+    </div>
+
     <!-- Navigation -->
     <nav class="navbar admin-navbar">
         <div class="container">
@@ -144,49 +181,27 @@
                 <span>ADMIN - ELECTROINFO</span>
             </div>
             <div class="nav-actions">
-                <a href="/index.html" class="btn btn-outline">
-                    <i class="fas fa-home"></i> Accueil
-                </a>
-
-                  <a href="/admin-courses.html" class="btn btn-outline">
-                    <i class="fas fa-home"></i> Cours panelle
-                </a>
-                   
-                  <a href="PATCH_admin_newsletter.html" class="btn-redirect">
-                       newsletter info
-                  </a>
-
-                <button id="logoutBtn" class="btn btn-danger">
-                    <i class="fas fa-sign-out-alt"></i> Déconnexion
-                </button>
+                <a href="/index.html" class="btn btn-outline"><i class="fas fa-home"></i> Accueil</a>
+                <a href="/admin-courses.html" class="btn btn-outline"><i class="fas fa-book"></i> Cours</a>
+                <a href="PATCH_admin_newsletter.html" class="btn-redirect">Newsletter</a>
+                <button id="logoutBtn" class="btn btn-danger"><i class="fas fa-sign-out-alt"></i> Déconnexion</button>
             </div>
         </div>
     </nav>
 
-    <!-- Loading -->
     <div id="loadingSection" class="loading-section">
-        <div class="loading-content">
-            <i class="fas fa-spinner fa-spin loading-icon"></i>
-            <p>Vérification des accès...</p>
-        </div>
+        <div class="loading-content"><i class="fas fa-spinner fa-spin loading-icon"></i><p>Vérification des accès...</p></div>
     </div>
-
-    <!-- Accès refusé -->
     <div id="accessDenied" class="access-denied hidden">
         <div class="access-denied-content">
-            <i class="fas fa-ban error-icon"></i>
-            <h2>Accès Refusé</h2>
+            <i class="fas fa-ban error-icon"></i><h2>Accès Refusé</h2>
             <p>Vous n'avez pas les droits administrateur.</p>
-            <a href="/index.html" class="btn btn-primary">
-                <i class="fas fa-home"></i> Retour à l'accueil
-            </a>
+            <a href="/index.html" class="btn btn-primary"><i class="fas fa-home"></i> Retour à l'accueil</a>
         </div>
     </div>
 
-    <!-- Dashboard Admin -->
     <main id="adminDashboard" class="admin-dashboard hidden">
         <div class="container">
-            <!-- Header -->
             <div class="admin-header">
                 <h1><i class="fas fa-tachometer-alt"></i> Tableau de bord</h1>
                 <div class="user-info">
@@ -195,314 +210,145 @@
                 </div>
             </div>
 
-            <!-- Statistiques -->
             <div class="stats-grid">
-                <div class="stat-card">
-                    <div class="stat-icon blue">
-                        <i class="fas fa-newspaper"></i>
-                    </div>
-                    <div class="stat-content">
-                        <p class="stat-label">Total Articles</p>
-                        <p class="stat-value" id="totalArticles">0</p>
-                    </div>
-                </div>
-                <div class="stat-card">
-                    <div class="stat-icon green">
-                        <i class="fas fa-check-circle"></i>
-                    </div>
-                    <div class="stat-content">
-                        <p class="stat-label">Publiés</p>
-                        <p class="stat-value" id="publishedArticles">0</p>
-                    </div>
-                </div>
-                <div class="stat-card">
-                    <div class="stat-icon yellow">
-                        <i class="fas fa-clock"></i>
-                    </div>
-                    <div class="stat-content">
-                        <p class="stat-label">Programmés</p>
-                        <p class="stat-value" id="scheduledArticles">0</p>
-                    </div>
-                </div>
-                <div class="stat-card">
-                    <div class="stat-icon purple">
-                        <i class="fas fa-file-alt"></i>
-                    </div>
-                    <div class="stat-content">
-                        <p class="stat-label">Brouillons</p>
-                        <p class="stat-value" id="draftArticles">0</p>
-                    </div>
-                </div>
+                <div class="stat-card"><div class="stat-icon blue"><i class="fas fa-newspaper"></i></div><div class="stat-content"><p class="stat-label">Total Articles</p><p class="stat-value" id="totalArticles">0</p></div></div>
+                <div class="stat-card"><div class="stat-icon green"><i class="fas fa-check-circle"></i></div><div class="stat-content"><p class="stat-label">Publiés</p><p class="stat-value" id="publishedArticles">0</p></div></div>
+                <div class="stat-card"><div class="stat-icon yellow"><i class="fas fa-clock"></i></div><div class="stat-content"><p class="stat-label">Programmés</p><p class="stat-value" id="scheduledArticles">0</p></div></div>
+                <div class="stat-card"><div class="stat-icon purple"><i class="fas fa-file-alt"></i></div><div class="stat-content"><p class="stat-label">Brouillons</p><p class="stat-value" id="draftArticles">0</p></div></div>
             </div>
 
-            <!-- Formulaire Article -->
             <div class="card">
-                <div class="card-header">
-                    <h2><i class="fas fa-plus-circle"></i> <span id="formTitle">Nouvel Article</span></h2>
-                </div>
+                <div class="card-header"><h2><i class="fas fa-plus-circle"></i> <span id="formTitle">Nouvel Article</span></h2></div>
                 <div class="card-body">
                     <form id="articleForm">
                         <input type="hidden" id="editArticleId">
-
+                        <div class="form-row"><div class="form-group"><label>Titre *</label><input type="text" id="title" required class="input" placeholder="Ex: La révolution des batteries solides"></div></div>
                         <div class="form-row">
-                            <div class="form-group">
-                                <label>Titre *</label>
-                                <input type="text" id="title" required class="input" placeholder="Ex: La révolution des batteries solides">
-                            </div>
+                            <div class="form-group"><label>Catégorie *</label><select id="category" class="input"><option>INNOVATION</option><option>SÉCURITÉ</option><option>NOUVEAUTÉ</option><option>TUTO</option><option>DOMOTIQUE</option></select></div>
+                            <div class="form-group"><label class="checkbox"><input type="checkbox" id="featured"><span>Article en vedette</span></label></div>
                         </div>
-
-                        <div class="form-row">
-                            <div class="form-group">
-                                <label>Catégorie *</label>
-                                <select id="category" class="input">
-                                    <option>INNOVATION</option>
-                                    <option>SÉCURITÉ</option>
-                                    <option>NOUVEAUTÉ</option>
-                                    <option>TUTO</option>
-                                    <option>DOMOTIQUE</option>
-                                </select>
-                            </div>
-                            <div class="form-group">
-                                <label class="checkbox">
-                                    <input type="checkbox" id="featured">
-                                    <span>Article en vedette</span>
-                                </label>
-                            </div>
-                        </div>
-
-                        <div class="form-row">
-                            <div class="form-group">
-                                <label>URL de l'image</label>
-                                <input type="url" id="imageUrl" class="input" placeholder="https://example.com/image.jpg">
-                            </div>
-                        </div>
-
-                        <div class="form-row">
-                            <div class="form-group">
-                                <label>Résumé *</label>
-                                <textarea id="summary" required rows="3" class="input" placeholder="Un court résumé de l'article..."></textarea>
-                            </div>
-                        </div>
+                        <div class="form-row"><div class="form-group"><label>URL de l'image</label><input type="url" id="imageUrl" class="input" placeholder="https://example.com/image.jpg"></div></div>
+                        <div class="form-row"><div class="form-group"><label>Résumé *</label><textarea id="summary" required rows="3" class="input" placeholder="Un court résumé de l'article..."></textarea></div></div>
 
                         <div class="form-row">
                             <div class="form-group">
                                 <label>Contenu *</label>
-
-                                <!-- Sélecteur de mode -->
                                 <div class="editor-mode-selector">
-                                    <button type="button" class="mode-btn active" id="modeQuillBtn" onclick="switchArticleEditorMode('quill')">
-                                        <i class="fas fa-align-left"></i> Éditeur Visuel
-                                    </button>
-                                    <button type="button" class="mode-btn" id="modeHtmlBtn" onclick="switchArticleEditorMode('html')">
-                                        <i class="fas fa-code"></i> HTML Avancé
-                                    </button>
+                                    <button type="button" class="mode-btn active" id="modeQuillBtn" onclick="switchArticleEditorMode('quill')"><i class="fas fa-align-left"></i> Éditeur Simple</button>
+                                    <button type="button" class="mode-btn" id="modeHtmlBtn" onclick="switchArticleEditorMode('html')"><i class="fas fa-code"></i> HTML Brut</button>
+                                    <button type="button" class="mode-btn" id="modeWyBtn" onclick="switchArticleEditorMode('wy')"><i class="fas fa-edit"></i> Éditeur Word</button>
                                 </div>
 
-                                <!-- MODE QUILL (par défaut) -->
+                                <!-- MODE QUILL -->
                                 <div id="quillEditorSection">
-                                    <div id="editor" style="min-height: 300px; background: white;"></div>
+                                    <div id="editor" style="min-height:300px; background:white;"></div>
                                 </div>
 
                                 <!-- MODE HTML CODEMIRROR -->
                                 <div id="htmlEditorSection" style="display:none;">
+                                    <div class="html-sub-tabs">
+                                        <span style="color:#6272a4; font-size:.8rem; padding:.5rem .75rem; display:flex; align-items:center; gap:.4rem;"><i class="fas fa-code"></i> Code HTML brut</span>
+                                        <div style="flex:1"></div>
+                                    </div>
                                     <div class="editor-toolbar">
-                                        <span class="editor-label"><i class="fas fa-code"></i> Contenu HTML de l'article</span>
+                                        <span class="editor-label"><i class="fas fa-code"></i> HTML de l'article</span>
                                         <div class="editor-actions">
-                                            <button type="button" class="editor-btn" onclick="articleInsertSnippet('heading')" title="Titre h2">H2</button>
-                                            <button type="button" class="editor-btn" onclick="articleInsertSnippet('paragraph')" title="Paragraphe"><i class="fas fa-paragraph"></i></button>
+                                            <button type="button" class="editor-btn" onclick="articleInsertSnippet('heading')" title="H2">H2</button>
+                                            <button type="button" class="editor-btn" onclick="articleInsertSnippet('paragraph')" title="§"><i class="fas fa-paragraph"></i></button>
                                             <button type="button" class="editor-btn" onclick="articleInsertSnippet('table')" title="Tableau"><i class="fas fa-table"></i></button>
                                             <button type="button" class="editor-btn" onclick="articleInsertSnippet('image')" title="Image"><i class="fas fa-image"></i></button>
                                             <button type="button" class="editor-btn" onclick="articleInsertSnippet('list')" title="Liste"><i class="fas fa-list"></i></button>
                                             <button type="button" class="editor-btn" onclick="articleInsertSnippet('alert')" title="Alerte"><i class="fas fa-exclamation-circle"></i></button>
                                             <button type="button" class="editor-btn" onclick="articleInsertSnippet('grid')" title="Grille"><i class="fas fa-th"></i></button>
                                             <button type="button" class="editor-btn btn-format" onclick="articleFormatCode()" title="Formater"><i class="fas fa-magic"></i></button>
-                                            <button type="button" class="editor-btn btn-preview" onclick="articleTogglePreview()" title="Aperçu"><i class="fas fa-eye"></i> Aperçu</button>
                                         </div>
                                     </div>
-                                    <div class="editor-container">
-                                        <div id="articleCmEditor" class="codemirror-wrapper"></div>
-                                    </div>
-                                    <div id="articleHtmlPreview" class="article-html-preview hidden">
-                                        <div class="preview-header"><i class="fas fa-eye"></i> Aperçu du rendu</div>
-                                        <div class="preview-body"></div>
-                                    </div>
+                                    <div class="editor-container"><div id="articleCmEditor" class="codemirror-wrapper"></div></div>
                                     <div class="editor-footer">
                                         <span class="char-count" id="articleCmCount">0 caractères</span>
-                                        <span class="editor-hint">💡 HTML complet — tables, flex, grid, images, styles inline supportés</span>
+                                        <span class="editor-hint">💡 HTML complet — tables, flex, grid, images, styles inline</span>
                                     </div>
                                 </div>
 
-                                <textarea id="content" style="display: none;"></textarea>
+                                <!-- MODE WYSIWYG WORD -->
+                                <div id="wyEditorSection" style="display:none;">
+                                    <div class="wy-wrap" id="wyWrap">
+                                        <!-- Toolbar générée par JS -->
+                                        <div class="wy-toolbar" id="wyToolbar"></div>
+                                        <!-- Corps éditeur -->
+                                        <div class="wy-body" id="wyBody" contenteditable="true" spellcheck="false" data-ph="Commencez à écrire ici..."></div>
+                                        <!-- Drop overlay -->
+                                        <div class="wy-drop" id="wyDrop"><i class="fas fa-image"></i><span>Dépose l'image ici</span></div>
+                                    </div>
+                                    <div style="display:flex; justify-content:space-between; padding:.4rem .5rem; background:#f8fafc; border:1px solid #e2e8f0; border-top:none; border-radius:0 0 6px 6px; font-size:.78rem; color:#9ca3af;">
+                                        <span>💡 Toolbar sticky — défile et les outils restent visibles</span>
+                                        <span id="wyCharCount">0 car.</span>
+                                    </div>
+                                </div>
+
+                                <textarea id="content" style="display:none;"></textarea>
                             </div>
                         </div>
 
-                        <div class="form-row">
-                            <div class="form-group">
-                                <label>Tags (séparés par des virgules)</label>
-                                <input type="text" id="tags" class="input" placeholder="Ex: électricité, innovation, IoT">
-                            </div>
+                        <div class="form-row"><div class="form-group"><label>Tags (séparés par des virgules)</label><input type="text" id="tags" class="input" placeholder="Ex: électricité, innovation, IoT"></div></div>
+                        <div class="form-row"><div class="form-group"><label>Statut de publication</label><select id="publicationStatus" class="input" onchange="toggleScheduleFields()"><option value="published">Publier immédiatement</option><option value="draft">Enregistrer comme brouillon</option><option value="scheduled">Programmer la publication</option></select></div></div>
+                        <div id="scheduleFields" class="form-row" style="display:none;">
+                            <div class="form-group"><label>Date de publication</label><input type="date" id="scheduleDate" class="input"></div>
+                            <div class="form-group"><label>Heure de publication</label><input type="time" id="scheduleTime" class="input"></div>
                         </div>
-
-                        <div class="form-row">
-                            <div class="form-group">
-                                <label>Statut de publication</label>
-                                <select id="publicationStatus" class="input" onchange="toggleScheduleFields()">
-                                    <option value="published">Publier immédiatement</option>
-                                    <option value="draft">Enregistrer comme brouillon</option>
-                                    <option value="scheduled">Programmer la publication</option>
-                                </select>
-                            </div>
-                        </div>
-
-                        <div id="scheduleFields" class="form-row" style="display: none;">
-                            <div class="form-group">
-                                <label>Date de publication</label>
-                                <input type="date" id="scheduleDate" class="input">
-                            </div>
-                            <div class="form-group">
-                                <label>Heure de publication</label>
-                                <input type="time" id="scheduleTime" class="input">
-                            </div>
-                        </div>
-
-                        <div id="scheduleInfo" class="alert alert-info" style="display: none; margin-top: 1rem;">
+                        <div id="scheduleInfo" class="alert alert-info" style="display:none; margin-top:1rem;">
                             <i class="fas fa-info-circle"></i>
-                            <div>
-                                <strong>Publication programmée</strong>
-                                <p id="schedulePreview" style="margin: 0.5rem 0 0 0;"></p>
-                            </div>
+                            <div><strong>Publication programmée</strong><p id="schedulePreview" style="margin:.5rem 0 0;"></p></div>
                         </div>
-
                         <div class="form-actions">
-                            <button type="submit" class="btn btn-primary">
-                                <i class="fas fa-paper-plane"></i> <span id="submitBtnText">Publier</span>
-                            </button>
-                            <button type="button" class="btn btn-secondary" onclick="cancelEdit()">
-                                <i class="fas fa-redo"></i> Annuler
-                            </button>
+                            <button type="submit" class="btn btn-primary"><i class="fas fa-paper-plane"></i> <span id="submitBtnText">Publier</span></button>
+                            <button type="button" class="btn btn-secondary" onclick="cancelEdit()"><i class="fas fa-redo"></i> Annuler</button>
                         </div>
                     </form>
                 </div>
             </div>
 
-            <!-- Barre de recherche -->
             <div class="search-articles-section">
                 <div class="search-bar-admin">
                     <i class="fas fa-search"></i>
-                    <input 
-                        type="text" 
-                        id="adminSearchInput" 
-                        placeholder="Rechercher un article par titre, catégorie ou tag..."
-                        class="search-input-admin"
-                    >
-                    <button id="clearSearch" class="btn-clear-search hidden" onclick="clearAdminSearch()">
-                        <i class="fas fa-times"></i>
-                    </button>
+                    <input type="text" id="adminSearchInput" placeholder="Rechercher un article par titre, catégorie ou tag..." class="search-input-admin">
+                    <button id="clearSearch" class="btn-clear-search hidden" onclick="clearAdminSearch()"><i class="fas fa-times"></i></button>
                 </div>
                 <div id="searchResultsCount" class="search-results-count hidden"></div>
             </div>
 
-            <!-- Articles Publiés -->
             <div class="card accordion-card">
-                <div class="card-header accordion-header" onclick="toggleAccordion('published')">
-                    <div class="accordion-title">
-                        <i class="fas fa-chevron-down accordion-icon" id="publishedIcon"></i>
-                        <h2><i class="fas fa-check-circle"></i> Articles Publiés</h2>
-                        <span class="count-badge" id="publishedCount">0</span>
-                    </div>
-                </div>
-                <div class="card-body accordion-body" id="publishedAccordion">
-                    <div id="publishedArticlesList">
-                        <div class="loading"><i class="fas fa-spinner fa-spin"></i><p>Chargement...</p></div>
-                    </div>
-                    <div id="publishedPagination" class="admin-pagination hidden"></div>
-                </div>
+                <div class="card-header accordion-header" onclick="toggleAccordion('published')"><div class="accordion-title"><i class="fas fa-chevron-down accordion-icon" id="publishedIcon"></i><h2><i class="fas fa-check-circle"></i> Articles Publiés</h2><span class="count-badge" id="publishedCount">0</span></div></div>
+                <div class="card-body accordion-body" id="publishedAccordion"><div id="publishedArticlesList"><div class="loading"><i class="fas fa-spinner fa-spin"></i><p>Chargement...</p></div></div><div id="publishedPagination" class="admin-pagination hidden"></div></div>
             </div>
-
-            <!-- Articles Programmés -->
             <div class="card accordion-card">
-                <div class="card-header accordion-header" onclick="toggleAccordion('scheduled')">
-                    <div class="accordion-title">
-                        <i class="fas fa-chevron-down accordion-icon" id="scheduledIcon"></i>
-                        <h2><i class="fas fa-clock"></i> Articles Programmés</h2>
-                        <span class="count-badge" id="scheduledCount">0</span>
-                    </div>
-                </div>
-                <div class="card-body accordion-body" id="scheduledAccordion">
-                    <div id="scheduledArticlesList">
-                        <div class="empty-state">
-                            <i class="fas fa-clock"></i>
-                            <p>Aucun article programmé</p>
-                        </div>
-                    </div>
-                    <div id="scheduledPagination" class="admin-pagination hidden"></div>
-                </div>
+                <div class="card-header accordion-header" onclick="toggleAccordion('scheduled')"><div class="accordion-title"><i class="fas fa-chevron-down accordion-icon" id="scheduledIcon"></i><h2><i class="fas fa-clock"></i> Articles Programmés</h2><span class="count-badge" id="scheduledCount">0</span></div></div>
+                <div class="card-body accordion-body" id="scheduledAccordion"><div id="scheduledArticlesList"><div class="empty-state"><i class="fas fa-clock"></i><p>Aucun article programmé</p></div></div><div id="scheduledPagination" class="admin-pagination hidden"></div></div>
             </div>
-
-            <!-- Brouillons -->
             <div class="card accordion-card">
-                <div class="card-header accordion-header" onclick="toggleAccordion('drafts')">
-                    <div class="accordion-title">
-                        <i class="fas fa-chevron-down accordion-icon" id="draftsIcon"></i>
-                        <h2><i class="fas fa-file-alt"></i> Brouillons</h2>
-                        <span class="count-badge" id="draftsCount">0</span>
-                    </div>
-                </div>
-                <div class="card-body accordion-body" id="draftsAccordion">
-                    <div id="draftsArticlesList">
-                        <div class="empty-state">
-                            <i class="fas fa-file-alt"></i>
-                            <p>Aucun brouillon</p>
-                        </div>
-                    </div>
-                    <div id="draftsPagination" class="admin-pagination hidden"></div>
-                </div>
+                <div class="card-header accordion-header" onclick="toggleAccordion('drafts')"><div class="accordion-title"><i class="fas fa-chevron-down accordion-icon" id="draftsIcon"></i><h2><i class="fas fa-file-alt"></i> Brouillons</h2><span class="count-badge" id="draftsCount">0</span></div></div>
+                <div class="card-body accordion-body" id="draftsAccordion"><div id="draftsArticlesList"><div class="empty-state"><i class="fas fa-file-alt"></i><p>Aucun brouillon</p></div></div><div id="draftsPagination" class="admin-pagination hidden"></div></div>
             </div>
-
-            <!-- Newsletter -->
             <div class="card">
-                <div class="card-header">
-                    <h2><i class="fas fa-envelope"></i> Abonnés Newsletter</h2>
-                </div>
+                <div class="card-header"><h2><i class="fas fa-envelope"></i> Abonnés Newsletter</h2></div>
                 <div class="card-body">
-                    <div class="newsletter-actions">
-                        <button onclick="exportNewsletterCSV()" class="btn btn-primary">
-                            <i class="fas fa-download"></i> Exporter CSV
-                        </button>
-                    </div>
-                    <div id="newsletterList">
-                        <div class="loading"><i class="fas fa-spinner fa-spin"></i><p>Chargement...</p></div>
-                    </div>
+                    <div class="newsletter-actions"><button onclick="exportNewsletterCSV()" class="btn btn-primary"><i class="fas fa-download"></i> Exporter CSV</button></div>
+                    <div id="newsletterList"><div class="loading"><i class="fas fa-spinner fa-spin"></i><p>Chargement...</p></div></div>
                 </div>
             </div>
         </div>
     </main>
 
-    <!-- Modal Suppression -->
     <div id="deleteModal" class="modal hidden">
         <div class="modal-overlay"></div>
         <div class="modal-content">
-            <div class="modal-header">
-                <h3><i class="fas fa-exclamation-triangle"></i> Confirmer la suppression</h3>
-            </div>
-            <div class="modal-body">
-                <p>Êtes-vous sûr de vouloir supprimer cet article ?</p>
-                <p class="text-danger">Cette action est irréversible.</p>
-            </div>
-            <div class="modal-footer">
-                <button id="cancelDelete" class="btn btn-secondary">Annuler</button>
-                <button id="confirmDelete" class="btn btn-danger">
-                    <i class="fas fa-trash"></i> Supprimer
-                </button>
-            </div>
+            <div class="modal-header"><h3><i class="fas fa-exclamation-triangle"></i> Confirmer la suppression</h3></div>
+            <div class="modal-body"><p>Êtes-vous sûr de vouloir supprimer cet article ?</p><p class="text-danger">Cette action est irréversible.</p></div>
+            <div class="modal-footer"><button id="cancelDelete" class="btn btn-secondary">Annuler</button><button id="confirmDelete" class="btn btn-danger"><i class="fas fa-trash"></i> Supprimer</button></div>
         </div>
     </div>
-
-    <!-- Notification -->
     <div id="notification" class="notification hidden"></div>
 
-    <!-- Scripts -->
-    <!-- CodeMirror JS pour mode HTML -->
     <script src="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.16/codemirror.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.16/mode/xml/xml.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.16/mode/javascript/javascript.min.js"></script>
@@ -510,172 +356,533 @@
     <script src="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.16/mode/htmlmixed/htmlmixed.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.16/addon/edit/closetag.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.16/addon/edit/closebrackets.min.js"></script>
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.16/addon/fold/foldcode.min.js"></script>
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.16/addon/fold/foldgutter.min.js"></script>
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.16/addon/fold/xml-fold.min.js"></script>
     <script src="https://cdn.quilljs.com/1.3.6/quill.js"></script>
+
     <script>
-        // ============================================
-        // SÉLECTEUR DE MODE ÉDITEUR ARTICLE
-        // ============================================
-        let articleEditorMode = 'quill'; // 'quill' ou 'html'
-        let articleCmInstance = null;
+    // ══════════════════════════════════════════════
+    //  EDITOR MODE SWITCHER
+    // ══════════════════════════════════════════════
+    let articleEditorMode = 'quill';
+    let articleCmInstance = null;
 
-        window.switchArticleEditorMode = function(mode) {
-            if (mode === articleEditorMode) return;
-            articleEditorMode = mode;
+    window.switchArticleEditorMode = function(mode) {
+        if (mode === articleEditorMode) return;
+        const prev = articleEditorMode;
+        articleEditorMode = mode;
 
-            const quillSection = document.getElementById('quillEditorSection');
-            const htmlSection = document.getElementById('htmlEditorSection');
-            const modeQuillBtn = document.getElementById('modeQuillBtn');
-            const modeHtmlBtn = document.getElementById('modeHtmlBtn');
-
-            if (mode === 'html') {
-                // Récupérer le contenu Quill actuel avant de basculer
-                let currentContent = '';
-                if (window._quillEditorRef) {
-                    currentContent = window._quillEditorRef.root.innerHTML;
-                    if (currentContent === '<p><br></p>') currentContent = '';
-                }
-
-                quillSection.style.display = 'none';
-                htmlSection.style.display = 'block';
-                modeQuillBtn.classList.remove('active');
-                modeHtmlBtn.classList.add('active');
-
-                // Initialiser CodeMirror si pas encore fait
-                if (!articleCmInstance) {
-                    const wrapper = document.getElementById('articleCmEditor');
-                    const textarea = document.createElement('textarea');
-                    textarea.id = 'articleCmTextarea';
-                    wrapper.appendChild(textarea);
-                    articleCmInstance = CodeMirror.fromTextArea(textarea, {
-                        mode: 'htmlmixed',
-                        theme: 'dracula',
-                        lineNumbers: true,
-                        lineWrapping: true,
-                        autoCloseTags: true,
-                        autoCloseBrackets: true,
-                        matchTags: { bothTags: true },
-                        extraKeys: { 'Ctrl-Space': 'autocomplete' },
-                        tabSize: 2,
-                        indentWithTabs: false
-                    });
-                    articleCmInstance.on('change', function(cm) {
-                        document.getElementById('articleCmCount').textContent = cm.getValue().length + ' caractères';
-                    });
-                }
-                articleCmInstance.setValue(currentContent);
-                articleCmInstance.refresh();
-                setTimeout(() => articleCmInstance.refresh(), 100);
-
-            } else {
-                // Récupérer le HTML de CodeMirror avant de basculer
-                let htmlContent = articleCmInstance ? articleCmInstance.getValue() : '';
-
-                quillSection.style.display = 'block';
-                htmlSection.style.display = 'none';
-                modeQuillBtn.classList.add('active');
-                modeHtmlBtn.classList.remove('active');
-
-                // Injecter dans Quill
-                if (window._quillEditorRef && htmlContent) {
-                    window._quillEditorRef.root.innerHTML = htmlContent;
-                }
-            }
-        };
-
-        window.articleInsertSnippet = function(type) {
-            if (!articleCmInstance) return;
-            const snippets = {
-                heading: '<h2>Titre de section</h2>\n',
-                paragraph: '<p>Votre texte ici...</p>\n',
-                table: '<table style="width:100%; border-collapse:collapse;">\n  <thead>\n    <tr>\n      <th style="border:1px solid #ddd; padding:8px; background:#f2f2f2;">Colonne 1</th>\n      <th style="border:1px solid #ddd; padding:8px; background:#f2f2f2;">Colonne 2</th>\n    </tr>\n  </thead>\n  <tbody>\n    <tr>\n      <td style="border:1px solid #ddd; padding:8px;">Valeur 1</td>\n      <td style="border:1px solid #ddd; padding:8px;">Valeur 2</td>\n    </tr>\n  </tbody>\n</table>\n',
-                image: '<img src="URL_IMAGE" alt="Description" style="max-width:100%; border-radius:8px;">\n',
-                list: '<ul>\n  <li>Élément 1</li>\n  <li>Élément 2</li>\n  <li>Élément 3</li>\n</ul>\n',
-                alert: '<div style="background:#fef3c7; border-left:4px solid #f59e0b; padding:1rem; border-radius:4px; margin:1rem 0;">\n  <strong>⚠️ Important :</strong> Votre message ici.\n</div>\n',
-                grid: '<div style="display:grid; grid-template-columns:1fr 1fr; gap:1rem;">\n  <div style="background:#f8fafc; padding:1rem; border-radius:8px;">Colonne gauche</div>\n  <div style="background:#f8fafc; padding:1rem; border-radius:8px;">Colonne droite</div>\n</div>\n'
-            };
-            const cursor = articleCmInstance.getCursor();
-            articleCmInstance.replaceRange(snippets[type] || '', cursor);
-            articleCmInstance.focus();
-        };
-
-        window.articleFormatCode = function() {
-            if (!articleCmInstance) return;
-            let code = articleCmInstance.getValue();
-            let indent = 0;
-            const formatted = code
-                .replace(/>\s*</g, '>\n<')
-                .split('\n')
-                .map(line => {
-                    line = line.trim();
-                    if (!line) return '';
-                    if (line.match(/^<\//)) indent = Math.max(0, indent - 1);
-                    const result = '  '.repeat(indent) + line;
-                    if (line.match(/^<[^/!][^>]*[^/]>$/) && !line.match(/^<(br|hr|img|input|meta|link)/i)) indent++;
-                    return result;
-                })
-                .filter(l => l !== '')
-                .join('\n');
-            articleCmInstance.setValue(formatted);
-        };
-
-        window.articleTogglePreview = function() {
-            const preview = document.getElementById('articleHtmlPreview');
-            if (preview.classList.contains('hidden')) {
-                const html = articleCmInstance ? articleCmInstance.getValue() : '';
-                preview.querySelector('.preview-body').innerHTML = html;
-                preview.classList.remove('hidden');
-            } else {
-                preview.classList.add('hidden');
-            }
-        };
-
-        // ============================================
-        // Fonctions existantes
-        // ============================================
-        function toggleScheduleFields() {
-            const status = document.getElementById('publicationStatus').value;
-            const scheduleFields = document.getElementById('scheduleFields');
-            const scheduleInfo = document.getElementById('scheduleInfo');
-            const submitBtn = document.getElementById('submitBtnText');
-            
-            if (status === 'scheduled') {
-                scheduleFields.style.display = 'flex';
-                scheduleInfo.style.display = 'flex';
-                submitBtn.textContent = 'Programmer';
-                updateSchedulePreview();
-            } else {
-                scheduleFields.style.display = 'none';
-                scheduleInfo.style.display = 'none';
-                submitBtn.textContent = status === 'draft' ? 'Enregistrer brouillon' : 'Publier';
-            }
+        // Lire contenu de l'ancien mode
+        let html = '';
+        if (prev === 'quill' && window._quillEditorRef) {
+            html = window._quillEditorRef.root.innerHTML;
+            if (html === '<p><br></p>') html = '';
+        } else if (prev === 'html' && articleCmInstance) {
+            html = articleCmInstance.getValue();
+        } else if (prev === 'wy') {
+            html = document.getElementById('wyBody').innerHTML;
         }
-        
-        function updateSchedulePreview() {
-            const dateInput = document.getElementById('scheduleDate');
-            const timeInput = document.getElementById('scheduleTime');
-            const preview = document.getElementById('schedulePreview');
-            
-            if (dateInput.value && timeInput.value) {
-                const date = new Date(dateInput.value + 'T' + timeInput.value);
-                const options = { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric', hour: '2-digit', minute: '2-digit' };
-                preview.textContent = 'L\'article sera publié le ' + date.toLocaleDateString('fr-FR', options);
-            }
+
+        // Masquer tout
+        document.getElementById('quillEditorSection').style.display = 'none';
+        document.getElementById('htmlEditorSection').style.display  = 'none';
+        document.getElementById('wyEditorSection').style.display    = 'none';
+        document.querySelectorAll('.mode-btn').forEach(b => b.classList.remove('active'));
+
+        // Afficher le nouveau mode et injecter le contenu
+        if (mode === 'quill') {
+            document.getElementById('quillEditorSection').style.display = 'block';
+            document.getElementById('modeQuillBtn').classList.add('active');
+            if (window._quillEditorRef && html) window._quillEditorRef.root.innerHTML = html;
+        } else if (mode === 'html') {
+            document.getElementById('htmlEditorSection').style.display = 'block';
+            document.getElementById('modeHtmlBtn').classList.add('active');
+            if (!articleCmInstance) _initArticleCm();
+            articleCmInstance.setValue(html);
+            articleCmInstance.refresh();
+            setTimeout(() => articleCmInstance.refresh(), 80);
+        } else if (mode === 'wy') {
+            document.getElementById('wyEditorSection').style.display = 'block';
+            document.getElementById('modeWyBtn').classList.add('active');
+            if (!window._wyInited) _initWysiwyg();
+            document.getElementById('wyBody').innerHTML = html;
         }
-        
-        document.addEventListener('DOMContentLoaded', function() {
-            const dateInput = document.getElementById('scheduleDate');
-            const timeInput = document.getElementById('scheduleTime');
-            
-            if (dateInput) {
-                dateInput.addEventListener('change', updateSchedulePreview);
-                dateInput.setAttribute('min', new Date().toISOString().split('T')[0]);
-            }
-            if (timeInput) timeInput.addEventListener('change', updateSchedulePreview);
+    };
+
+    // ── Init CodeMirror ──
+    function _initArticleCm() {
+        const wrapper  = document.getElementById('articleCmEditor');
+        const textarea = document.createElement('textarea');
+        textarea.id = 'articleCmTextarea';
+        wrapper.appendChild(textarea);
+        articleCmInstance = CodeMirror.fromTextArea(textarea, {
+            mode:'htmlmixed', theme:'dracula', lineNumbers:true,
+            lineWrapping:true, autoCloseTags:true, autoCloseBrackets:true,
+            matchTags:{bothTags:true}, tabSize:2, indentWithTabs:false
         });
+        articleCmInstance.on('change', cm => {
+            document.getElementById('articleCmCount').textContent = cm.getValue().length + ' caractères';
+        });
+    }
+
+    // ── Snippets CodeMirror ──
+    window.articleInsertSnippet = function(type) {
+        if (!articleCmInstance) return;
+        const s = {
+            heading:   '<h2>Titre de section</h2>\n',
+            paragraph: '<p>Votre texte ici...</p>\n',
+            table:     '<table style="width:100%; border-collapse:collapse;">\n  <thead><tr><th style="border:1px solid #ddd; padding:8px; background:#f2f2f2;">Col 1</th><th style="border:1px solid #ddd; padding:8px; background:#f2f2f2;">Col 2</th></tr></thead>\n  <tbody><tr><td style="border:1px solid #ddd; padding:8px;">Valeur 1</td><td style="border:1px solid #ddd; padding:8px;">Valeur 2</td></tr></tbody>\n</table>\n',
+            image:     '<img src="URL_IMAGE" alt="Description" style="max-width:100%; border-radius:8px;">\n',
+            list:      '<ul>\n  <li>Élément 1</li>\n  <li>Élément 2</li>\n</ul>\n',
+            alert:     '<div style="background:#fef3c7; border-left:4px solid #f59e0b; padding:1rem; border-radius:4px; margin:1rem 0;">\n  <strong>⚠️ Important :</strong> Votre message ici.\n</div>\n',
+            grid:      '<div style="display:grid; grid-template-columns:1fr 1fr; gap:1rem;">\n  <div style="background:#f8fafc; padding:1rem; border-radius:8px;">Colonne gauche</div>\n  <div style="background:#f8fafc; padding:1rem; border-radius:8px;">Colonne droite</div>\n</div>\n'
+        };
+        articleCmInstance.replaceRange(s[type] || '', articleCmInstance.getCursor());
+        articleCmInstance.focus();
+    };
+    window.articleFormatCode = function() {
+        if (!articleCmInstance) return;
+        let code = articleCmInstance.getValue(), indent = 0;
+        const fmt = code.replace(/>\s*</g,'>\n<').split('\n').map(line => {
+            line = line.trim(); if (!line) return '';
+            if (line.match(/^<\//)) indent = Math.max(0, indent - 1);
+            const r = '  '.repeat(indent) + line;
+            if (line.match(/^<[^/!][^>]*[^/]>$/) && !line.match(/^<(br|hr|img|input|meta|link)/i)) indent++;
+            return r;
+        }).filter(l => l !== '').join('\n');
+        articleCmInstance.setValue(fmt);
+    };
+
+    // ══════════════════════════════════════════════
+    //  WYSIWYG — ÉDITEUR WORD-LIKE
+    // ══════════════════════════════════════════════
+    window._wyInited = false;
+    let _wySelImg = null;     // image sélectionnée
+    let _wyResizing = false;
+    let _wyResizeDir = '';
+    let _wyStartX, _wyStartY, _wyStartW, _wyStartH;
+    let _wySavedRange = null; // range sauvegardé avant prompt
+
+    function _initWysiwyg() {
+        window._wyInited = true;
+        _buildToolbar();
+        _bindWyEvents();
+    }
+
+    // ── Construction de la toolbar ──
+    function _buildToolbar() {
+        const tb = document.getElementById('wyToolbar');
+        tb.innerHTML = `
+        <div class="wy-tb-group">
+            <select class="wy-tb-select" id="wyBlockSel" title="Style de texte">
+                <option value="p">Paragraphe</option>
+                <option value="h1">Titre 1</option>
+                <option value="h2">Titre 2</option>
+                <option value="h3">Titre 3</option>
+                <option value="h4">Titre 4</option>
+                <option value="pre">Code</option>
+                <option value="blockquote">Citation</option>
+            </select>
+        </div>
+        <div class="wy-tb-sep"></div>
+        <div class="wy-tb-group">
+            <button type="button" class="wy-tb-btn" data-cmd="bold" title="Gras (Ctrl+B)"><b>G</b></button>
+            <button type="button" class="wy-tb-btn" data-cmd="italic" title="Italique (Ctrl+I)"><i>I</i></button>
+            <button type="button" class="wy-tb-btn" data-cmd="underline" title="Souligné (Ctrl+U)"><u>S</u></button>
+            <button type="button" class="wy-tb-btn" data-cmd="strikeThrough" title="Barré"><s>B</s></button>
+        </div>
+        <div class="wy-tb-sep"></div>
+        <div class="wy-tb-group">
+            <div class="wy-color-wrap" title="Couleur du texte">
+                <i class="fas fa-font"></i>
+                <input type="color" id="wyFgColor" value="#1f2937">
+                <div class="wy-color-bar" id="wyFgBar" style="background:#1f2937"></div>
+            </div>
+            <div class="wy-color-wrap" title="Surlignage">
+                <i class="fas fa-fill-drip"></i>
+                <input type="color" id="wyBgColor" value="#ffff00">
+                <div class="wy-color-bar" id="wyBgBar" style="background:#ffff00"></div>
+            </div>
+        </div>
+        <div class="wy-tb-sep"></div>
+        <div class="wy-tb-group">
+            <button type="button" class="wy-tb-btn" data-cmd="justifyLeft"   title="Aligner gauche"><i class="fas fa-align-left"></i></button>
+            <button type="button" class="wy-tb-btn" data-cmd="justifyCenter" title="Centrer"><i class="fas fa-align-center"></i></button>
+            <button type="button" class="wy-tb-btn" data-cmd="justifyRight"  title="Aligner droite"><i class="fas fa-align-right"></i></button>
+            <button type="button" class="wy-tb-btn" data-cmd="justifyFull"   title="Justifier"><i class="fas fa-align-justify"></i></button>
+        </div>
+        <div class="wy-tb-sep"></div>
+        <div class="wy-tb-group">
+            <button type="button" class="wy-tb-btn" data-cmd="insertUnorderedList" title="Liste à puces"><i class="fas fa-list-ul"></i></button>
+            <button type="button" class="wy-tb-btn" data-cmd="insertOrderedList"   title="Liste numérotée"><i class="fas fa-list-ol"></i></button>
+            <button type="button" class="wy-tb-btn" data-cmd="indent"   title="Indenter"><i class="fas fa-indent"></i></button>
+            <button type="button" class="wy-tb-btn" data-cmd="outdent"  title="Désindenter"><i class="fas fa-outdent"></i></button>
+        </div>
+        <div class="wy-tb-sep"></div>
+        <div class="wy-tb-group">
+            <button type="button" class="wy-tb-btn" data-act="link"  title="Insérer un lien"><i class="fas fa-link"></i></button>
+            <button type="button" class="wy-tb-btn" data-act="table" title="Insérer un tableau"><i class="fas fa-table"></i></button>
+            <button type="button" class="wy-tb-btn" data-act="hr"    title="Séparateur"><i class="fas fa-minus"></i></button>
+        </div>
+        <div class="wy-tb-sep"></div>
+        <div class="wy-tb-group">
+            <button type="button" class="wy-tb-btn wy-tb-btn-wide" data-act="imgUrl"  title="Image via URL"><i class="fas fa-link"></i> URL</button>
+            <label class="wy-tb-btn wy-tb-btn-wide" title="Image depuis fichier" style="cursor:pointer;">
+                <i class="fas fa-upload"></i> Fichier
+                <input type="file" accept="image/*" id="wyFileInput" style="display:none;">
+            </label>
+        </div>
+        <div class="wy-tb-sep"></div>
+        <div class="wy-tb-group">
+            <button type="button" class="wy-tb-btn" data-cmd="undo" title="Annuler (Ctrl+Z)"><i class="fas fa-undo"></i></button>
+            <button type="button" class="wy-tb-btn" data-cmd="redo" title="Rétablir"><i class="fas fa-redo"></i></button>
+            <button type="button" class="wy-tb-btn" data-cmd="removeFormat" title="Effacer formatage"><i class="fas fa-eraser"></i></button>
+        </div>`;
+    }
+
+    // ── Liaison des événements ──
+    function _bindWyEvents() {
+        const body = document.getElementById('wyBody');
+        const tb   = document.getElementById('wyToolbar');
+        const wrap = document.getElementById('wyWrap');
+        const drop = document.getElementById('wyDrop');
+        const imgBox = document.getElementById('wyImgBox');
+        const imgTb  = document.getElementById('wyImgToolbar');
+
+        // ── Toolbar : execCommand ──
+        tb.addEventListener('mousedown', e => {
+            const btn = e.target.closest('[data-cmd]');
+            if (btn) { e.preventDefault(); body.focus(); document.execCommand(btn.dataset.cmd, false, null); _updateTbState(); _wySync(); }
+        });
+
+        // ── Toolbar : actions spéciales ──
+        tb.addEventListener('click', e => {
+            const btn = e.target.closest('[data-act]');
+            if (!btn) return;
+            const act = btn.dataset.act;
+            if (act === 'imgUrl')  { _wySaveRange(); _wyInsertImgUrl(); }
+            if (act === 'link')    { _wySaveRange(); _wyInsertLink(); }
+            if (act === 'table')   { _wySaveRange(); _wyInsertTable(); }
+            if (act === 'hr')      { body.focus(); document.execCommand('insertHorizontalRule'); _wySync(); }
+        });
+
+        // ── Select formatBlock ──
+        document.getElementById('wyBlockSel').addEventListener('change', e => {
+            body.focus();
+            document.execCommand('formatBlock', false, e.target.value);
+            _wySync();
+        });
+
+        // ── Couleurs ──
+        document.getElementById('wyFgColor').addEventListener('input', e => {
+            document.getElementById('wyFgBar').style.background = e.target.value;
+            body.focus(); document.execCommand('foreColor', false, e.target.value); _wySync();
+        });
+        document.getElementById('wyBgColor').addEventListener('input', e => {
+            document.getElementById('wyBgBar').style.background = e.target.value;
+            body.focus(); document.execCommand('hiliteColor', false, e.target.value); _wySync();
+        });
+
+        // ── File input ──
+        document.getElementById('wyFileInput').addEventListener('change', e => {
+            const file = e.target.files[0];
+            if (file) _wyInsertImgFile(file);
+            e.target.value = '';
+        });
+
+        // ── Sync sur frappe ──
+        body.addEventListener('input',  () => { _wySync(); _updateTbState(); _updateCharCount(); });
+        body.addEventListener('keyup',  () => _updateTbState());
+        body.addEventListener('mouseup',() => _updateTbState());
+
+        // ── Clic image → sélection ──
+        body.addEventListener('click', e => {
+            if (e.target.tagName === 'IMG') { _wySelectImg(e.target); }
+            else { _wyDeselect(); }
+        });
+
+        // ── Drag & drop image ──
+        wrap.addEventListener('dragover', e => {
+            if ([...e.dataTransfer.items].some(i => i.type.startsWith('image/'))) {
+                e.preventDefault(); drop.classList.add('show');
+            }
+        });
+        wrap.addEventListener('dragleave', e => {
+            if (!wrap.contains(e.relatedTarget)) drop.classList.remove('show');
+        });
+        wrap.addEventListener('drop', e => {
+            e.preventDefault(); drop.classList.remove('show');
+            const file = [...e.dataTransfer.files].find(f => f.type.startsWith('image/'));
+            if (file) _wyInsertImgFile(file);
+        });
+
+        // ── Coller image Ctrl+V ──
+        body.addEventListener('paste', e => {
+            const item = [...(e.clipboardData?.items || [])].find(i => i.type.startsWith('image/'));
+            if (item) { e.preventDefault(); _wyInsertImgFile(item.getAsFile()); }
+        });
+
+        // ── Image toolbar flottante ──
+        imgTb.addEventListener('click', e => {
+            const btn = e.target.closest('[data-ia]');
+            if (!btn || !_wySelImg) return;
+            const a = btn.dataset.ia;
+            if (a === 'left')   { _wySelImg.style.cssFloat='left'; _wySelImg.style.margin='4px 1rem 4px 0'; _wySelImg.style.display=''; }
+            if (a === 'center') { _wySelImg.style.cssFloat=''; _wySelImg.style.margin='1rem auto'; _wySelImg.style.display='block'; }
+            if (a === 'right')  { _wySelImg.style.cssFloat='right'; _wySelImg.style.margin='4px 0 4px 1rem'; _wySelImg.style.display=''; }
+            if (a === 'full')   { _wySelImg.style.width='100%'; _wySelImg.style.height='auto'; }
+            if (a === 'half')   { _wySelImg.style.width='50%'; _wySelImg.style.height='auto'; }
+            if (a === 'url') {
+                const url = prompt('Nouvelle URL de l\'image :');
+                if (url) _wySelImg.src = url.trim();
+            }
+            if (a === 'alt') {
+                const alt = prompt('Texte alternatif :', _wySelImg.alt || '');
+                if (alt !== null) _wySelImg.alt = alt;
+            }
+            if (a === 'del') { _wySelImg.remove(); _wyDeselect(); }
+            _wySync();
+            if (a !== 'del') _posImgOverlay(_wySelImg);
+        });
+
+        // ── Resize handles ──
+        imgBox.querySelectorAll('.wy-rh').forEach(h => {
+            h.addEventListener('mousedown', e => {
+                if (!_wySelImg) return;
+                e.preventDefault();
+                _wyResizing = true;
+                _wyResizeDir = h.dataset.d;
+                _wyStartX = e.clientX; _wyStartY = e.clientY;
+                _wyStartW = _wySelImg.offsetWidth;
+                _wyStartH = _wySelImg.offsetHeight;
+            });
+        });
+        document.addEventListener('mousemove', e => {
+            if (!_wyResizing || !_wySelImg) return;
+            const dx = e.clientX - _wyStartX;
+            const dy = e.clientY - _wyStartY;
+            const d  = _wyResizeDir;
+            let w = _wyStartW, h = _wyStartH;
+            if (d.includes('e')) w = Math.max(30, _wyStartW + dx);
+            if (d.includes('w')) w = Math.max(30, _wyStartW - dx);
+            if (d.includes('s')) h = Math.max(20, _wyStartH + dy);
+            if (d.includes('n')) h = Math.max(20, _wyStartH - dy);
+            // Shift = proportionnel
+            if (e.shiftKey && (d === 'se' || d === 'ne' || d === 'sw' || d === 'nw')) {
+                const ratio = _wyStartH / _wyStartW;
+                h = Math.round(w * ratio);
+            }
+            _wySelImg.style.width  = w + 'px';
+            _wySelImg.style.height = d === 'e' || d === 'w' ? 'auto' : h + 'px';
+            _posImgOverlay(_wySelImg);
+        });
+        document.addEventListener('mouseup', () => {
+            if (_wyResizing) { _wyResizing = false; _wySync(); }
+        });
+
+        // ── Désélectionner si clic hors ──
+        document.addEventListener('mousedown', e => {
+            if (!imgBox.contains(e.target) && !imgTb.contains(e.target) && !body.contains(e.target)) {
+                _wyDeselect();
+            }
+        });
+
+        // ── Repositionner overlay lors du scroll ──
+        document.addEventListener('scroll', () => {
+            if (_wySelImg) _posImgOverlay(_wySelImg);
+        }, true);
+    }
+
+    // ── Sauvegarde de la sélection avant prompt ──
+    function _wySaveRange() {
+        const sel = window.getSelection();
+        if (sel && sel.rangeCount > 0) _wySavedRange = sel.getRangeAt(0).cloneRange();
+    }
+
+    // ── Restaure la sélection après prompt ──
+    function _wyRestoreRange() {
+        const body = document.getElementById('wyBody');
+        body.focus();
+        if (_wySavedRange) {
+            const sel = window.getSelection();
+            sel.removeAllRanges();
+            sel.addRange(_wySavedRange);
+        }
+    }
+
+    // ── Sélection image ──
+    function _wySelectImg(img) {
+        if (_wySelImg) _wySelImg.style.outline = '';
+        _wySelImg = img;
+        img.style.outline = '2px solid #2563eb';
+        _posImgOverlay(img);
+    }
+    function _wyDeselect() {
+        if (_wySelImg) { _wySelImg.style.outline = ''; _wySelImg = null; }
+        document.getElementById('wyImgBox').style.display    = 'none';
+        document.getElementById('wyImgToolbar').style.display = 'none';
+    }
+
+    // ── Position de la resize box et toolbar image ──
+    function _posImgOverlay(img) {
+        const box = document.getElementById('wyImgBox');
+        const itb = document.getElementById('wyImgToolbar');
+        const r   = img.getBoundingClientRect();
+        const sy  = window.scrollY;
+        const sx  = window.scrollX;
+
+        box.style.display = 'block';
+        box.style.top    = (r.top + sy - 3)  + 'px';
+        box.style.left   = (r.left + sx - 3) + 'px';
+        box.style.width  = (r.width  + 6)    + 'px';
+        box.style.height = (r.height + 6)    + 'px';
+
+        // Toolbar image au-dessus de l'image
+        itb.style.display = 'flex';
+        const tbH = 34;
+        let top = r.top + sy - tbH - 10;
+        if (top < sy + 4) top = r.bottom + sy + 6;
+        itb.style.top  = top + 'px';
+        itb.style.left = Math.max(4, r.left + sx) + 'px';
+
+        // Afficher les dimensions
+        document.getElementById('wyImgSize').textContent =
+            Math.round(r.width) + '×' + Math.round(r.height);
+    }
+
+    // ── Insérer image URL ──
+    function _wyInsertImgUrl() {
+        const url = prompt('URL de l\'image :');
+        if (!url || !url.trim()) return;
+        _wyRestoreRange();
+        _wyInsertImgEl(url.trim(), 'image');
+    }
+
+    // ── Insérer image fichier ──
+    function _wyInsertImgFile(file) {
+        _wySaveRange();
+        const reader = new FileReader();
+        reader.onload = ev => {
+            _wyRestoreRange();
+            _wyInsertImgEl(ev.target.result, file.name.replace(/\.[^.]+$/, ''));
+        };
+        reader.readAsDataURL(file);
+    }
+
+    // ── Créer et insérer <img> à la position du curseur ──
+    function _wyInsertImgEl(src, alt) {
+        const body = document.getElementById('wyBody');
+        const img = document.createElement('img');
+        img.src = src; img.alt = alt;
+        img.style.cssText = 'max-width:100%; border-radius:6px; margin:.5rem 0; display:block; box-shadow:0 2px 8px rgba(0,0,0,.12);';
+
+        const sel = window.getSelection();
+        if (sel && sel.rangeCount > 0 && body.contains(sel.anchorNode)) {
+            const range = sel.getRangeAt(0);
+            range.collapse(false);
+            range.insertNode(img);
+            range.setStartAfter(img); range.setEndAfter(img);
+            sel.removeAllRanges(); sel.addRange(range);
+        } else {
+            body.appendChild(img);
+        }
+        _wySync();
+        setTimeout(() => _wySelectImg(img), 30);
+    }
+
+    // ── Insérer lien ──
+    function _wyInsertLink() {
+        const url = prompt('URL du lien :');
+        if (!url) return;
+        const txt = prompt('Texte du lien :') || url;
+        _wyRestoreRange();
+        document.execCommand('insertHTML', false, `<a href="${url}" target="_blank" style="color:#2563eb;">${txt}</a>`);
+        _wySync();
+    }
+
+    // ── Insérer tableau ──
+    function _wyInsertTable() {
+        const cols = parseInt(prompt('Colonnes :', '3')) || 3;
+        const rows = parseInt(prompt('Lignes :', '3')) || 3;
+        const head = Array(cols).fill(0).map((_, i) =>
+            `<th style="padding:8px 12px;background:#1e40af;color:white;border:1px solid #1e3a8a;text-align:left;">Colonne ${i+1}</th>`
+        ).join('');
+        const body_rows = Array(rows - 1).fill(0).map(() =>
+            '<tr>' + Array(cols).fill('<td style="padding:8px 12px;border:1px solid #e2e8f0;"> </td>').join('') + '</tr>'
+        ).join('');
+        _wyRestoreRange();
+        document.execCommand('insertHTML', false,
+            `<div style="overflow-x:auto;margin:1rem 0;"><table style="width:100%;border-collapse:collapse;font-size:.95rem;"><thead><tr>${head}</tr></thead><tbody>${body_rows}</tbody></table></div>`
+        );
+        _wySync();
+    }
+
+    // ── Mise à jour visuelle des boutons actifs ──
+    function _updateTbState() {
+        ['bold','italic','underline','strikeThrough','justifyLeft','justifyCenter','justifyRight','justifyFull','insertUnorderedList','insertOrderedList']
+        .forEach(cmd => {
+            const btn = document.querySelector(`#wyToolbar [data-cmd="${cmd}"]`);
+            if (btn) btn.classList.toggle('active', document.queryCommandState(cmd));
+        });
+    }
+
+    // ── Synchro vers textarea hidden (lu par admin.js) ──
+    function _wySync() {
+        const val = document.getElementById('wyBody').innerHTML;
+        document.getElementById('content').value = val;
+    }
+
+    function _updateCharCount() {
+        const len = document.getElementById('wyBody').textContent.length;
+        document.getElementById('wyCharCount').textContent = len + ' car.';
+    }
+
+    // ══════════════════════════════════════════════
+    //  LECTURE DU CONTENU AU SUBMIT (admin.js hook)
+    // ══════════════════════════════════════════════
+    // admin.js appelle window.getArticleContent() pour récupérer le contenu
+    window.getArticleContent = function() {
+        if (articleEditorMode === 'quill' && window._quillEditorRef) {
+            return window._quillEditorRef.root.innerHTML;
+        } else if (articleEditorMode === 'html' && articleCmInstance) {
+            return articleCmInstance.getValue();
+        } else if (articleEditorMode === 'wy') {
+            return document.getElementById('wyBody').innerHTML;
+        }
+        return '';
+    };
+
+    // ══════════════════════════════════════════════
+    //  SCHEDULE FIELDS
+    // ══════════════════════════════════════════════
+    function toggleScheduleFields() {
+        const status = document.getElementById('publicationStatus').value;
+        const sf = document.getElementById('scheduleFields');
+        const si = document.getElementById('scheduleInfo');
+        const sb = document.getElementById('submitBtnText');
+        if (status === 'scheduled') {
+            sf.style.display = 'flex'; si.style.display = 'flex';
+            sb.textContent = 'Programmer'; updateSchedulePreview();
+        } else {
+            sf.style.display = 'none'; si.style.display = 'none';
+            sb.textContent = status === 'draft' ? 'Enregistrer brouillon' : 'Publier';
+        }
+    }
+    function updateSchedulePreview() {
+        const d = document.getElementById('scheduleDate').value;
+        const t = document.getElementById('scheduleTime').value;
+        if (d && t) {
+            const dt = new Date(d + 'T' + t);
+            document.getElementById('schedulePreview').textContent =
+                'L\'article sera publié le ' + dt.toLocaleDateString('fr-FR', {weekday:'long',year:'numeric',month:'long',day:'numeric',hour:'2-digit',minute:'2-digit'});
+        }
+    }
+    document.addEventListener('DOMContentLoaded', function() {
+        const di = document.getElementById('scheduleDate');
+        const ti = document.getElementById('scheduleTime');
+        if (di) { di.addEventListener('change', updateSchedulePreview); di.setAttribute('min', new Date().toISOString().split('T')[0]); }
+        if (ti) ti.addEventListener('change', updateSchedulePreview);
+    });
     </script>
+
     <script type="module" src="/admin.js"></script>
     <script type="module" src="/admin-enhancements.js"></script>
 </body>

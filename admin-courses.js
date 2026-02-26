@@ -359,17 +359,18 @@ function addSequenceToForm(sequenceData = null, index = 0) {
 function createSessionHtml(seqIndex, sessionIndex, sessionData = null) {
     const pdfMethod = sessionData?.pdfMethod || 'none';
     const pdfValue = sessionData?.pdfUrl || '';
-    // FIX : Retirer le prefixe 'cours-pdf/' pour l'input GitHub
-    // Sinon re-sauvegarder cree 'cours-pdf/cours-pdf/fichier.pdf'
     const githubFilename = pdfMethod === 'github'
         ? pdfValue.replace(/^cours-pdf\//, '')
         : '';
-    // FIX : Firebase URL existante uniquement si methode = 'firebase'
     const firebaseExistingUrl = pdfMethod === 'firebase' ? pdfValue : '';
     const editorId = `cm-editor-${seqIndex}-${sessionIndex}`;
     const hiddenId = `cm-hidden-${seqIndex}-${sessionIndex}`;
     const previewId = `cm-preview-${seqIndex}-${sessionIndex}`;
-    const content = sessionData?.content || '';
+    const plainId  = `plain-${seqIndex}-${sessionIndex}`;
+    const content  = sessionData?.content || '';
+    // Détecter le mode initial
+    const isHtmlContent = content.trim().startsWith('<') || content.includes('<p>') || content.includes('<div>');
+    const initialMode   = sessionData?.contentMode || (isHtmlContent ? 'html' : 'plain');
 
     return `
         <div class="session-item" data-seq="${seqIndex}" data-session="${sessionIndex}">
@@ -412,31 +413,53 @@ function createSessionHtml(seqIndex, sessionIndex, sessionData = null) {
 
                 <!-- MODE HTML CODEMIRROR -->
                 <div id="html-section-${seqIndex}-${sessionIndex}" ${initialMode !== 'html' ? 'style="display:none;"' : ''}>
-                    <div class="editor-toolbar">
-                        <span class="editor-label"><i class="fas fa-code"></i> Contenu HTML de la séance</span>
-                        <div class="editor-actions">
-                            <button type="button" class="editor-btn" onclick="insertSnippet('${editorId}', 'heading')" title="Titre h2">H2</button>
-                            <button type="button" class="editor-btn" onclick="insertSnippet('${editorId}', 'paragraph')" title="Paragraphe"><i class="fas fa-paragraph"></i></button>
-                            <button type="button" class="editor-btn" onclick="insertSnippet('${editorId}', 'table')" title="Tableau"><i class="fas fa-table"></i></button>
-                            <button type="button" class="editor-btn" onclick="insertSnippet('${editorId}', 'image')" title="Image"><i class="fas fa-image"></i></button>
-                            <button type="button" class="editor-btn" onclick="insertSnippet('${editorId}', 'list')" title="Liste"><i class="fas fa-list"></i></button>
-                            <button type="button" class="editor-btn" onclick="insertSnippet('${editorId}', 'alert')" title="Alerte"><i class="fas fa-exclamation-circle"></i></button>
-                            <button type="button" class="editor-btn" onclick="insertSnippet('${editorId}', 'grid')" title="Grille"><i class="fas fa-th"></i></button>
-                            <button type="button" class="editor-btn btn-format" onclick="formatCode('${editorId}')" title="Formater"><i class="fas fa-magic"></i></button>
-                            <button type="button" class="editor-btn btn-preview" onclick="togglePreview('${editorId}', '${previewId}')" title="Aperçu"><i class="fas fa-eye"></i> Aperçu</button>
+
+                    <!-- Sous-onglets: Code / Word -->
+                    <div style="display:flex; border-bottom:2px solid #282a36; margin-bottom:0;">
+                        <button type="button" class="sub-tab-btn active" id="sub-code-${seqIndex}-${sessionIndex}" onclick="switchSessionSubTab(${seqIndex},${sessionIndex},'code')">
+                            <i class="fas fa-code"></i> Code HTML
+                        </button>
+                        <button type="button" class="sub-tab-btn" id="sub-wy-${seqIndex}-${sessionIndex}" onclick="switchSessionSubTab(${seqIndex},${sessionIndex},'wy')">
+                            <i class="fas fa-edit"></i> Éditeur Word
+                        </button>
+                    </div>
+
+                    <!-- Pane CODE -->
+                    <div id="code-pane-${seqIndex}-${sessionIndex}">
+                        <div class="editor-toolbar">
+                            <span class="editor-label"><i class="fas fa-code"></i> HTML de la séance</span>
+                            <div class="editor-actions">
+                                <button type="button" class="editor-btn" onclick="insertSnippet('${editorId}', 'heading')" title="H2">H2</button>
+                                <button type="button" class="editor-btn" onclick="insertSnippet('${editorId}', 'paragraph')" title="§"><i class="fas fa-paragraph"></i></button>
+                                <button type="button" class="editor-btn" onclick="insertSnippet('${editorId}', 'table')" title="Tableau"><i class="fas fa-table"></i></button>
+                                <button type="button" class="editor-btn" onclick="insertSnippet('${editorId}', 'image')" title="Image"><i class="fas fa-image"></i></button>
+                                <button type="button" class="editor-btn" onclick="insertSnippet('${editorId}', 'list')" title="Liste"><i class="fas fa-list"></i></button>
+                                <button type="button" class="editor-btn" onclick="insertSnippet('${editorId}', 'alert')" title="Alerte"><i class="fas fa-exclamation-circle"></i></button>
+                                <button type="button" class="editor-btn" onclick="insertSnippet('${editorId}', 'grid')" title="Grille"><i class="fas fa-th"></i></button>
+                                <button type="button" class="editor-btn btn-format" onclick="formatCode('${editorId}')" title="Formater"><i class="fas fa-magic"></i></button>
+                            </div>
+                        </div>
+                        <div class="editor-container">
+                            <div id="${editorId}" class="codemirror-wrapper"></div>
+                            <textarea id="${hiddenId}" class="session-content" style="display:none;">${initialMode === 'html' ? escapeHtml(content) : ''}</textarea>
+                        </div>
+                        <div class="editor-footer">
+                            <span class="char-count" id="count-${editorId}">0 caractères</span>
+                            <span class="editor-hint">💡 HTML complet — tables, flex, grid, images, styles inline</span>
                         </div>
                     </div>
-                    <div class="editor-container">
-                        <div id="${editorId}" class="codemirror-wrapper"></div>
-                        <textarea id="${hiddenId}" class="session-content" style="display:none;">${initialMode === 'html' ? escapeHtml(content) : ''}</textarea>
-                    </div>
-                    <div id="${previewId}" class="html-preview hidden">
-                        <div class="preview-header"><i class="fas fa-eye"></i> Aperçu du rendu</div>
-                        <div class="preview-body"></div>
-                    </div>
-                    <div class="editor-footer">
-                        <span class="char-count" id="count-${editorId}">0 caractères</span>
-                        <span class="editor-hint">💡 Collez votre HTML complet ici — tables, flex, grid, images, styles inline supportés</span>
+
+                    <!-- Pane WYSIWYG -->
+                    <div id="wy-pane-${seqIndex}-${sessionIndex}" style="display:none;">
+                        <div class="wy-wrap" id="wy-wrap-${seqIndex}-${sessionIndex}" style="border:2px solid #e2e8f0; border-radius:10px; overflow:visible; background:#fff; position:relative;">
+                            <div class="wy-toolbar wy-toolbar-session" id="wy-tb-${seqIndex}-${sessionIndex}"></div>
+                            <div class="wy-body" id="wy-body-${seqIndex}-${sessionIndex}" contenteditable="true" spellcheck="false" data-ph="Commencez à écrire..." data-seq="${seqIndex}" data-sess="${sessionIndex}"></div>
+                            <div class="wy-drop" id="wy-drop-${seqIndex}-${sessionIndex}"><i class="fas fa-image"></i><span>Dépose l'image ici</span></div>
+                        </div>
+                        <div style="display:flex;justify-content:space-between;padding:.35rem .5rem;background:#f8fafc;border:1px solid #e2e8f0;border-top:none;border-radius:0 0 6px 6px;font-size:.75rem;color:#9ca3af;">
+                            <span>💡 Toolbar sticky — défile, les outils restent visibles</span>
+                            <span id="wy-count-${seqIndex}-${sessionIndex}">0 car.</span>
+                        </div>
                     </div>
                 </div>
 
@@ -666,20 +689,416 @@ window.formatCode = function(editorId) {
 };
 
 // ============================================
-// APERÇU HTML EN DIRECT
+// WYSIWYG WORD-LIKE — SÉANCES DE COURS
 // ============================================
-window.togglePreview = function(editorId, previewId) {
-    const cm = window._cmInstances?.[editorId];
-    const previewEl = document.getElementById(previewId);
-    if (!cm || !previewEl) return;
 
-    if (previewEl.classList.contains('hidden')) {
-        previewEl.querySelector('.preview-body').innerHTML = cm.getValue();
-        previewEl.classList.remove('hidden');
+// Registre des instances WYSIWYG par séance
+window._wySessionInited = {};
+window._wySessionSelImg = {};
+
+// Switcher sous-onglets code/wy pour une séance
+window.switchSessionSubTab = function(seqI, sessI, tab) {
+    const codePane = document.getElementById(`code-pane-${seqI}-${sessI}`);
+    const wyPane   = document.getElementById(`wy-pane-${seqI}-${sessI}`);
+    const btnCode  = document.getElementById(`sub-code-${seqI}-${sessI}`);
+    const btnWy    = document.getElementById(`sub-wy-${seqI}-${sessI}`);
+    const editorId = `cm-editor-${seqI}-${sessI}`;
+    const cm       = window._cmInstances?.[editorId];
+
+    if (tab === 'code') {
+        // wy → code : synchro contenu
+        const wyBody = document.getElementById(`wy-body-${seqI}-${sessI}`);
+        if (wyBody && cm) cm.setValue(wyBody.innerHTML);
+        codePane.style.display = 'block';
+        wyPane.style.display   = 'none';
+        if (btnCode) btnCode.classList.add('active');
+        if (btnWy)   btnWy.classList.remove('active');
     } else {
-        previewEl.classList.add('hidden');
+        // code → wy : init WYSIWYG si besoin, puis injecter le contenu
+        codePane.style.display = 'none';
+        wyPane.style.display   = 'block';
+        if (btnCode) btnCode.classList.remove('active');
+        if (btnWy)   btnWy.classList.add('active');
+
+        const key = `${seqI}-${sessI}`;
+        if (!window._wySessionInited[key]) {
+            _initSessionWy(seqI, sessI);
+            window._wySessionInited[key] = true;
+        }
+
+        // Injecter le contenu dans le WYSIWYG :
+        // priorité CodeMirror → sinon le textarea caché → sinon vide
+        const wyBody = document.getElementById(`wy-body-${seqI}-${sessI}`);
+        if (wyBody) {
+            if (cm && cm.getValue().trim()) {
+                wyBody.innerHTML = cm.getValue();
+            } else {
+                // CodeMirror pas encore init → lire le textarea caché
+                const hiddenTA = document.getElementById(`cm-hidden-${seqI}-${sessI}`);
+                if (hiddenTA && hiddenTA.value.trim()) {
+                    const raw = hiddenTA.value
+                        .replace(/&lt;/g, '<').replace(/&gt;/g, '>')
+                        .replace(/&amp;/g, '&').replace(/&#39;/g, "'").replace(/&quot;/g, '"');
+                    wyBody.innerHTML = raw;
+                }
+            }
+        }
     }
 };
+
+function _initSessionWy(seqI, sessI) {
+    const tbId   = `wy-tb-${seqI}-${sessI}`;
+    const bodyId = `wy-body-${seqI}-${sessI}`;
+    const wrapId = `wy-wrap-${seqI}-${sessI}`;
+    const dropId = `wy-drop-${seqI}-${sessI}`;
+    const key    = `${seqI}-${sessI}`;
+
+    // Injecter la toolbar
+    const tb = document.getElementById(tbId);
+    tb.innerHTML = _wySessionToolbarHTML(seqI, sessI);
+
+    const body = document.getElementById(bodyId);
+    const wrap = document.getElementById(wrapId);
+    const drop = document.getElementById(dropId);
+
+    // Commandes execCommand
+    tb.addEventListener('mousedown', e => {
+        const btn = e.target.closest('[data-cmd]');
+        if (btn) { e.preventDefault(); body.focus(); document.execCommand(btn.dataset.cmd, false, null); _wySessionTbState(seqI, sessI); _wySessionSync(seqI, sessI); }
+    });
+
+    // Actions spéciales
+    tb.addEventListener('click', e => {
+        const btn = e.target.closest('[data-act]');
+        if (!btn) return;
+        const act = btn.dataset.act;
+        if (act === 'imgUrl')  { _wySessionSaveRange(key); _wySessionInsertImgUrl(seqI, sessI); }
+        if (act === 'link')    { _wySessionSaveRange(key); _wySessionInsertLink(seqI, sessI); }
+        if (act === 'table')   { _wySessionSaveRange(key); _wySessionInsertTable(seqI, sessI); }
+        if (act === 'hr')      { body.focus(); document.execCommand('insertHorizontalRule'); _wySessionSync(seqI, sessI); }
+    });
+
+    // Select formatBlock
+    tb.querySelector(`#wySessBlock-${seqI}-${sessI}`).addEventListener('change', e => {
+        body.focus(); document.execCommand('formatBlock', false, e.target.value); _wySessionSync(seqI, sessI);
+    });
+
+    // Couleurs
+    tb.querySelector(`#wySessFg-${seqI}-${sessI}`).addEventListener('input', e => {
+        tb.querySelector(`#wySessFgBar-${seqI}-${sessI}`).style.background = e.target.value;
+        body.focus(); document.execCommand('foreColor', false, e.target.value); _wySessionSync(seqI, sessI);
+    });
+    tb.querySelector(`#wySessBg-${seqI}-${sessI}`).addEventListener('input', e => {
+        tb.querySelector(`#wySessBgBar-${seqI}-${sessI}`).style.background = e.target.value;
+        body.focus(); document.execCommand('hiliteColor', false, e.target.value); _wySessionSync(seqI, sessI);
+    });
+
+    // File input
+    tb.querySelector(`#wySessFile-${seqI}-${sessI}`).addEventListener('change', e => {
+        const file = e.target.files[0];
+        if (file) _wySessionInsertImgFile(seqI, sessI, file);
+        e.target.value = '';
+    });
+
+    // Sync input
+    body.addEventListener('input',  () => { _wySessionSync(seqI, sessI); _wySessionTbState(seqI, sessI); _wySessionUpdateCount(seqI, sessI); });
+    body.addEventListener('keyup',  () => _wySessionTbState(seqI, sessI));
+    body.addEventListener('mouseup',() => _wySessionTbState(seqI, sessI));
+
+    // Clic image
+    body.addEventListener('click', e => {
+        if (e.target.tagName === 'IMG') _wySessionSelectImg(seqI, sessI, e.target);
+        else _wyDeselect();
+    });
+
+    // Drag & drop
+    wrap.addEventListener('dragover', e => {
+        if ([...e.dataTransfer.items].some(i => i.type.startsWith('image/'))) { e.preventDefault(); drop.classList.add('show'); }
+    });
+    wrap.addEventListener('dragleave', e => { if (!wrap.contains(e.relatedTarget)) drop.classList.remove('show'); });
+    wrap.addEventListener('drop', e => {
+        e.preventDefault(); drop.classList.remove('show');
+        const file = [...e.dataTransfer.files].find(f => f.type.startsWith('image/'));
+        if (file) _wySessionInsertImgFile(seqI, sessI, file);
+    });
+
+    // Coller image
+    body.addEventListener('paste', e => {
+        const item = [...(e.clipboardData?.items || [])].find(i => i.type.startsWith('image/'));
+        if (item) { e.preventDefault(); _wySessionInsertImgFile(seqI, sessI, item.getAsFile()); }
+    });
+}
+
+function _wySessionToolbarHTML(seqI, sessI) {
+    return `
+    <div class="wy-tb-group">
+        <select class="wy-tb-select" id="wySessBlock-${seqI}-${sessI}" title="Style">
+            <option value="p">Paragraphe</option><option value="h1">Titre 1</option>
+            <option value="h2">Titre 2</option><option value="h3">Titre 3</option>
+            <option value="pre">Code</option><option value="blockquote">Citation</option>
+        </select>
+    </div>
+    <div class="wy-tb-sep"></div>
+    <div class="wy-tb-group">
+        <button type="button" class="wy-tb-btn" data-cmd="bold" title="Gras"><b>G</b></button>
+        <button type="button" class="wy-tb-btn" data-cmd="italic" title="Italique"><i>I</i></button>
+        <button type="button" class="wy-tb-btn" data-cmd="underline" title="Souligné"><u>S</u></button>
+        <button type="button" class="wy-tb-btn" data-cmd="strikeThrough" title="Barré"><s>B</s></button>
+    </div>
+    <div class="wy-tb-sep"></div>
+    <div class="wy-tb-group">
+        <div class="wy-color-wrap" title="Couleur texte">
+            <i class="fas fa-font"></i>
+            <input type="color" id="wySessFg-${seqI}-${sessI}" value="#1f2937">
+            <div class="wy-color-bar" id="wySessFgBar-${seqI}-${sessI}" style="background:#1f2937"></div>
+        </div>
+        <div class="wy-color-wrap" title="Surlignage">
+            <i class="fas fa-fill-drip"></i>
+            <input type="color" id="wySessBg-${seqI}-${sessI}" value="#ffff00">
+            <div class="wy-color-bar" id="wySessBgBar-${seqI}-${sessI}" style="background:#ffff00"></div>
+        </div>
+    </div>
+    <div class="wy-tb-sep"></div>
+    <div class="wy-tb-group">
+        <button type="button" class="wy-tb-btn" data-cmd="justifyLeft"   title="Gauche"><i class="fas fa-align-left"></i></button>
+        <button type="button" class="wy-tb-btn" data-cmd="justifyCenter" title="Centre"><i class="fas fa-align-center"></i></button>
+        <button type="button" class="wy-tb-btn" data-cmd="justifyRight"  title="Droite"><i class="fas fa-align-right"></i></button>
+    </div>
+    <div class="wy-tb-sep"></div>
+    <div class="wy-tb-group">
+        <button type="button" class="wy-tb-btn" data-cmd="insertUnorderedList" title="Liste"><i class="fas fa-list-ul"></i></button>
+        <button type="button" class="wy-tb-btn" data-cmd="insertOrderedList"   title="Numérotée"><i class="fas fa-list-ol"></i></button>
+        <button type="button" class="wy-tb-btn" data-cmd="indent"  title="Indenter"><i class="fas fa-indent"></i></button>
+        <button type="button" class="wy-tb-btn" data-cmd="outdent" title="Désindenter"><i class="fas fa-outdent"></i></button>
+    </div>
+    <div class="wy-tb-sep"></div>
+    <div class="wy-tb-group">
+        <button type="button" class="wy-tb-btn" data-act="link"  title="Lien"><i class="fas fa-link"></i></button>
+        <button type="button" class="wy-tb-btn" data-act="table" title="Tableau"><i class="fas fa-table"></i></button>
+        <button type="button" class="wy-tb-btn" data-act="hr"    title="Séparateur"><i class="fas fa-minus"></i></button>
+    </div>
+    <div class="wy-tb-sep"></div>
+    <div class="wy-tb-group">
+        <button type="button" class="wy-tb-btn wy-tb-btn-wide" data-act="imgUrl" title="Image URL"><i class="fas fa-link"></i> URL</button>
+        <label class="wy-tb-btn wy-tb-btn-wide" style="cursor:pointer;" title="Image fichier">
+            <i class="fas fa-upload"></i> Fichier
+            <input type="file" accept="image/*" id="wySessFile-${seqI}-${sessI}" style="display:none;">
+        </label>
+    </div>
+    <div class="wy-tb-sep"></div>
+    <div class="wy-tb-group">
+        <button type="button" class="wy-tb-btn" data-cmd="undo" title="Annuler"><i class="fas fa-undo"></i></button>
+        <button type="button" class="wy-tb-btn" data-cmd="redo" title="Rétablir"><i class="fas fa-redo"></i></button>
+        <button type="button" class="wy-tb-btn" data-cmd="removeFormat" title="Effacer format"><i class="fas fa-eraser"></i></button>
+    </div>`;
+}
+
+function _wySessionSaveRange(key) {
+    const sel = window.getSelection();
+    if (sel && sel.rangeCount > 0) window['_wyRange_' + key] = sel.getRangeAt(0).cloneRange();
+}
+function _wySessionRestoreRange(seqI, sessI) {
+    const key  = `${seqI}-${sessI}`;
+    const body = document.getElementById(`wy-body-${seqI}-${sessI}`);
+    body.focus();
+    const saved = window['_wyRange_' + key];
+    if (saved) { const sel = window.getSelection(); sel.removeAllRanges(); sel.addRange(saved); }
+}
+
+function _wySessionSelectImg(seqI, sessI, img) {
+    _wyDeselect();
+    window._wySessionSelImg[`${seqI}-${sessI}`] = img;
+    img.style.outline = '2px solid #2563eb';
+    _posImgOverlay(img, seqI, sessI);
+}
+
+function _posImgOverlay(img, seqI, sessI) {
+    const box = document.getElementById('wyImgBox');
+    const itb = document.getElementById('wyImgToolbar');
+    const r   = img.getBoundingClientRect();
+    const sy  = window.scrollY; const sx = window.scrollX;
+    box.style.display = 'block';
+    box.style.top    = (r.top + sy - 3)  + 'px';
+    box.style.left   = (r.left + sx - 3) + 'px';
+    box.style.width  = (r.width + 6) + 'px';
+    box.style.height = (r.height + 6) + 'px';
+    // Store current context on box for resize
+    box.dataset.seqI = seqI; box.dataset.sessI = sessI;
+    itb.style.display = 'flex';
+    let top = r.top + sy - 44;
+    if (top < sy + 4) top = r.bottom + sy + 6;
+    itb.style.top  = top + 'px';
+    itb.style.left = Math.max(4, r.left + sx) + 'px';
+    itb.dataset.seqI = seqI; itb.dataset.sessI = sessI;
+    document.getElementById('wyImgSize').textContent = Math.round(r.width) + '×' + Math.round(r.height);
+}
+
+function _wyDeselect() {
+    // Désélectionner toutes les séances
+    Object.keys(window._wySessionSelImg).forEach(k => {
+        if (window._wySessionSelImg[k]) {
+            window._wySessionSelImg[k].style.outline = '';
+            delete window._wySessionSelImg[k];
+        }
+    });
+    const box = document.getElementById('wyImgBox');
+    const itb = document.getElementById('wyImgToolbar');
+    if (box) box.style.display = 'none';
+    if (itb) itb.style.display = 'none';
+}
+
+function _wySessionInsertImgUrl(seqI, sessI) {
+    const url = prompt("URL de l\'image :");
+    if (!url || !url.trim()) return;
+    _wySessionRestoreRange(seqI, sessI);
+    _wySessionInsertImgEl(seqI, sessI, url.trim(), 'image');
+}
+function _wySessionInsertImgFile(seqI, sessI, file) {
+    _wySessionSaveRange(`${seqI}-${sessI}`);
+    const reader = new FileReader();
+    reader.onload = ev => { _wySessionRestoreRange(seqI, sessI); _wySessionInsertImgEl(seqI, sessI, ev.target.result, file.name.replace(/\.[^.]+$/, '')); };
+    reader.readAsDataURL(file);
+}
+function _wySessionInsertImgEl(seqI, sessI, src, alt) {
+    const body = document.getElementById(`wy-body-${seqI}-${sessI}`);
+    const img = document.createElement('img'); img.src = src; img.alt = alt;
+    img.style.cssText = 'max-width:100%;border-radius:6px;margin:.5rem 0;display:block;box-shadow:0 2px 8px rgba(0,0,0,.12);';
+    const sel = window.getSelection();
+    if (sel && sel.rangeCount > 0 && body.contains(sel.anchorNode)) {
+        const range = sel.getRangeAt(0); range.collapse(false); range.insertNode(img);
+        range.setStartAfter(img); range.setEndAfter(img); sel.removeAllRanges(); sel.addRange(range);
+    } else { body.appendChild(img); }
+    _wySessionSync(seqI, sessI);
+    setTimeout(() => _wySessionSelectImg(seqI, sessI, img), 30);
+}
+function _wySessionInsertLink(seqI, sessI) {
+    const url = prompt("URL du lien :"); if (!url) return;
+    const txt = prompt("Texte du lien :") || url;
+    _wySessionRestoreRange(seqI, sessI);
+    document.execCommand('insertHTML', false, `<a href="${url}" target="_blank" style="color:#2563eb;">${txt}</a>`);
+    _wySessionSync(seqI, sessI);
+}
+function _wySessionInsertTable(seqI, sessI) {
+    const cols = parseInt(prompt('Colonnes :', '3')) || 3;
+    const rows = parseInt(prompt('Lignes :', '3')) || 3;
+    const head = Array(cols).fill(0).map((_,i) => `<th style="padding:8px 12px;background:#1e40af;color:white;border:1px solid #1e3a8a;">Col ${i+1}</th>`).join('');
+    const brows= Array(rows-1).fill(0).map(() => '<tr>'+Array(cols).fill('<td style="padding:8px 12px;border:1px solid #e2e8f0;"> </td>').join('')+'</tr>').join('');
+    _wySessionRestoreRange(seqI, sessI);
+    document.execCommand('insertHTML', false, `<div style="overflow-x:auto;margin:1rem 0;"><table style="width:100%;border-collapse:collapse;"><thead><tr>${head}</tr></thead><tbody>${brows}</tbody></table></div>`);
+    _wySessionSync(seqI, sessI);
+}
+function _wySessionTbState(seqI, sessI) {
+    ['bold','italic','underline','strikeThrough','justifyLeft','justifyCenter','justifyRight','insertUnorderedList','insertOrderedList'].forEach(cmd => {
+        const btn = document.querySelector(`#wy-tb-${seqI}-${sessI} [data-cmd="${cmd}"]`);
+        if (btn) btn.classList.toggle('active', document.queryCommandState(cmd));
+    });
+}
+function _wySessionSync(seqI, sessI) {
+    const body     = document.getElementById(`wy-body-${seqI}-${sessI}`);
+    if (!body) return;
+    const editorId = `cm-editor-${seqI}-${sessI}`;
+    const cm       = window._cmInstances?.[editorId];
+    const html     = body.innerHTML;
+    if (cm) {
+        cm.setValue(html);
+    } else {
+        // CodeMirror pas encore init : stocker dans le textarea caché
+        const hiddenTA = document.getElementById(`cm-hidden-${seqI}-${sessI}`);
+        if (hiddenTA) hiddenTA.value = html;
+    }
+}
+function _wySessionUpdateCount(seqI, sessI) {
+    const body = document.getElementById(`wy-body-${seqI}-${sessI}`);
+    const cnt  = document.getElementById(`wy-count-${seqI}-${sessI}`);
+    if (body && cnt) cnt.textContent = body.textContent.length + ' car.';
+}
+
+// ══════════════════════════════════════════════════════
+// HANDLERS GLOBAUX WYSIWYG — image toolbar + resize
+// Appelé depuis DOMContentLoaded pour garantir que
+// #wyImgBox et #wyImgToolbar existent dans le DOM
+// ══════════════════════════════════════════════════════
+function _initWyGlobalHandlers() {
+    const imgTb  = document.getElementById('wyImgToolbar');
+    const imgBox = document.getElementById('wyImgBox');
+    if (!imgTb || !imgBox) return;
+
+    // ── Boutons de la toolbar image flottante ──
+    imgTb.addEventListener('click', e => {
+        const btn = e.target.closest('[data-ia]');
+        if (!btn) return;
+        const seqI  = imgTb.dataset.seqI;
+        const sessI = imgTb.dataset.sessI;
+        const key   = `${seqI}-${sessI}`;
+        const img   = window._wySessionSelImg[key];
+        if (!img) return;
+        const a = btn.dataset.ia;
+        if (a === 'left')   { img.style.cssFloat='left';  img.style.margin='4px 1rem 4px 0'; img.style.display=''; }
+        if (a === 'center') { img.style.cssFloat='';      img.style.margin='1rem auto';       img.style.display='block'; }
+        if (a === 'right')  { img.style.cssFloat='right'; img.style.margin='4px 0 4px 1rem'; img.style.display=''; }
+        if (a === 'full')   { img.style.width='100%'; img.style.height='auto'; }
+        if (a === 'half')   { img.style.width='50%';  img.style.height='auto'; }
+        if (a === 'url')    { const u = prompt('Nouvelle URL :'); if (u) img.src = u.trim(); }
+        if (a === 'alt')    { const t = prompt('Texte alt :', img.alt||''); if (t !== null) img.alt = t; }
+        if (a === 'del')    { img.remove(); _wyDeselect(); return; }
+        if (seqI !== undefined && seqI !== 'undefined') _wySessionSync(seqI, sessI);
+        if (img.parentNode) _posImgOverlay(img, seqI, sessI);
+    });
+
+    // ── Resize handles ──
+    let _res=false, _sx,_sy,_sw,_sh,_dir;
+
+    imgBox.querySelectorAll('.wy-rh').forEach(h => {
+        h.addEventListener('mousedown', e => {
+            const seqI = imgBox.dataset.seqI, sessI = imgBox.dataset.sessI;
+            const key  = `${seqI}-${sessI}`;
+            const img  = window._wySessionSelImg[key];
+            if (!img) return;
+            e.preventDefault();
+            _res=true; _dir=h.dataset.d;
+            _sx=e.clientX; _sy=e.clientY;
+            _sw=img.offsetWidth; _sh=img.offsetHeight;
+        });
+    });
+
+    document.addEventListener('mousemove', e => {
+        if (!_res) return;
+        const seqI = imgBox.dataset.seqI, sessI = imgBox.dataset.sessI;
+        const img  = window._wySessionSelImg[`${seqI}-${sessI}`];
+        if (!img) return;
+        const dx=e.clientX-_sx, dy=e.clientY-_sy, d=_dir;
+        let w=_sw, h=_sh;
+        if (d.includes('e')) w = Math.max(30, _sw+dx);
+        if (d.includes('w')) w = Math.max(30, _sw-dx);
+        if (d.includes('s')) h = Math.max(20, _sh+dy);
+        if (d.includes('n')) h = Math.max(20, _sh-dy);
+        if (e.shiftKey && (d==='se'||d==='ne'||d==='sw'||d==='nw')) h = Math.round(w * (_sh/_sw));
+        img.style.width  = w + 'px';
+        img.style.height = (d==='e'||d==='w') ? 'auto' : h + 'px';
+        _posImgOverlay(img, seqI, sessI);
+    });
+
+    document.addEventListener('mouseup', () => {
+        if (_res) {
+            _res = false;
+            const seqI = imgBox.dataset.seqI, sessI = imgBox.dataset.sessI;
+            if (seqI !== undefined && seqI !== 'undefined') _wySessionSync(seqI, sessI);
+        }
+    });
+
+    document.addEventListener('scroll', () => {
+        const seqI = imgBox.dataset.seqI, sessI = imgBox.dataset.sessI;
+        const img  = window._wySessionSelImg[`${seqI}-${sessI}`];
+        if (img) _posImgOverlay(img, seqI, sessI);
+    }, true);
+
+    // Désélectionner si clic en dehors de l'image, des handles ou de la toolbar
+    document.addEventListener('mousedown', e => {
+        if (!imgBox.contains(e.target) && !imgTb.contains(e.target)) {
+            _wyDeselect();
+        }
+    });
+} // fin _initWyGlobalHandlers
 
 // ============================================
 // CHANGER LA MÉTHODE PDF
@@ -843,8 +1262,25 @@ async function collectSequencesData() {
                 const plainTA = sessionItem.querySelector(`#plain-${seqIdx}-${sessIdx}`);
                 sessionContent = plainTA ? plainTA.value.trim() : '';
             } else {
-                // Mode HTML : lire le textarea caché de CodeMirror
-                sessionContent = sessionItem.querySelector('.session-content').value.trim();
+                // Mode HTML : priorité WYSIWYG actif → CodeMirror → textarea caché
+                const seqIdx  = sessionItem.dataset.seq;
+                const sessIdx = sessionItem.dataset.session;
+                const wyBody  = document.getElementById(`wy-body-${seqIdx}-${sessIdx}`);
+                const cmId    = `cm-editor-${seqIdx}-${sessIdx}`;
+                const cm      = window._cmInstances?.[cmId];
+                const hiddenTA = sessionItem.querySelector('.session-content');
+                // Si le pane WYSIWYG est visible, prendre son contenu (le plus récent)
+                const wyPane = document.getElementById(`wy-pane-${seqIdx}-${sessIdx}`);
+                if (wyPane && wyPane.style.display !== 'none' && wyBody) {
+                    sessionContent = wyBody.innerHTML.trim();
+                    // Synchro vers cm et textarea caché
+                    if (cm) cm.setValue(sessionContent);
+                    else if (hiddenTA) hiddenTA.value = sessionContent;
+                } else if (cm) {
+                    sessionContent = cm.getValue().trim();
+                } else if (hiddenTA) {
+                    sessionContent = hiddenTA.value.trim();
+                }
             }
 
             sessions.push({
@@ -917,4 +1353,6 @@ function escapeHtml(text) {
 // ============================================
 document.addEventListener('DOMContentLoaded', () => {
     console.log('Admin Courses initialisé avec 3 méthodes PDF');
+    // Initialiser les handlers globaux WYSIWYG (image toolbar + resize)
+    _initWyGlobalHandlers();
 });
