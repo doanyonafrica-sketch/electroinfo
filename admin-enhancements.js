@@ -2,6 +2,8 @@
 // Script complémentaire pour la recherche et les accordéons
 // À inclure APRÈS admin.js
 
+import { createArticleItem } from './admin.js';
+
 // ============================================
 // VARIABLES GLOBALES POUR RECHERCHE & PAGINATION
 // ============================================
@@ -343,3 +345,14 @@ document.addEventListener('DOMContentLoaded', function() {
 });
 
 console.log('✅ Admin enhancements chargé : Recherche + Accordéons + Pagination');
+
+// Traiter un snapshot en attente si loadArticles() s'est exécuté avant nous
+if (window.__pendingSnapshot) {
+    window.loadArticlesEnhanced(window.__pendingSnapshot);
+    window.__pendingSnapshot = null;
+}
+
+// Écouter les chargements futurs
+window.addEventListener('articlesLoaded', (e) => {
+    window.loadArticlesEnhanced(e.detail);
+});
