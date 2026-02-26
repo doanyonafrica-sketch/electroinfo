@@ -52,11 +52,20 @@ const searchResultsCount = document.getElementById('searchResultsCount');
 searchInput?.addEventListener('input', function(e) {
     const searchTerm = e.target.value.toLowerCase().trim();
     
+    // ✅ Fix : ne pas chercher si les données ne sont pas encore chargées
+    const totalArticles = allArticlesData.published.length + allArticlesData.scheduled.length + allArticlesData.drafts.length;
+    if (totalArticles === 0) {
+        searchResultsCount.textContent = 'Chargement des articles en cours...';
+        searchResultsCount.classList.remove('hidden');
+        return;
+    }
+
     if (searchTerm.length > 0) {
         clearSearchBtn.classList.remove('hidden');
         performSearch(searchTerm);
     } else {
         clearSearchBtn.classList.add('hidden');
+        searchResultsCount.classList.add('hidden');
         clearAdminSearch();
     }
 });
@@ -323,9 +332,9 @@ window.loadArticlesEnhanced = async function(snapshot) {
 // ============================================
 // INFO BULLE POUR ARTICLES LONGS
 // ============================================
-document.addEventListener('DOMContentLoaded', function() {
-    // Ajouter un message d'information sur la longueur
-    const formCard = document.querySelector('#articleForm').closest('.card');
+// ✅ Fix : en module ES, DOMContentLoaded est déjà passé — exécuter directement
+(function addInfoTip() {
+    const formCard = document.querySelector('#articleForm')?.closest('.card');
     if (formCard) {
         const infoDiv = document.createElement('div');
         infoDiv.className = 'alert alert-info';
@@ -342,17 +351,17 @@ document.addEventListener('DOMContentLoaded', function() {
         `;
         formCard.querySelector('.card-body').appendChild(infoDiv);
     }
-});
+})();
 
 console.log('✅ Admin enhancements chargé : Recherche + Accordéons + Pagination');
 
-// Traiter un snapshot en attente si loadArticles() s'est exécuté avant nous
+// ✅ Traiter un snapshot en attente si loadArticles() s'est exécuté avant nous
 if (window.__pendingSnapshot) {
     window.loadArticlesEnhanced(window.__pendingSnapshot);
     window.__pendingSnapshot = null;
 }
 
-// Écouter les chargements futurs
+// ✅ Écouter les chargements futurs déclenchés depuis admin.js
 window.addEventListener('articlesLoaded', (e) => {
     window.loadArticlesEnhanced(e.detail);
 });

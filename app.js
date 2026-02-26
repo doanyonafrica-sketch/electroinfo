@@ -1,6 +1,6 @@
 // app.js - Script principal pour Electroinfo.online AVEC SLUGS
 import { initializeApp } from 'https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js';
-import { getFirestore, collection, getDocs, doc, getDoc, query, orderBy, limit, where, addDoc } from 'https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js';
+import { getFirestore, collection, getDocs, doc, getDoc, query, orderBy, limit, where, addDoc, updateDoc, serverTimestamp } from 'https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js';
 import { getAuth, onAuthStateChanged, signOut } from 'https://www.gstatic.com/firebasejs/10.7.1/firebase-auth.js';
 
 // Configuration Firebase
@@ -115,18 +115,59 @@ document.getElementById('logoutBtn')?.addEventListener('click', async () => {
 });
 
 // ============================================
+// PUBLICATION AUTOMATIQUE DES ARTICLES PROGRAMMÉS
+// ============================================
+async function checkAndPublishScheduledArticles() {
+    try {
+        const now = new Date();
+        const q = query(collection(db, 'articles'), where('status', '==', 'scheduled'));
+        const snapshot = await getDocs(q);
+
+        let published = 0;
+        for (const docSnap of snapshot.docs) {
+            const article = docSnap.data();
+            if (article.scheduledFor) {
+                const scheduledDate = article.scheduledFor.toDate();
+                if (scheduledDate <= now) {
+                    await updateDoc(doc(db, 'articles', docSnap.id), {
+                        status: 'published',
+                        publishedAt: serverTimestamp(),
+                        scheduledFor: null
+                    });
+                    published++;
+                    console.log('✅ Article publié automatiquement :', article.title);
+                }
+            }
+        }
+        if (published > 0) {
+            console.log('🚀 ' + published + ' article(s) publié(s) automatiquement');
+        }
+    } catch (error) {
+        console.error('Erreur vérification publications programmées:', error);
+    }
+}
+
+// ============================================
 // CHARGEMENT DES ARTICLES
 // ============================================
 async function loadArticles() {
     try {
         articlesGrid.innerHTML = '<div class="loading"><i class="fas fa-spinner fa-spin"></i><p>Chargement...</p></div>';
 
+        // ✅ Publier automatiquement les articles dont la date est passée
+        await checkAndPublishScheduledArticles();
+
         const q = query(collection(db, 'articles'), orderBy('createdAt', 'desc'));
         const snapshot = await getDocs(q);
 
         allArticles = [];
-        snapshot.forEach(doc => {
-            allArticles.push({ id: doc.id, ...doc.data() });
+        snapshot.forEach(docSnap => {
+            const article = docSnap.data();
+            const status = article.status || 'published';
+            // ✅ Afficher UNIQUEMENT les articles publiés (exclure brouillons et programmés)
+            if (status === 'published') {
+                allArticles.push({ id: docSnap.id, ...article });
+            }
         });
 
         filteredArticles = [...allArticles];

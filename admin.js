@@ -825,17 +825,7 @@ async function loadArticles() {
         const q = query(collection(db, 'articles'), orderBy('createdAt', 'desc'));
         const snapshot = await getDocs(q);
 
-        // Si le système de pagination amélioré est disponible, l'utiliser
-        if (typeof window.loadArticlesEnhanced === 'function') {
-            await window.loadArticlesEnhanced(snapshot);
-            return;
-        }
-
-        // Sinon, stocker le snapshot et dispatche un événement (cas où admin-enhancements.js charge après)
-        window.__pendingSnapshot = snapshot;
-        window.dispatchEvent(new CustomEvent('articlesLoaded', { detail: snapshot }));
-
-        // Fallback : affichage simple sans pagination
+        // Séparer les articles par statut
         const publishedArticles = [];
         const scheduledArticles = [];
         const draftArticles = [];
@@ -854,10 +844,22 @@ async function loadArticles() {
             }
         });
 
+        // Mettre à jour les compteurs dans les headers
         document.getElementById('publishedCount').textContent = publishedArticles.length;
         document.getElementById('scheduledCount').textContent = scheduledArticles.length;
         document.getElementById('draftsCount').textContent = draftArticles.length;
 
+        // ✅ Utiliser le système de pagination amélioré si disponible
+        if (typeof window.loadArticlesEnhanced === 'function') {
+            await window.loadArticlesEnhanced(snapshot);
+            return;
+        }
+
+        // Sinon, stocker et émettre un événement (admin-enhancements.js chargera après)
+        window.__pendingSnapshot = snapshot;
+        window.dispatchEvent(new CustomEvent('articlesLoaded', { detail: snapshot }));
+
+        // Fallback sans pagination (au cas où admin-enhancements.js ne se charge pas)
         displayArticlesInSection('publishedArticlesList', publishedArticles, 'publié');
         displayArticlesInSection('scheduledArticlesList', scheduledArticles, 'programmé');
         displayArticlesInSection('draftsArticlesList', draftArticles, 'brouillon');
@@ -905,9 +907,7 @@ function displayArticlesInSection(sectionId, articles, type) {
     });
 }
 
-export { createArticleItem };
-
-function createArticleItem(id, article) {
+export function createArticleItem(id, article) {
     const div = document.createElement('div');
     div.className = 'admin-article-item';
 
