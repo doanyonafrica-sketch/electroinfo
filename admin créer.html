@@ -1,0 +1,747 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>ElectroInfo — Gestion des Admins</title>
+    <link href="https://fonts.googleapis.com/css2?family=Space+Mono:wght@400;700&family=Syne:wght@400;600;800&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --bg: #0a0a0f;
+            --surface: #12121a;
+            --border: #1e1e2e;
+            --accent: #fbbf24;
+            --accent2: #1e40af;
+            --text: #f0f0f5;
+            --muted: #6b6b80;
+            --success: #10b981;
+            --error: #ef4444;
+            --warning: #f59e0b;
+        }
+
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+
+        body {
+            font-family: 'Syne', sans-serif;
+            background: var(--bg);
+            color: var(--text);
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            padding: 2rem 1rem;
+            position: relative;
+            overflow-x: hidden;
+        }
+
+        body::before {
+            content: '';
+            position: fixed;
+            inset: 0;
+            background-image:
+                linear-gradient(rgba(251,191,36,0.03) 1px, transparent 1px),
+                linear-gradient(90deg, rgba(251,191,36,0.03) 1px, transparent 1px);
+            background-size: 40px 40px;
+            pointer-events: none;
+            z-index: 0;
+        }
+
+        body::after {
+            content: '';
+            position: fixed;
+            top: -200px;
+            left: 50%;
+            transform: translateX(-50%);
+            width: 600px;
+            height: 400px;
+            background: radial-gradient(ellipse, rgba(30,64,175,0.15) 0%, transparent 70%);
+            pointer-events: none;
+            z-index: 0;
+        }
+
+        .container {
+            position: relative;
+            z-index: 1;
+            width: 100%;
+            max-width: 960px;
+            padding-top: 1rem;
+        }
+
+        .header {
+            text-align: center;
+            margin-bottom: 1.75rem;
+        }
+
+        .logo {
+            display: inline-flex;
+            align-items: center;
+            gap: 0.5rem;
+            margin-bottom: 0.875rem;
+        }
+
+        .logo-icon {
+            width: 36px; height: 36px;
+            background: var(--accent);
+            border-radius: 8px;
+            display: flex; align-items: center; justify-content: center;
+            font-size: 1rem;
+        }
+
+        .logo-text {
+            font-size: 0.95rem;
+            font-weight: 800;
+            letter-spacing: 0.1em;
+            text-transform: uppercase;
+        }
+
+        .header h1 { font-size: 1.75rem; font-weight: 800; margin-bottom: 0.25rem; }
+        .header h1 span { color: var(--accent); }
+        .header p { color: var(--muted); font-size: 0.75rem; font-family: 'Space Mono', monospace; }
+
+        .warning-banner {
+            background: rgba(245,158,11,0.1);
+            border: 1px solid rgba(245,158,11,0.3);
+            border-radius: 8px;
+            padding: 0.7rem 1rem;
+            margin-bottom: 1.25rem;
+            font-size: 0.75rem;
+            color: var(--warning);
+            font-family: 'Space Mono', monospace;
+        }
+
+        /* Stats */
+        .stats-row {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 0.75rem;
+            margin-bottom: 1.25rem;
+        }
+
+        .stat-box {
+            background: var(--surface);
+            border: 1px solid var(--border);
+            border-radius: 12px;
+            padding: 1rem;
+            text-align: center;
+        }
+
+        .stat-num { font-size: 1.75rem; font-weight: 800; line-height: 1; margin-bottom: 0.25rem; }
+        .stat-num.yellow { color: var(--accent); }
+        .stat-num.blue { color: #60a5fa; }
+        .stat-label { font-size: 0.62rem; color: var(--muted); font-family: 'Space Mono', monospace; text-transform: uppercase; letter-spacing: 0.05em; }
+
+        /* Two col layout */
+        .two-col {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 1.25rem;
+            align-items: start;
+        }
+
+        @media (max-width: 768px) { .two-col { grid-template-columns: 1fr; } }
+
+        /* Card */
+        .card {
+            background: var(--surface);
+            border: 1px solid var(--border);
+            border-radius: 16px;
+            padding: 1.5rem;
+            position: relative;
+            overflow: hidden;
+            margin-bottom: 1.25rem;
+        }
+
+        .card:last-child { margin-bottom: 0; }
+
+        .card::before {
+            content: '';
+            position: absolute;
+            top: 0; left: 0; right: 0;
+            height: 2px;
+            background: linear-gradient(90deg, var(--accent2), var(--accent));
+        }
+
+        .card-title {
+            font-size: 0.7rem;
+            font-weight: 700;
+            letter-spacing: 0.1em;
+            text-transform: uppercase;
+            color: var(--muted);
+            font-family: 'Space Mono', monospace;
+            margin-bottom: 1.1rem;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+        }
+
+        .card-title-left { display: flex; align-items: center; gap: 0.5rem; }
+
+        .count-badge {
+            background: var(--border);
+            color: var(--text);
+            font-size: 0.62rem;
+            padding: 0.15rem 0.45rem;
+            border-radius: 20px;
+        }
+
+        .refresh-btn {
+            background: transparent;
+            border: none;
+            color: var(--muted);
+            cursor: pointer;
+            font-size: 1rem;
+            transition: color 0.2s, transform 0.4s;
+            line-height: 1;
+            padding: 0;
+        }
+        .refresh-btn:hover { color: var(--accent); transform: rotate(180deg); }
+
+        /* Form */
+        .form-group { margin-bottom: 1rem; }
+
+        label {
+            display: block;
+            font-size: 0.68rem;
+            font-weight: 600;
+            letter-spacing: 0.1em;
+            text-transform: uppercase;
+            color: var(--muted);
+            margin-bottom: 0.4rem;
+            font-family: 'Space Mono', monospace;
+        }
+
+        input, select {
+            width: 100%;
+            background: var(--bg);
+            border: 1px solid var(--border);
+            border-radius: 8px;
+            padding: 0.75rem 0.875rem;
+            color: var(--text);
+            font-family: 'Syne', sans-serif;
+            font-size: 0.875rem;
+            transition: border-color 0.2s, box-shadow 0.2s;
+            outline: none;
+            -webkit-appearance: none;
+        }
+
+        input:focus, select:focus {
+            border-color: var(--accent);
+            box-shadow: 0 0 0 3px rgba(251,191,36,0.1);
+        }
+
+        input::placeholder { color: var(--muted); }
+        select option { background: var(--surface); }
+
+        .role-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 0.6rem; }
+        .role-option { position: relative; }
+        .role-option input[type="radio"] { position: absolute; opacity: 0; width: 0; height: 0; }
+
+        .role-label {
+            display: flex; flex-direction: column; align-items: center;
+            gap: 0.3rem; padding: 0.75rem 0.5rem;
+            border: 1px solid var(--border); border-radius: 10px;
+            cursor: pointer; transition: all 0.2s; text-align: center; background: var(--bg);
+        }
+        .role-label:hover { border-color: var(--accent); }
+        .role-option input[type="radio"]:checked + .role-label {
+            border-color: var(--accent);
+            background: rgba(251,191,36,0.08);
+        }
+
+        .role-icon { font-size: 1.2rem; }
+        .role-name { font-size: 0.72rem; font-weight: 700; letter-spacing: 0.05em; text-transform: uppercase; }
+        .role-desc { font-size: 0.62rem; color: var(--muted); font-family: 'Space Mono', monospace; }
+
+        .divider {
+            display: flex; align-items: center; gap: 1rem;
+            margin: 1.1rem 0; color: var(--muted);
+            font-size: 0.68rem; font-family: 'Space Mono', monospace;
+        }
+        .divider::before, .divider::after { content: ''; flex: 1; height: 1px; background: var(--border); }
+
+        .btn {
+            width: 100%; padding: 0.85rem;
+            border: none; border-radius: 10px;
+            font-family: 'Syne', sans-serif; font-size: 0.9rem; font-weight: 700;
+            cursor: pointer; transition: all 0.2s;
+            display: flex; align-items: center; justify-content: center; gap: 0.5rem;
+        }
+
+        .btn-primary { background: var(--accent); color: #000; }
+        .btn-primary:hover:not(:disabled) {
+            background: #f59e0b;
+            transform: translateY(-1px);
+            box-shadow: 0 8px 20px rgba(251,191,36,0.25);
+        }
+        .btn-primary:disabled { opacity: 0.5; cursor: not-allowed; }
+
+        .btn-secondary {
+            background: transparent; color: var(--muted);
+            border: 1px solid var(--border); margin-top: 0.6rem;
+        }
+        .btn-secondary:hover { border-color: var(--muted); color: var(--text); }
+
+        .spinner {
+            width: 16px; height: 16px;
+            border: 2px solid rgba(0,0,0,0.2);
+            border-top-color: #000;
+            border-radius: 50%;
+            animation: spin 0.7s linear infinite;
+            display: none;
+        }
+        @keyframes spin { to { transform: rotate(360deg); } }
+
+        /* Admin list */
+        .admin-list {
+            display: flex; flex-direction: column; gap: 0.5rem;
+            max-height: 480px; overflow-y: auto;
+            scrollbar-width: thin; scrollbar-color: var(--border) transparent;
+        }
+
+        .admin-item {
+            display: flex; align-items: center; gap: 0.65rem;
+            padding: 0.7rem 0.75rem;
+            background: var(--bg); border: 1px solid var(--border);
+            border-radius: 10px; transition: border-color 0.2s;
+            animation: fadeIn 0.3s ease;
+        }
+        @keyframes fadeIn { from { opacity: 0; transform: translateY(4px); } to { opacity: 1; transform: none; } }
+        .admin-item:hover { border-color: rgba(251,191,36,0.25); }
+
+        .admin-avatar {
+            width: 34px; height: 34px; border-radius: 8px;
+            display: flex; align-items: center; justify-content: center;
+            font-size: 0.8rem; font-weight: 800; flex-shrink: 0;
+        }
+        .avatar-superadmin { background: rgba(251,191,36,0.15); color: var(--accent); }
+        .avatar-admin { background: rgba(30,64,175,0.2); color: #60a5fa; }
+
+        .admin-info { flex: 1; min-width: 0; }
+        .admin-name { font-size: 0.82rem; font-weight: 700; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+        .admin-email { font-size: 0.62rem; color: var(--muted); font-family: 'Space Mono', monospace; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+        .admin-date { font-size: 0.58rem; color: var(--muted); font-family: 'Space Mono', monospace; margin-top: 0.1rem; }
+
+        .role-badge {
+            font-size: 0.58rem; font-weight: 700; letter-spacing: 0.08em;
+            text-transform: uppercase; padding: 0.18rem 0.45rem;
+            border-radius: 4px; flex-shrink: 0;
+        }
+        .badge-superadmin { background: rgba(251,191,36,0.15); color: var(--accent); }
+        .badge-admin { background: rgba(30,64,175,0.2); color: #60a5fa; }
+
+        .btn-revoke {
+            background: transparent; border: 1px solid transparent;
+            color: var(--muted); cursor: pointer;
+            width: 26px; height: 26px; border-radius: 6px;
+            display: flex; align-items: center; justify-content: center;
+            font-size: 0.75rem; transition: all 0.2s; flex-shrink: 0;
+        }
+        .btn-revoke:hover { background: rgba(239,68,68,0.1); border-color: rgba(239,68,68,0.3); color: var(--error); }
+
+        .empty-list {
+            text-align: center; padding: 2.5rem 1rem;
+            color: var(--muted); font-family: 'Space Mono', monospace;
+            font-size: 0.72rem; line-height: 1.8;
+        }
+
+        .list-loading {
+            text-align: center; padding: 2rem; color: var(--muted);
+            font-size: 0.75rem; font-family: 'Space Mono', monospace;
+            display: flex; align-items: center; justify-content: center; gap: 0.75rem;
+        }
+
+        .mini-spinner {
+            width: 14px; height: 14px;
+            border: 2px solid var(--border);
+            border-top-color: var(--accent);
+            border-radius: 50%;
+            animation: spin 0.7s linear infinite;
+        }
+
+        /* Log */
+        .log {
+            margin-top: 1rem; background: var(--bg);
+            border: 1px solid var(--border); border-radius: 8px;
+            padding: 0.75rem; font-family: 'Space Mono', monospace;
+            font-size: 0.68rem; max-height: 100px; overflow-y: auto;
+            display: none; scrollbar-width: thin;
+        }
+        .log.visible { display: block; }
+        .log-entry { padding: 0.12rem 0; }
+        .log-entry.success { color: var(--success); }
+        .log-entry.error { color: var(--error); }
+        .log-entry.info { color: var(--accent); }
+        .log-entry.muted { color: var(--muted); }
+
+        /* Auth states */
+        .full-card {
+            background: var(--surface); border: 1px solid var(--border);
+            border-radius: 16px; padding: 2.5rem; text-align: center;
+        }
+
+        /* Toast */
+        .toast {
+            position: fixed; bottom: 2rem; left: 50%;
+            transform: translateX(-50%) translateY(100px);
+            background: var(--surface); border: 1px solid var(--border);
+            border-radius: 10px; padding: 0.875rem 1.25rem;
+            display: flex; align-items: center; gap: 0.75rem;
+            font-size: 0.85rem; transition: transform 0.3s ease;
+            z-index: 1000; min-width: 280px; max-width: 90vw;
+            box-shadow: 0 20px 40px rgba(0,0,0,0.5);
+        }
+        .toast.show { transform: translateX(-50%) translateY(0); }
+        .toast.success { border-left: 3px solid var(--success); }
+        .toast.error { border-left: 3px solid var(--error); }
+        .toast.info { border-left: 3px solid var(--accent2); }
+
+        .hidden { display: none !important; }
+    </style>
+</head>
+<body>
+
+<div class="container">
+
+    <div class="header">
+        <div class="logo">
+            <div class="logo-icon">⚡</div>
+            <span class="logo-text">ElectroInfo</span>
+        </div>
+        <h1>Gestion des <span>Admins</span></h1>
+        <p>// Panneau de contrôle des accès privilégiés</p>
+    </div>
+
+    <div class="warning-banner">
+        ⚠️ &nbsp;Fichier réservé aux superadmins. Ne pas partager ce lien publiquement.
+    </div>
+
+    <!-- Chargement -->
+    <div class="full-card" id="checkingState">
+        <div style="display:flex;align-items:center;justify-content:center;gap:0.75rem;color:var(--muted);font-family:'Space Mono',monospace;font-size:0.8rem;">
+            <div class="mini-spinner"></div> Vérification des permissions...
+        </div>
+    </div>
+
+    <!-- Accès refusé -->
+    <div class="full-card hidden" id="deniedState">
+        <div style="font-size:2.5rem;margin-bottom:1rem;">🔒</div>
+        <h2 style="margin-bottom:0.5rem;">Accès Refusé</h2>
+        <p style="color:var(--muted);margin-bottom:1.5rem;font-size:0.875rem;">Connectez-vous en tant que <strong>superadmin</strong>.</p>
+        <a href="auth.html" style="display:inline-block;background:var(--accent);color:#000;font-weight:700;padding:0.75rem 1.5rem;border-radius:8px;text-decoration:none;">Se connecter</a>
+    </div>
+
+    <!-- Dashboard -->
+    <div class="hidden" id="mainState">
+
+        <!-- Stats -->
+        <div class="stats-row">
+            <div class="stat-box">
+                <div class="stat-num yellow" id="statTotal">—</div>
+                <div class="stat-label">Total admins</div>
+            </div>
+            <div class="stat-box">
+                <div class="stat-num yellow" id="statSuperadmin">—</div>
+                <div class="stat-label">SuperAdmins</div>
+            </div>
+            <div class="stat-box">
+                <div class="stat-num blue" id="statAdmin">—</div>
+                <div class="stat-label">Admins</div>
+            </div>
+        </div>
+
+        <div class="two-col">
+
+            <!-- Colonne gauche -->
+            <div>
+                <!-- Créer -->
+                <div class="card">
+                    <div class="card-title">⚡ Créer un administrateur</div>
+                    <form id="createAdminForm">
+                        <div class="form-group">
+                            <label>Nom complet</label>
+                            <input type="text" id="adminName" placeholder="Jean Dupont" required />
+                        </div>
+                        <div class="form-group">
+                            <label>Adresse email</label>
+                            <input type="email" id="adminEmail" placeholder="admin@electroinfo.online" required />
+                        </div>
+                        <div class="form-group">
+                            <label>Mot de passe temporaire</label>
+                            <input type="password" id="adminPassword" placeholder="Min. 8 caractères" minlength="8" required />
+                        </div>
+                        <div class="form-group">
+                            <label>Rôle</label>
+                            <div class="role-grid">
+                                <div class="role-option">
+                                    <input type="radio" name="role" id="roleAdmin" value="admin" checked />
+                                    <label class="role-label" for="roleAdmin">
+                                        <span class="role-icon">🛡️</span>
+                                        <span class="role-name">Admin</span>
+                                        <span class="role-desc">Gère articles</span>
+                                    </label>
+                                </div>
+                                <div class="role-option">
+                                    <input type="radio" name="role" id="roleSuperAdmin" value="superadmin" />
+                                    <label class="role-label" for="roleSuperAdmin">
+                                        <span class="role-icon">👑</span>
+                                        <span class="role-name">SuperAdmin</span>
+                                        <span class="role-desc">Accès total</span>
+                                    </label>
+                                </div>
+                            </div>
+                        </div>
+                        <button type="submit" class="btn btn-primary" id="submitBtn">
+                            <div class="spinner" id="btnSpinner"></div>
+                            <span id="btnText">⚡ Créer l'administrateur</span>
+                        </button>
+                    </form>
+                </div>
+
+                <!-- Modifier rôle -->
+                <div class="card">
+                    <div class="card-title">🔄 Modifier un rôle existant</div>
+                    <div class="form-group">
+                        <label>Email de l'utilisateur</label>
+                        <input type="email" id="existingEmail" placeholder="email@exemple.com" />
+                    </div>
+                    <div class="form-group">
+                        <label>Nouveau rôle</label>
+                        <select id="newRole">
+                            <option value="admin">🛡️ Admin</option>
+                            <option value="superadmin">👑 SuperAdmin</option>
+                            <option value="user">👤 Utilisateur (révoquer)</option>
+                        </select>
+                    </div>
+                    <button class="btn btn-secondary" id="updateRoleBtn">🔄 Mettre à jour le rôle</button>
+                    <div class="log" id="logContainer"><div class="log-entry info">> Système prêt.</div></div>
+                </div>
+            </div>
+
+            <!-- Colonne droite : Liste des admins -->
+            <div class="card" style="margin-bottom:0;">
+                <div class="card-title">
+                    <div class="card-title-left">
+                        👥 Administrateurs actuels
+                        <span class="count-badge" id="adminCount">0</span>
+                    </div>
+                    <button class="refresh-btn" id="refreshBtn" title="Actualiser">↻</button>
+                </div>
+
+                <div class="admin-list" id="adminList">
+                    <div class="list-loading"><div class="mini-spinner"></div> Chargement...</div>
+                </div>
+            </div>
+
+        </div>
+    </div>
+</div>
+
+<!-- Toast -->
+<div class="toast" id="toast">
+    <span id="toastIcon"></span>
+    <span id="toastMsg"></span>
+</div>
+
+<script type="module">
+import { initializeApp } from 'https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js';
+import {
+    getAuth, onAuthStateChanged,
+    createUserWithEmailAndPassword, updateProfile
+} from 'https://www.gstatic.com/firebasejs/10.7.1/firebase-auth.js';
+import {
+    getFirestore,
+    doc, setDoc, getDoc, updateDoc,
+    collection, query, where, getDocs,
+    serverTimestamp
+} from 'https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js';
+
+const firebaseConfig = {
+    apiKey: "AIzaSyCuFgzytJXD6jt4HUW9LVSD_VpGuFfcEAk",
+    authDomain: "electroino-app.firebaseapp.com",
+    projectId: "electroino-app",
+    storageBucket: "electroino-app.firebasestorage.app",
+    messagingSenderId: "864058526638",
+    appId: "1:864058526638:web:17b821633c7cc99be1563f"
+};
+
+const app = initializeApp(firebaseConfig);
+const auth = getAuth(app);
+const db = getFirestore(app);
+
+// ── Utils ─────────────────────────────────────────
+function log(msg, type = 'muted') {
+    const c = document.getElementById('logContainer');
+    c.classList.add('visible');
+    const e = document.createElement('div');
+    e.className = `log-entry ${type}`;
+    e.textContent = `> ${msg}`;
+    c.appendChild(e);
+    c.scrollTop = c.scrollHeight;
+}
+
+function toast(msg, type = 'info') {
+    const icons = { success: '✅', error: '❌', info: '⚡' };
+    document.getElementById('toastIcon').textContent = icons[type] || '•';
+    document.getElementById('toastMsg').textContent = msg;
+    const el = document.getElementById('toast');
+    el.className = `toast ${type} show`;
+    setTimeout(() => el.classList.remove('show'), 4000);
+}
+
+function setLoading(on) {
+    document.getElementById('submitBtn').disabled = on;
+    document.getElementById('btnSpinner').style.display = on ? 'block' : 'none';
+    document.getElementById('btnText').textContent = on ? 'Création en cours...' : "⚡ Créer l'administrateur";
+}
+
+function escHtml(t) {
+    const d = document.createElement('div');
+    d.textContent = t;
+    return d.innerHTML;
+}
+
+// ── Charger admins ────────────────────────────────
+async function loadAdmins() {
+    const list = document.getElementById('adminList');
+    list.innerHTML = '<div class="list-loading"><div class="mini-spinner"></div> Chargement...</div>';
+
+    try {
+        const [aSnap, sSnap] = await Promise.all([
+            getDocs(query(collection(db, 'users'), where('role', '==', 'admin'))),
+            getDocs(query(collection(db, 'users'), where('role', '==', 'superadmin')))
+        ]);
+
+        const admins = [];
+        sSnap.forEach(d => admins.push({ id: d.id, ...d.data() }));
+        aSnap.forEach(d => admins.push({ id: d.id, ...d.data() }));
+
+        const total = admins.length;
+        document.getElementById('statTotal').textContent = total;
+        document.getElementById('statSuperadmin').textContent = sSnap.size;
+        document.getElementById('statAdmin').textContent = aSnap.size;
+        document.getElementById('adminCount').textContent = total;
+
+        if (total === 0) {
+            list.innerHTML = '<div class="empty-list">👥 Aucun administrateur.<br>Créez le premier ci-contre.</div>';
+            return;
+        }
+
+        list.innerHTML = '';
+        admins.forEach(admin => list.appendChild(buildAdminItem(admin)));
+
+    } catch (err) {
+        list.innerHTML = `<div class="empty-list" style="color:var(--error)">❌ Erreur de chargement.<br>${err.message}</div>`;
+    }
+}
+
+function buildAdminItem(admin) {
+    const div = document.createElement('div');
+    div.className = 'admin-item';
+
+    const isSA = admin.role === 'superadmin';
+    const initials = (admin.name || admin.email || '?').split(' ').map(w => w[0]).join('').toUpperCase().slice(0, 2);
+    const date = admin.createdAt
+        ? new Date(admin.createdAt.toDate()).toLocaleDateString('fr-FR', { day: 'numeric', month: 'short', year: 'numeric' })
+        : null;
+
+    div.innerHTML = `
+        <div class="admin-avatar ${isSA ? 'avatar-superadmin' : 'avatar-admin'}">${initials}</div>
+        <div class="admin-info">
+            <div class="admin-name">${escHtml(admin.name || 'Sans nom')}</div>
+            <div class="admin-email">${escHtml(admin.email || '')}</div>
+            ${date ? `<div class="admin-date">Depuis le ${date}</div>` : ''}
+        </div>
+        <span class="role-badge ${isSA ? 'badge-superadmin' : 'badge-admin'}">${isSA ? '👑 Super' : '🛡️ Admin'}</span>
+        <button class="btn-revoke" title="Révoquer">✕</button>
+    `;
+
+    div.querySelector('.btn-revoke').addEventListener('click', () => {
+        if (!confirm(`Révoquer les droits de ${admin.name || admin.email} ?\n\nCette personne deviendra un utilisateur normal.`)) return;
+        updateDoc(doc(db, 'users', admin.id), { role: 'user' })
+            .then(() => { toast(`Droits révoqués : ${admin.name || admin.email}`, 'success'); loadAdmins(); })
+            .catch(err => toast(err.message, 'error'));
+    });
+
+    return div;
+}
+
+// ── Auth Guard ────────────────────────────────────
+onAuthStateChanged(auth, async (user) => {
+    document.getElementById('checkingState').classList.add('hidden');
+
+    if (!user) { document.getElementById('deniedState').classList.remove('hidden'); return; }
+
+    const snap = await getDoc(doc(db, 'users', user.uid));
+    if (!snap.exists()) { document.getElementById('deniedState').classList.remove('hidden'); return; }
+
+    const role = snap.data().role;
+    if (role !== 'superadmin' && role !== 'admin') {
+        document.getElementById('deniedState').classList.remove('hidden');
+        return;
+    }
+
+    document.getElementById('mainState').classList.remove('hidden');
+    log(`Connecté : ${user.email} (${role})`, 'success');
+    loadAdmins();
+});
+
+// ── Refresh ───────────────────────────────────────
+document.getElementById('refreshBtn').addEventListener('click', () => {
+    loadAdmins();
+    toast('Liste actualisée', 'info');
+});
+
+// ── Créer un admin ────────────────────────────────
+document.getElementById('createAdminForm').addEventListener('submit', async (e) => {
+    e.preventDefault();
+    const name     = document.getElementById('adminName').value.trim();
+    const email    = document.getElementById('adminEmail').value.trim();
+    const password = document.getElementById('adminPassword').value;
+    const role     = document.querySelector('input[name="role"]:checked').value;
+
+    setLoading(true);
+    log(`Création : ${email} (${role})...`);
+
+    try {
+        const cred = await createUserWithEmailAndPassword(auth, email, password);
+        await updateProfile(cred.user, { displayName: name });
+        await setDoc(doc(db, 'users', cred.user.uid), {
+            name, email, role, photoURL: null, createdAt: serverTimestamp()
+        });
+        log(`✅ ${name} créé avec le rôle "${role}"`, 'success');
+        toast(`${role === 'superadmin' ? '👑' : '🛡️'} ${name} créé avec succès !`, 'success');
+        document.getElementById('createAdminForm').reset();
+        loadAdmins();
+    } catch (err) {
+        let msg = err.message;
+        if (err.code === 'auth/email-already-in-use') msg = 'Email déjà utilisé.';
+        if (err.code === 'auth/weak-password') msg = 'Mot de passe trop faible.';
+        log(`Erreur : ${msg}`, 'error');
+        toast(msg, 'error');
+    }
+    setLoading(false);
+});
+
+// ── Modifier un rôle ──────────────────────────────
+document.getElementById('updateRoleBtn').addEventListener('click', async () => {
+    const email   = document.getElementById('existingEmail').value.trim();
+    const newRole = document.getElementById('newRole').value;
+    if (!email) { toast('Entrez un email.', 'error'); return; }
+
+    log(`Recherche de ${email}...`);
+    try {
+        const snap = await getDocs(query(collection(db, 'users'), where('email', '==', email)));
+        if (snap.empty) { log(`Introuvable : ${email}`, 'error'); toast('Utilisateur introuvable.', 'error'); return; }
+        await updateDoc(snap.docs[0].ref, { role: newRole });
+        log(`Rôle de ${email} → "${newRole}"`, 'success');
+        toast(`Rôle mis à jour : ${newRole}`, 'success');
+        document.getElementById('existingEmail').value = '';
+        loadAdmins();
+    } catch (err) {
+        log(`Erreur : ${err.message}`, 'error');
+        toast(err.message, 'error');
+    }
+});
+</script>
+</body>
+</html>

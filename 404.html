@@ -1,0 +1,125 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>ElectroInfo - Chargement...</title>
+    <script>
+        (function() {
+            const path   = window.location.pathname;
+            const search = window.location.search;
+            const hash   = window.location.hash;
+
+            // /article/mon-slug → /article-detail.html?slug=mon-slug
+            if (path.startsWith('/article/')) {
+                const slug = path.replace('/article/', '').replace(/\/$/, '');
+                if (slug) {
+                    window.location.replace('/article-detail.html?slug=' + encodeURIComponent(slug));
+                    return;
+                }
+            }
+
+            // /articles → /articles.html
+            if (path === '/articles' || path === '/articles/') {
+                window.location.replace('/articles.html' + search + hash);
+                return;
+            }
+
+            // /courses → /courses.html
+            if (path === '/courses' || path === '/courses/') {
+                window.location.replace('/courses.html' + search + hash);
+                return;
+            }
+
+            // /about → /about.html
+            if (path === '/about' || path === '/about/') {
+                window.location.replace('/about.html' + search + hash);
+                return;
+            }
+
+            // /contact → /contact.html
+            if (path === '/contact' || path === '/contact/') {
+                window.location.replace('/contact.html' + search + hash);
+                return;
+            }
+
+            // /admin → /admin.html
+            if (path === '/admin' || path === '/admin/') {
+                window.location.replace('/admin.html' + search + hash);
+                return;
+            }
+
+            // Vraie 404
+            document.getElementById('notFound').style.display = 'flex';
+            document.getElementById('redirectMsg').style.display = 'none';
+        })();
+    </script>
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body {
+            font-family: 'Segoe UI', sans-serif;
+            background: linear-gradient(135deg, #1e3a8a 0%, #1e40af 100%);
+            min-height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: white;
+        }
+        #redirectMsg {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 1rem;
+        }
+        #notFound {
+            display: none;
+            flex-direction: column;
+            align-items: center;
+            text-align: center;
+            padding: 2rem;
+        }
+        .error-code {
+            font-size: 6rem;
+            font-weight: 900;
+            color: #fbbf24;
+            line-height: 1;
+            margin-bottom: 1rem;
+        }
+        h1 { font-size: 1.75rem; margin-bottom: 1rem; }
+        p  { color: rgba(255,255,255,0.8); margin-bottom: 2rem; font-size: 1.1rem; }
+        .btn {
+            background: #fbbf24;
+            color: #000;
+            padding: 0.875rem 2rem;
+            border-radius: 10px;
+            text-decoration: none;
+            font-weight: 700;
+            font-size: 1rem;
+        }
+        .spinner {
+            width: 40px; height: 40px;
+            border: 3px solid rgba(255,255,255,0.3);
+            border-top-color: #fbbf24;
+            border-radius: 50%;
+            animation: spin 0.8s linear infinite;
+        }
+        @keyframes spin { to { transform: rotate(360deg); } }
+        .loading-text { color: rgba(255,255,255,0.7); font-size: 0.9rem; }
+    </style>
+</head>
+<body>
+
+    <div id="redirectMsg">
+        <div class="spinner"></div>
+        <p class="loading-text">Chargement de l'article...</p>
+    </div>
+
+    <div id="notFound">
+        <div class="error-code">404</div>
+        <h1>Page non trouvée</h1>
+        <p>La page que vous cherchez n'existe pas ou a été déplacée.</p>
+        <a href="/" class="btn">⚡ Retour à l'accueil</a>
+    </div>
+
+</body>
+</html>

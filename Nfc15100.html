@@ -1,0 +1,859 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>NF C 15-100 — Cours Complet</title>
+<link href="https://fonts.googleapis.com/css2?family=Syne:wght@400;600;700;800&family=DM+Sans:ital,wght@0,300;0,400;0,500;1,300&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --blue: #0a2540;
+    --blue-mid: #1a4580;
+    --blue-light: #2563eb;
+    --accent: #f59e0b;
+    --accent2: #ef4444;
+    --green: #10b981;
+    --bg: #f7f8fc;
+    --surface: #ffffff;
+    --text: #1e293b;
+    --muted: #64748b;
+    --border: #e2e8f0;
+  }
+
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+  body {
+    font-family: 'DM Sans', sans-serif;
+    background: var(--bg);
+    color: var(--text);
+    line-height: 1.75;
+  }
+
+  /* HERO */
+  header {
+    background: var(--blue);
+    color: white;
+    padding: 0;
+    position: relative;
+    overflow: hidden;
+  }
+
+  header::before {
+    content: '';
+    position: absolute;
+    top: -80px; right: -80px;
+    width: 400px; height: 400px;
+    background: radial-gradient(circle, rgba(37,99,235,0.4) 0%, transparent 70%);
+    border-radius: 50%;
+  }
+
+  header::after {
+    content: '';
+    position: absolute;
+    bottom: -60px; left: 40%;
+    width: 300px; height: 300px;
+    background: radial-gradient(circle, rgba(245,158,11,0.15) 0%, transparent 70%);
+    border-radius: 50%;
+  }
+
+  .hero-inner {
+    position: relative;
+    z-index: 1;
+    max-width: 900px;
+    margin: 0 auto;
+    padding: 70px 30px 60px;
+  }
+
+  .hero-badge {
+    display: inline-block;
+    font-family: 'Syne', sans-serif;
+    font-size: 0.72em;
+    font-weight: 700;
+    letter-spacing: 3px;
+    text-transform: uppercase;
+    color: var(--accent);
+    border: 1px solid rgba(245,158,11,0.4);
+    padding: 5px 14px;
+    border-radius: 4px;
+    margin-bottom: 20px;
+  }
+
+  header h1 {
+    font-family: 'Syne', sans-serif;
+    font-size: clamp(2em, 5vw, 3.4em);
+    font-weight: 800;
+    line-height: 1.1;
+    margin-bottom: 16px;
+  }
+
+  header h1 span { color: var(--accent); }
+
+  header p.subtitle {
+    font-size: 1.05em;
+    font-weight: 300;
+    color: rgba(255,255,255,0.75);
+    max-width: 520px;
+    margin-bottom: 30px;
+  }
+
+  .hero-tags {
+    display: flex; flex-wrap: wrap; gap: 10px;
+  }
+
+  .hero-tag {
+    background: rgba(255,255,255,0.08);
+    border: 1px solid rgba(255,255,255,0.15);
+    color: rgba(255,255,255,0.8);
+    font-size: 0.82em;
+    padding: 6px 14px;
+    border-radius: 100px;
+    backdrop-filter: blur(4px);
+  }
+
+  /* LAYOUT */
+  .page {
+    max-width: 960px;
+    margin: 0 auto;
+    padding: 50px 24px;
+    display: grid;
+    grid-template-columns: 220px 1fr;
+    gap: 40px;
+    align-items: start;
+  }
+
+  /* SIDEBAR NAV */
+  .sidebar {
+    position: sticky;
+    top: 30px;
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 14px;
+    padding: 20px;
+    box-shadow: 0 4px 20px rgba(0,0,0,0.05);
+  }
+
+  .sidebar h3 {
+    font-family: 'Syne', sans-serif;
+    font-size: 0.75em;
+    letter-spacing: 2px;
+    text-transform: uppercase;
+    color: var(--muted);
+    margin-bottom: 14px;
+  }
+
+  .sidebar ol {
+    list-style: none;
+    padding: 0;
+    counter-reset: nav;
+  }
+
+  .sidebar li {
+    counter-increment: nav;
+    margin-bottom: 6px;
+  }
+
+  .sidebar a {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    font-size: 0.83em;
+    color: var(--text);
+    text-decoration: none;
+    padding: 7px 10px;
+    border-radius: 8px;
+    transition: all 0.2s;
+    font-weight: 500;
+  }
+
+  .sidebar a::before {
+    content: counter(nav, decimal-leading-zero);
+    font-family: 'Syne', sans-serif;
+    font-size: 0.75em;
+    color: var(--muted);
+    min-width: 20px;
+  }
+
+  .sidebar a:hover {
+    background: #eff6ff;
+    color: var(--blue-light);
+  }
+
+  /* MAIN CONTENT */
+  main { min-width: 0; }
+
+  section { margin-bottom: 56px; }
+
+  .section-title {
+    font-family: 'Syne', sans-serif;
+    font-size: 1.35em;
+    font-weight: 700;
+    color: var(--blue);
+    margin-bottom: 20px;
+    padding-bottom: 14px;
+    border-bottom: 2px solid var(--border);
+    display: flex;
+    align-items: center;
+    gap: 10px;
+  }
+
+  .section-num {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 32px; height: 32px;
+    background: var(--blue);
+    color: white;
+    border-radius: 8px;
+    font-size: 0.75em;
+    font-weight: 800;
+    flex-shrink: 0;
+  }
+
+  p { margin-bottom: 14px; color: var(--text); }
+
+  /* CALLOUT */
+  .callout {
+    border-radius: 10px;
+    padding: 16px 18px;
+    margin: 18px 0;
+    display: flex;
+    gap: 12px;
+    align-items: flex-start;
+  }
+
+  .callout.info { background: #eff6ff; border-left: 3px solid var(--blue-light); }
+  .callout.warn { background: #fff7ed; border-left: 3px solid var(--accent); }
+  .callout.danger { background: #fef2f2; border-left: 3px solid var(--accent2); }
+  .callout.success { background: #f0fdf4; border-left: 3px solid var(--green); }
+
+  .callout-icon { font-size: 1.2em; flex-shrink: 0; margin-top: 2px; }
+  .callout-text { font-size: 0.93em; }
+  .callout-text strong { display: block; margin-bottom: 4px; font-size: 1em; }
+
+  /* TIMELINE */
+  .timeline { position: relative; padding-left: 28px; margin: 20px 0; }
+  .timeline::before {
+    content: '';
+    position: absolute;
+    left: 8px; top: 0; bottom: 0;
+    width: 2px;
+    background: linear-gradient(to bottom, var(--blue-light), var(--accent));
+    border-radius: 2px;
+  }
+
+  .timeline-item {
+    position: relative;
+    margin-bottom: 16px;
+    padding: 14px 18px;
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 10px;
+  }
+
+  .timeline-item::before {
+    content: '';
+    position: absolute;
+    left: -24px; top: 18px;
+    width: 12px; height: 12px;
+    background: var(--blue-light);
+    border-radius: 50%;
+    border: 3px solid white;
+    box-shadow: 0 0 0 2px var(--blue-light);
+  }
+
+  .timeline-item.last::before { background: var(--green); box-shadow: 0 0 0 2px var(--green); }
+  .timeline-year { font-family: 'Syne', sans-serif; font-weight: 700; color: var(--blue-light); margin-right: 8px; }
+
+  /* TABLE */
+  .table-wrap {
+    overflow-x: auto;
+    border-radius: 12px;
+    box-shadow: 0 2px 12px rgba(0,0,0,0.07);
+    margin: 20px 0;
+  }
+
+  table {
+    width: 100%;
+    border-collapse: collapse;
+    background: var(--surface);
+    font-size: 0.9em;
+  }
+
+  th {
+    font-family: 'Syne', sans-serif;
+    font-size: 0.78em;
+    letter-spacing: 1px;
+    text-transform: uppercase;
+    padding: 14px 16px;
+    text-align: left;
+    background: var(--blue);
+    color: white;
+  }
+
+  td {
+    padding: 12px 16px;
+    border-bottom: 1px solid var(--border);
+  }
+
+  tr:last-child td { border-bottom: none; }
+  tr:nth-child(even) td { background: #f8fafc; }
+
+  .badge {
+    display: inline-block;
+    padding: 2px 10px;
+    border-radius: 100px;
+    font-size: 0.78em;
+    font-weight: 600;
+  }
+
+  .badge.ok { background: #dcfce7; color: #166534; }
+  .badge.warn { background: #fef3c7; color: #92400e; }
+
+  /* CIRCUIT CARDS */
+  .circuit-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(140px, 1fr));
+    gap: 12px;
+    margin: 20px 0;
+  }
+
+  .circuit-card {
+    padding: 18px 14px;
+    border-radius: 12px;
+    text-align: center;
+    border: 1px solid var(--border);
+    background: var(--surface);
+    transition: transform 0.2s, box-shadow 0.2s;
+  }
+
+  .circuit-card:hover { transform: translateY(-3px); box-shadow: 0 8px 20px rgba(0,0,0,0.1); }
+  .circuit-card .emoji { font-size: 2em; margin-bottom: 8px; }
+  .circuit-card strong { display: block; font-size: 0.88em; margin-bottom: 4px; }
+  .circuit-card small { color: var(--muted); font-size: 0.78em; font-family: 'Syne', sans-serif; font-weight: 600; letter-spacing: 0.5px; }
+
+  /* VOLUMES TABLE */
+  .vol-0 { background: #fecaca; }
+  .vol-1 { background: #fed7aa; }
+  .vol-2 { background: #fef9c3; }
+  .vol-hors { background: #d1fae5; }
+
+  /* ROOM CARDS */
+  .room-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+    gap: 14px;
+    margin: 20px 0;
+  }
+
+  .room-card {
+    border-radius: 12px;
+    overflow: hidden;
+    background: var(--surface);
+    border: 1px solid var(--border);
+    box-shadow: 0 2px 8px rgba(0,0,0,0.05);
+  }
+
+  .room-card-header {
+    padding: 14px 16px 10px;
+    font-family: 'Syne', sans-serif;
+    font-weight: 700;
+    font-size: 0.88em;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    border-bottom: 1px solid var(--border);
+  }
+
+  .room-card-body { padding: 12px 16px; }
+  .room-card-body p { font-size: 0.82em; margin: 0 0 6px 0; color: var(--text); }
+  .room-card-body p:last-child { margin: 0; }
+
+  .dot { width: 10px; height: 10px; border-radius: 50%; flex-shrink: 0; }
+
+  /* CONSUEL */
+  .steps {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+    gap: 0;
+    margin: 20px 0;
+    border: 1px solid var(--border);
+    border-radius: 12px;
+    overflow: hidden;
+  }
+
+  .step {
+    padding: 20px;
+    border-right: 1px solid var(--border);
+    position: relative;
+  }
+
+  .step:last-child { border-right: none; }
+
+  .step-num {
+    font-family: 'Syne', sans-serif;
+    font-size: 2em;
+    font-weight: 800;
+    color: var(--border);
+    line-height: 1;
+    margin-bottom: 8px;
+  }
+
+  .step strong { display: block; font-size: 0.88em; margin-bottom: 6px; color: var(--blue); }
+  .step p { font-size: 0.82em; color: var(--muted); margin: 0; }
+
+  /* QCM */
+  .qcm {
+    background: var(--blue);
+    border-radius: 16px;
+    padding: 30px;
+    color: white;
+    margin-bottom: 50px;
+  }
+
+  .qcm h2 {
+    font-family: 'Syne', sans-serif;
+    font-size: 1.2em;
+    margin-bottom: 20px;
+    color: var(--accent);
+  }
+
+  .qcm ol { padding-left: 20px; }
+  .qcm li { margin-bottom: 10px; font-size: 0.93em; color: rgba(255,255,255,0.85); }
+
+  .qcm details {
+    margin-top: 20px;
+    background: rgba(255,255,255,0.08);
+    border-radius: 10px;
+    padding: 16px 20px;
+  }
+
+  .qcm summary {
+    cursor: pointer;
+    font-weight: 600;
+    color: var(--accent);
+    font-family: 'Syne', sans-serif;
+    font-size: 0.9em;
+    list-style: none;
+    user-select: none;
+  }
+
+  .qcm details ol { margin-top: 12px; }
+  .qcm details li { color: rgba(255,255,255,0.9); font-size: 0.88em; }
+
+  /* FOOTER */
+  footer {
+    background: var(--blue);
+    color: rgba(255,255,255,0.7);
+    text-align: center;
+    padding: 30px 24px;
+    font-size: 0.85em;
+  }
+
+  footer strong { color: var(--accent); }
+
+  /* ANIMATION */
+  @keyframes fadeUp {
+    from { opacity: 0; transform: translateY(20px); }
+    to { opacity: 1; transform: translateY(0); }
+  }
+
+  section {
+    animation: fadeUp 0.5s ease both;
+  }
+
+  @media (max-width: 700px) {
+    .page { grid-template-columns: 1fr; }
+    .sidebar { position: static; }
+  }
+</style>
+</head>
+<body>
+
+<!-- HERO -->
+<header>
+  <div class="hero-inner">
+    <div class="hero-badge">⚡ Licence — Séquence 1</div>
+    <h1>La Norme <span>NF C 15-100</span></h1>
+    <p class="subtitle">Le guide complet des installations électriques basse tension en France — du tableau au CONSUEL.</p>
+    <div class="hero-tags">
+      <span class="hero-tag">📚 Niveau : Débutant → Intermédiaire</span>
+      <span class="hero-tag">⏱ Durée estimée : 2h</span>
+      <span class="hero-tag">🎯 Objectif : Maîtriser la norme</span>
+    </div>
+  </div>
+</header>
+
+<div class="page">
+
+  <!-- SIDEBAR -->
+  <aside class="sidebar">
+    <h3>Sommaire</h3>
+    <ol>
+      <li><a href="#intro">Introduction et objectifs</a></li>
+      <li><a href="#historique">Historique de la norme</a></li>
+      <li><a href="#tableau">Le tableau électrique</a></li>
+      <li><a href="#protections">Équipements de protection</a></li>
+      <li><a href="#circuits">Circuits spécialisés</a></li>
+      <li><a href="#sdb">Salle de bain — Volumes</a></li>
+      <li><a href="#prises">Points d'utilisation</a></li>
+      <li><a href="#consuel">CONSUEL & conformité</a></li>
+    </ol>
+  </aside>
+
+  <!-- MAIN -->
+  <main>
+
+    <!-- 1. INTRO -->
+    <section id="intro">
+      <h2 class="section-title"><span class="section-num">01</span>Introduction et Objectifs</h2>
+      <p>La norme <strong>NF C 15-100</strong> est le texte de référence français qui fixe les règles de <strong>conception</strong>, de <strong>réalisation</strong> et d'<strong>entretien</strong> des installations électriques basse tension dans les bâtiments d'habitation.</p>
+
+      <div style="display:grid; grid-template-columns:1fr 1fr; gap:12px; margin:20px 0;">
+        <div class="callout success">
+          <div class="callout-icon">🛡️</div>
+          <div class="callout-text"><strong>Objectif 1 : Sécurité des personnes</strong>Protection contre les chocs électriques (électrisation et électrocution), les brûlures et les risques d'incendie.</div>
+        </div>
+        <div class="callout info">
+          <div class="callout-icon">⚙️</div>
+          <div class="callout-text"><strong>Objectif 2 : Bon fonctionnement</strong>Garantir la fiabilité, éviter les pannes, assurer le confort et la pérennité des équipements.</div>
+        </div>
+      </div>
+
+      <div class="callout warn">
+        <div class="callout-icon">💡</div>
+        <div class="callout-text"><strong>À retenir</strong>La norme NF C 15-100 s'applique à toutes les <strong>installations neuves</strong> et aux <strong>rénovations importantes</strong>. Dernière version en vigueur : 2015 avec amendements.</div>
+      </div>
+    </section>
+
+    <!-- 2. HISTORIQUE -->
+    <section id="historique">
+      <h2 class="section-title"><span class="section-num">02</span>Historique de la Norme</h2>
+      <p>La norme a évolué au fil des décennies pour s'adapter aux nouvelles technologies et aux retours d'expérience sur les accidents électriques.</p>
+
+      <div class="timeline">
+        <div class="timeline-item">
+          <span class="timeline-year">1969</span>Première version nationale de la norme électrique française.
+        </div>
+        <div class="timeline-item">
+          <span class="timeline-year">2002</span>Grande révision : obligation des disjoncteurs différentiels 30mA, nouvelles règles pour la salle de bain.
+        </div>
+        <div class="timeline-item">
+          <span class="timeline-year">2010</span>Intégration des bornes de recharge véhicules électriques, nouvelles exigences domotique.
+        </div>
+        <div class="timeline-item last">
+          <span class="timeline-year" style="color:var(--green);">2015 ✓</span>Dernière mise à jour : nouvelles règles pour l'éclairage LED, les panneaux solaires et la domotique connectée.
+        </div>
+      </div>
+    </section>
+
+    <!-- 3. TABLEAU -->
+    <section id="tableau">
+      <h2 class="section-title"><span class="section-num">03</span>Le Tableau Électrique</h2>
+      <p>Le <strong>tableau de répartition</strong> est le cœur de l'installation. Il regroupe tous les dispositifs de protection et de coupure.</p>
+
+      <div class="table-wrap">
+        <table>
+          <thead>
+            <tr>
+              <th>Composant</th>
+              <th>Rôle</th>
+              <th>Caractéristique</th>
+              <th>Obligation</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td><strong>Disjoncteur de branchement</strong></td>
+              <td>Coupure générale du logement</td>
+              <td>15, 30 ou 60A selon contrat</td>
+              <td><span class="badge ok">✅ Obligatoire</span></td>
+            </tr>
+            <tr>
+              <td><strong>Interrupteur différentiel 30mA</strong></td>
+              <td>Détecte les fuites de courant</td>
+              <td>Type A (obligatoire) + Type AC</td>
+              <td><span class="badge ok">✅ Minimum 2</span></td>
+            </tr>
+            <tr>
+              <td><strong>Disjoncteur divisionnaire</strong></td>
+              <td>Protège chaque circuit</td>
+              <td>2A à 32A selon usage</td>
+              <td><span class="badge ok">✅ 1 par circuit</span></td>
+            </tr>
+            <tr>
+              <td><strong>Prise de terre</strong></td>
+              <td>Évacue les courants de défaut</td>
+              <td>Résistance ≤ 100Ω</td>
+              <td><span class="badge ok">✅ Tous circuits</span></td>
+            </tr>
+            <tr>
+              <td><strong>Parafoudre</strong></td>
+              <td>Protège contre la foudre</td>
+              <td>Zones à risque foudre</td>
+              <td><span class="badge warn">⚠️ Recommandé</span></td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+    </section>
+
+    <!-- 4. PROTECTIONS -->
+    <section id="protections">
+      <h2 class="section-title"><span class="section-num">04</span>Équipements de Protection en Détail</h2>
+
+      <div style="display:grid; grid-template-columns:1fr 1fr; gap:14px; margin-bottom:24px;">
+        <div class="callout danger">
+          <div class="callout-icon">🔴</div>
+          <div class="callout-text">
+            <strong>Différentiel 30mA — Type A</strong>
+            Protège contre les fuites <strong>alternatif ET pulsé</strong>.<br>
+            <span style="font-size:0.9em;">→ Circuits cuisson, lave-linge, lave-vaisselle, chargeur VE.</span>
+          </div>
+        </div>
+        <div class="callout info">
+          <div class="callout-icon">🔵</div>
+          <div class="callout-text">
+            <strong>Différentiel 30mA — Type AC</strong>
+            Protège uniquement contre les fuites <strong>alternativ</strong>.<br>
+            <span style="font-size:0.9em;">→ Circuits éclairage, prises standard, chauffe-eau.</span>
+          </div>
+        </div>
+      </div>
+
+      <h3 style="font-family:'Syne',sans-serif; font-size:0.95em; text-transform:uppercase; letter-spacing:1px; color:var(--muted); margin-bottom:12px;">Calibres des disjoncteurs selon les circuits</h3>
+      <div class="table-wrap">
+        <table>
+          <thead>
+            <tr>
+              <th>Circuit</th>
+              <th>Calibre disjoncteur</th>
+              <th>Section câble</th>
+              <th>Nb prises max</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr><td>Éclairage</td><td style="text-align:center;"><strong>10A</strong></td><td style="text-align:center;">1,5 mm²</td><td style="text-align:center;">8 points</td></tr>
+            <tr><td>Prises 16A standard</td><td style="text-align:center;"><strong>16A</strong></td><td style="text-align:center;">2,5 mm²</td><td style="text-align:center;">8 prises</td></tr>
+            <tr><td>Lave-linge / Lave-vaisselle</td><td style="text-align:center;"><strong>20A</strong></td><td style="text-align:center;">2,5 mm²</td><td style="text-align:center;">1 prise</td></tr>
+            <tr><td>Four / Cuisinière</td><td style="text-align:center;"><strong>32A</strong></td><td style="text-align:center;">6 mm²</td><td style="text-align:center;">1 prise</td></tr>
+            <tr><td>Chauffe-eau électrique</td><td style="text-align:center;"><strong>20A</strong></td><td style="text-align:center;">2,5 mm²</td><td style="text-align:center;">1 circuit</td></tr>
+          </tbody>
+        </table>
+      </div>
+    </section>
+
+    <!-- 5. CIRCUITS -->
+    <section id="circuits">
+      <h2 class="section-title"><span class="section-num">05</span>Les Circuits Spécialisés Obligatoires</h2>
+      <p>La norme impose des <strong>circuits dédiés</strong> pour certains appareils afin d'éviter les surcharges.</p>
+
+      <div class="circuit-grid">
+        <div class="circuit-card">
+          <div class="emoji">🍳</div>
+          <strong>Plaques de cuisson</strong>
+          <small>32A — 6mm²</small>
+        </div>
+        <div class="circuit-card">
+          <div class="emoji">🫧</div>
+          <strong>Lave-linge</strong>
+          <small>20A — 2,5mm²</small>
+        </div>
+        <div class="circuit-card">
+          <div class="emoji">🍽️</div>
+          <strong>Lave-vaisselle</strong>
+          <small>20A — 2,5mm²</small>
+        </div>
+        <div class="circuit-card">
+          <div class="emoji">🌡️</div>
+          <strong>Chauffe-eau</strong>
+          <small>20A — 2,5mm²</small>
+        </div>
+        <div class="circuit-card">
+          <div class="emoji">🧊</div>
+          <strong>Réfrigérateur</strong>
+          <small>16A — 2,5mm²</small>
+        </div>
+        <div class="circuit-card">
+          <div class="emoji">🔥</div>
+          <strong>Four</strong>
+          <small>32A — 6mm²</small>
+        </div>
+      </div>
+    </section>
+
+    <!-- 6. SALLE DE BAIN -->
+    <section id="sdb">
+      <h2 class="section-title" style="color:var(--accent2); border-bottom-color:rgba(239,68,68,0.2);">
+        <span class="section-num" style="background:var(--accent2);">06</span>Salle de Bain — Les Volumes de Sécurité
+      </h2>
+      <p>L'association eau + électricité est extrêmement dangereuse. La norme définit <strong>4 volumes</strong> avec des règles strictes :</p>
+
+      <div class="table-wrap">
+        <table>
+          <thead>
+            <tr style="background:#b91c1c;">
+              <th>Zone</th>
+              <th>Définition</th>
+              <th>Règle applicable</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr class="vol-0">
+              <td style="text-align:center;"><strong>Volume 0</strong></td>
+              <td>Intérieur de la baignoire / douche</td>
+              <td><strong>❌ Aucun appareil électrique</strong></td>
+            </tr>
+            <tr class="vol-1">
+              <td style="text-align:center;"><strong>Volume 1</strong></td>
+              <td>Au-dessus jusqu'à 2,25m de hauteur</td>
+              <td><strong>⚡ TBTS 12V maximum</strong></td>
+            </tr>
+            <tr class="vol-2">
+              <td style="text-align:center;"><strong>Volume 2</strong></td>
+              <td>60cm autour de la baignoire</td>
+              <td><strong>✔️ Appareils Classe II seulement</strong></td>
+            </tr>
+            <tr class="vol-hors">
+              <td style="text-align:center;"><strong>Hors volume</strong></td>
+              <td>Au-delà des 60cm</td>
+              <td><strong>✅ Prises standard 16A autorisées</strong></td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+
+      <div class="callout danger">
+        <div class="callout-icon">🚨</div>
+        <div class="callout-text">
+          <strong>Règle absolue</strong>
+          Aucune prise de courant 230V n'est autorisée dans les volumes 0, 1 et 2. Seul le rasoir (prise rasoir isolée) est toléré en volume 2.
+        </div>
+      </div>
+    </section>
+
+    <!-- 7. PRISES -->
+    <section id="prises">
+      <h2 class="section-title"><span class="section-num">07</span>Nombre Minimum de Points d'Utilisation</h2>
+      <p>La norme impose un nombre minimum de <strong>prises et points d'éclairage</strong> par pièce :</p>
+
+      <div class="room-grid">
+        <div class="room-card">
+          <div class="room-card-header" style="border-top:3px solid #2563eb;">
+            <div class="dot" style="background:#2563eb;"></div>🛋️ Séjour / Salon
+          </div>
+          <div class="room-card-body">
+            <p>🔌 <strong>5 prises</strong> minimum</p>
+            <p>💡 1 point d'éclairage</p>
+            <p>📡 1 prise TV + téléphone</p>
+          </div>
+        </div>
+        <div class="room-card">
+          <div class="room-card-header" style="border-top:3px solid #f59e0b;">
+            <div class="dot" style="background:#f59e0b;"></div>🍳 Cuisine
+          </div>
+          <div class="room-card-body">
+            <p>🔌 <strong>6 prises</strong> (dont 4 plan de travail)</p>
+            <p>💡 1 point d'éclairage</p>
+            <p>⚡ Circuits spécialisés obligatoires</p>
+          </div>
+        </div>
+        <div class="room-card">
+          <div class="room-card-header" style="border-top:3px solid #9333ea;">
+            <div class="dot" style="background:#9333ea;"></div>🛏️ Chambre
+          </div>
+          <div class="room-card-body">
+            <p>🔌 <strong>3 prises</strong> minimum</p>
+            <p>💡 1 point d'éclairage</p>
+            <p>📡 1 prise téléphone</p>
+          </div>
+        </div>
+        <div class="room-card">
+          <div class="room-card-header" style="border-top:3px solid #10b981;">
+            <div class="dot" style="background:#10b981;"></div>🚿 Salle de Bain
+          </div>
+          <div class="room-card-body">
+            <p>🔌 <strong>1 prise rasoir</strong> hors volume</p>
+            <p>💡 1 point d'éclairage</p>
+            <p>⚠️ Respect des volumes obligatoire</p>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- 8. CONSUEL -->
+    <section id="consuel">
+      <h2 class="section-title"><span class="section-num">08</span>CONSUEL et Attestation de Conformité</h2>
+      <p>Toute installation neuve ou rénovée doit être contrôlée avant la mise en service du compteur.</p>
+
+      <div style="display:grid; grid-template-columns:1fr 1fr; gap:14px; margin-bottom:24px;">
+        <div class="callout success">
+          <div class="callout-icon">✅</div>
+          <div class="callout-text">
+            <strong>Le CONSUEL, c'est quoi ?</strong>
+            Le <em>Comité National pour la Sécurité des Usagers de l'Électricité</em> est l'organisme officiel qui vérifie la conformité des installations avant la mise en service par Enedis/EDF.
+          </div>
+        </div>
+        <div class="callout warn">
+          <div class="callout-icon">📋</div>
+          <div class="callout-text">
+            <strong>Qui est concerné ?</strong>
+            Toute construction neuve, tout logement rénové avec modification de l'installation, tout branchement de compteur nouveau.
+          </div>
+        </div>
+      </div>
+
+      <div class="steps">
+        <div class="step">
+          <div class="step-num">01</div>
+          <strong>Réaliser l'installation</strong>
+          <p>Conforme à la norme NF C 15-100 en vigueur.</p>
+        </div>
+        <div class="step">
+          <div class="step-num">02</div>
+          <strong>Remplir l'attestation</strong>
+          <p>Formulaire CONSUEL (cerfa) disponible en ligne.</p>
+        </div>
+        <div class="step">
+          <div class="step-num">03</div>
+          <strong>Contrôle inspecteur</strong>
+          <p>Un inspecteur CONSUEL visite et vérifie l'installation.</p>
+        </div>
+        <div class="step">
+          <div class="step-num">04</div>
+          <strong>Visa accordé</strong>
+          <p>Mise en service du compteur possible.</p>
+        </div>
+      </div>
+    </section>
+
+    <!-- QCM -->
+    <div class="qcm">
+      <h2>🎯 Auto-évaluation — Vérifie tes connaissances</h2>
+      <ol>
+        <li>Quel est le calibre minimum du différentiel pour un circuit lave-linge ?</li>
+        <li>Combien de prises minimum sont obligatoires dans une cuisine ?</li>
+        <li>Qu'est-ce que le Volume 1 dans une salle de bain ?</li>
+        <li>Quelle section de câble utilise-t-on pour un circuit éclairage 10A ?</li>
+        <li>Quel organisme délivre l'attestation de conformité en France ?</li>
+      </ol>
+      <details>
+        <summary>📖 Afficher les réponses</summary>
+        <ol>
+          <li><strong>20A</strong> avec un différentiel Type A</li>
+          <li><strong>6 prises</strong> dont 4 sur le plan de travail</li>
+          <li>Zone <strong>au-dessus de la baignoire jusqu'à 2,25m</strong> — uniquement appareils TBTS 12V</li>
+          <li><strong>1,5 mm²</strong></li>
+          <li>Le <strong>CONSUEL</strong></li>
+        </ol>
+      </details>
+    </div>
+
+  </main>
+</div>
+
+<footer>
+  <strong>Rappel essentiel :</strong> Toute installation doit faire l'objet d'une attestation de conformité visée par le CONSUEL. Ne négligez jamais la sécurité au profit du coût ou de l'esthétique.
+</footer>
+
+</body>
+</html>

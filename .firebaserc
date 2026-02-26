@@ -1,0 +1,15 @@
+{
+  "projects": {
+    "default": "doanyoapp"
+  },
+  "targets": {
+    "electroactu-b6050": {
+      "hosting": {
+        "electroactu-b6050": [
+          "electroactu-b6050"
+        ]
+      }
+    }
+  },
+  "etags": {}
+}

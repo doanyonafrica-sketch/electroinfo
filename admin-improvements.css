@@ -1,0 +1,366 @@
+/* ============================================
+   STYLES ADDITIONNELS POUR ADMIN AMÉLIORÉ
+   Barre de recherche + Accordéons + Pagination
+   ============================================ */
+
+/* ============================================
+   BARRE DE RECHERCHE ADMIN
+   ============================================ */
+.search-articles-section {
+    margin: 2rem 0;
+}
+
+.search-bar-admin {
+    position: relative;
+    max-width: 600px;
+    margin: 0 auto 1rem;
+}
+
+.search-bar-admin i.fa-search {
+    position: absolute;
+    left: 1rem;
+    top: 50%;
+    transform: translateY(-50%);
+    color: var(--gray-400);
+    font-size: 1.1rem;
+    pointer-events: none;
+}
+
+.search-input-admin {
+    width: 100%;
+    padding: 0.875rem 3rem 0.875rem 3rem;
+    border: 2px solid var(--gray-300);
+    border-radius: var(--radius-lg);
+    font-size: 1rem;
+    transition: all 0.3s ease;
+    background: white;
+}
+
+.search-input-admin:focus {
+    outline: none;
+    border-color: var(--primary);
+    box-shadow: 0 0 0 3px rgba(124, 58, 237, 0.1);
+}
+
+.btn-clear-search {
+    position: absolute;
+    right: 0.5rem;
+    top: 50%;
+    transform: translateY(-50%);
+    background: var(--gray-200);
+    border: none;
+    width: 32px;
+    height: 32px;
+    border-radius: 50%;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: all 0.2s;
+    color: var(--gray-600);
+}
+
+.btn-clear-search:hover {
+    background: var(--gray-300);
+    color: var(--gray-900);
+}
+
+.search-results-count {
+    text-align: center;
+    padding: 0.75rem;
+    background: var(--primary-light);
+    color: white;
+    border-radius: var(--radius);
+    font-weight: 600;
+    margin-bottom: 1rem;
+}
+
+/* ============================================
+   ACCORDÉONS
+   ============================================ */
+.accordion-card {
+    margin-bottom: 1.5rem;
+    overflow: hidden;
+    transition: all 0.3s ease;
+}
+
+.accordion-header {
+    cursor: pointer;
+    user-select: none;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    transition: background 0.2s;
+    padding: 1.25rem 1.5rem !important;
+}
+
+.accordion-header:hover {
+    background: var(--gray-50);
+}
+
+.accordion-title {
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+    flex: 1;
+}
+
+.accordion-title h2 {
+    margin: 0;
+    font-size: 1.25rem;
+}
+
+.accordion-icon {
+    transition: transform 0.3s ease;
+    color: var(--primary);
+    font-size: 1rem;
+}
+
+.accordion-icon.rotated {
+    transform: rotate(-90deg);
+}
+
+.accordion-body {
+    max-height: 2000px;
+    overflow: hidden;
+    transition: max-height 0.4s ease, opacity 0.3s ease, padding 0.3s ease;
+    opacity: 1;
+}
+
+.accordion-body.collapsed {
+    max-height: 0;
+    opacity: 0;
+    padding-top: 0 !important;
+    padding-bottom: 0 !important;
+}
+
+.btn-collapse {
+    background: transparent;
+    border: 1px solid var(--gray-300);
+    padding: 0.5rem 0.75rem;
+    border-radius: var(--radius);
+    cursor: pointer;
+    color: var(--gray-600);
+    transition: all 0.2s;
+    font-size: 0.875rem;
+}
+
+.btn-collapse:hover {
+    background: var(--gray-100);
+    border-color: var(--gray-400);
+    color: var(--gray-900);
+}
+
+/* ============================================
+   ARTICLES COMPACTS
+   ============================================ */
+.admin-article-item {
+    background: white;
+    border: 1px solid var(--gray-200);
+    border-radius: var(--radius);
+    padding: 1rem;
+    margin-bottom: 0.75rem;
+    transition: all 0.2s;
+}
+
+.admin-article-item:hover {
+    border-color: var(--primary-light);
+    box-shadow: var(--shadow-sm);
+}
+
+.admin-article-item .article-info h3 {
+    font-size: 1rem;
+    margin-bottom: 0.5rem;
+    color: var(--gray-900);
+}
+
+.admin-article-item .article-meta {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.5rem;
+    font-size: 0.875rem;
+    color: var(--gray-600);
+}
+
+.admin-article-item .article-actions {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.5rem;
+    margin-top: 0.75rem;
+}
+
+/* ============================================
+   PAGINATION ADMIN
+   ============================================ */
+.admin-pagination {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    gap: 0.5rem;
+    margin-top: 1.5rem;
+    padding-top: 1.5rem;
+    border-top: 1px solid var(--gray-200);
+}
+
+.admin-pagination button {
+    background: white;
+    border: 1px solid var(--gray-300);
+    padding: 0.5rem 0.875rem;
+    border-radius: var(--radius);
+    cursor: pointer;
+    font-size: 0.875rem;
+    color: var(--gray-700);
+    transition: all 0.2s;
+    min-width: 38px;
+    font-weight: 500;
+}
+
+.admin-pagination button:hover:not(:disabled) {
+    background: var(--primary);
+    border-color: var(--primary);
+    color: white;
+}
+
+.admin-pagination button:disabled {
+    opacity: 0.5;
+    cursor: not-allowed;
+}
+
+.admin-pagination button.active {
+    background: var(--primary);
+    border-color: var(--primary);
+    color: white;
+    font-weight: 600;
+}
+
+.admin-pagination .pagination-dots {
+    color: var(--gray-400);
+    padding: 0 0.25rem;
+}
+
+/* ============================================
+   EMPTY STATE AMÉLIORÉ
+   ============================================ */
+.empty-state {
+    text-align: center;
+    padding: 3rem 1rem;
+    color: var(--gray-500);
+}
+
+.empty-state i {
+    font-size: 3rem;
+    color: var(--gray-300);
+    margin-bottom: 1rem;
+}
+
+.empty-state p {
+    font-size: 1.1rem;
+    font-weight: 600;
+    margin-bottom: 0.5rem;
+    color: var(--gray-600);
+}
+
+.empty-state small {
+    display: block;
+    color: var(--gray-400);
+    font-size: 0.875rem;
+}
+
+/* ============================================
+   BADGE COUNT
+   ============================================ */
+.count-badge {
+    background: var(--primary);
+    color: white;
+    padding: 0.25rem 0.75rem;
+    border-radius: 999px;
+    font-size: 0.875rem;
+    font-weight: 600;
+    min-width: 28px;
+    text-align: center;
+}
+
+/* ============================================
+   RESPONSIVE
+   ============================================ */
+@media (max-width: 768px) {
+    .search-bar-admin {
+        max-width: 100%;
+    }
+    
+    .accordion-header {
+        padding: 1rem !important;
+    }
+    
+    .accordion-title h2 {
+        font-size: 1rem;
+    }
+    
+    .btn-collapse {
+        display: none;
+    }
+    
+    .admin-article-item {
+        padding: 0.875rem;
+    }
+    
+    .admin-article-item .article-actions {
+        flex-direction: column;
+    }
+    
+    .admin-article-item .article-actions button {
+        width: 100%;
+    }
+    
+    .admin-pagination {
+        flex-wrap: wrap;
+    }
+}
+
+/* ============================================
+   ANIMATIONS
+   ============================================ */
+@keyframes slideDown {
+    from {
+        opacity: 0;
+        transform: translateY(-10px);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+.search-results-count {
+    animation: slideDown 0.3s ease;
+}
+
+/* ============================================
+   HIGHLIGHT SEARCH RESULTS
+   ============================================ */
+.admin-article-item.search-highlight {
+    border-color: var(--primary);
+    background: rgba(124, 58, 237, 0.05);
+}
+
+.admin-article-item.search-hidden {
+    display: none;
+}
+
+.btn-redirect {
+    display: inline-block;
+    padding: 12px 25px;
+    background-color: #007bff; /* Bleu standard (ou #2c3e50 pour plus pro) */
+    color: white !important;
+    text-decoration: none; /* Enlève le soulignement */
+    font-family: sans-serif;
+    font-weight: bold;
+    border-radius: 4px;
+    text-align: center;
+    border: none;
+    transition: background 0.3s;
+  }
+
+  .btn-redirect:hover {
+    background-color: #0056b3; /* Change de couleur au survol */
+  }

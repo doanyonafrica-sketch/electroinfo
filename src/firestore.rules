@@ -1,0 +1,166 @@
+rules_version = '2';
+service cloud.firestore {
+  match /databases/{database}/documents {
+    
+    // ============================================
+    // HELPER FUNCTIONS
+    // ============================================
+    
+    // Vérifier si l'utilisateur est authentifié
+    function isSignedIn() {
+      return request.auth != null;
+    }
+    
+    // Vérifier si l'utilisateur est admin
+    function isAdmin() {
+      return isSignedIn() && 
+             get(/databases/$(database)/documents/users/$(request.auth.uid)).data.role == 'admin';
+    }
+    
+    // Vérifier si c'est le propriétaire
+    function isOwner(userId) {
+      return isSignedIn() && request.auth.uid == userId;
+    }
+    
+    // Vérifier la taille du texte
+    function validTextLength(text, maxLength) {
+      return text.size() <= maxLength;
+    }
+    
+    // Vérifier un email valide
+    function validEmail(email) {
+      return email.matches('^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\\.[a-zA-Z]{2,}$');
+    }
+    
+    // ============================================
+    // USERS COLLECTION
+    // ============================================
+    match /users/{userId} {
+      // Lecture : tous les utilisateurs authentifiés
+      allow read: if isSignedIn();
+      
+      // Création : seulement pour son propre compte
+      allow create: if isSignedIn() && 
+                       isOwner(userId) && 
+                       request.resource.data.role == 'user' && // Pas admin par défaut
+                       validEmail(request.resource.data.email) &&
+                       request.resource.data.email == request.auth.token.email;
+      
+      // Mise à jour : seulement son propre profil (sauf le rôle)
+      allow update: if isOwner(userId) && 
+                       request.resource.data.role == resource.data.role; // Le rôle ne change pas
+      
+      // Suppression : jamais (ou seulement admin)
+      allow delete: if isAdmin();
+    }
+    
+    // ============================================
+    // ARTICLES COLLECTION
+    // ============================================
+    match /articles/{articleId} {
+      // Lecture : tout le monde (articles publics)
+      // Mais on pourrait filtrer par status si nécessaire
+      allow read: if true;
+      
+      // Création : seulement les admins
+      allow create: if isAdmin() && 
+                       request.resource.data.title is string &&
+                       request.resource.data.title.size() > 0 &&
+                       request.resource.data.title.size() <= 200 &&
+                       request.resource.data.authorId == request.auth.uid &&
+                       request.resource.data.status in ['draft', 'published', 'scheduled'];
+      
+      // Mise à jour : seulement les admins
+      allow update: if isAdmin();
+      
+      // Suppression : seulement les admins
+      allow delete: if isAdmin();
+    }
+    
+    // ============================================
+    // COURSES COLLECTION
+    // ============================================
+    match /courses/{courseId} {
+      // Lecture : tout le monde
+      allow read: if true;
+      
+      // Écriture : seulement les admins
+      allow create: if isAdmin() && 
+                       request.resource.data.title is string &&
+                       request.resource.data.title.size() > 0 &&
+                       request.resource.data.diploma in ['BAC PRO', 'BEP', 'CAP', 'BTS', 'LICENCE'];
+      
+      allow update: if isAdmin();
+      allow delete: if isAdmin();
+    }
+    
+    // ============================================
+    // NEWSLETTER COLLECTION
+    // ============================================
+    match /newsletter/{emailDoc} {
+      // Lecture : jamais (privacy)
+      allow read: if false;
+      
+      // Création : tout le monde peut s'inscrire
+      allow create: if validEmail(request.resource.data.email) &&
+                       request.resource.data.email.size() <= 100;
+      
+      // Mise à jour : seulement admin (pour gérer les désabonnements)
+      allow update: if isAdmin();
+      
+      // Suppression : seulement admin
+      allow delete: if isAdmin();
+    }
+    
+    // ============================================
+    // COMMENTS COLLECTION
+    // ============================================
+    match /comments/{commentId} {
+      // Lecture : tout le monde
+      allow read: if true;
+      
+      // Création : utilisateurs authentifiés + validation
+      allow create: if isSignedIn() && 
+                       request.resource.data.text.size() > 0 &&
+                       request.resource.data.text.size() <= 2000 &&
+                       validEmail(request.resource.data.email) &&
+                       request.resource.data.name.size() > 0 &&
+                       request.resource.data.name.size() <= 100 &&
+                       request.resource.data.articleId is string;
+      
+      // Mise à jour : propriétaire ou admin
+      allow update: if isOwner(resource.data.userId) || isAdmin();
+      
+      // Suppression : propriétaire ou admin
+      allow delete: if isOwner(resource.data.userId) || isAdmin();
+    }
+    
+    // ============================================
+    // REACTIONS COLLECTION (si vous l'ajoutez)
+    // ============================================
+    match /reactions/{reactionId} {
+      allow read: if true;
+      allow create: if isSignedIn();
+      allow update: if isOwner(resource.data.userId);
+      allow delete: if isOwner(resource.data.userId) || isAdmin();
+    }
+    
+    // ============================================
+    // STATS COLLECTION (analytics internes)
+    // ============================================
+    match /stats/{statId} {
+      // Lecture : admin seulement
+      allow read: if isAdmin();
+      
+      // Écriture : système seulement (via Cloud Functions)
+      allow write: if false;
+    }
+    
+    // ============================================
+    // FALLBACK : Tout le reste est refusé
+    // ============================================
+    match /{document=**} {
+      allow read, write: if false;
+    }
+  }
+}

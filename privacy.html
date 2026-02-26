@@ -1,0 +1,509 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Politique de Confidentialité - Electroinfo Pro</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            line-height: 1.6;
+            color: #333;
+            background: linear-gradient(135deg, #11998e 0%, #38ef7d 100%);
+            min-height: 100vh;
+            padding: 20px;
+        }
+
+        .container {
+            max-width: 900px;
+            margin: 0 auto;
+            background: white;
+            border-radius: 20px;
+            box-shadow: 0 20px 60px rgba(0,0,0,0.3);
+            overflow: hidden;
+        }
+
+        .header {
+            background: linear-gradient(135deg, #0f2027 0%, #203a43 50%, #2c5364 100%);
+            color: white;
+            padding: 40px;
+            text-align: center;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .header::before {
+            content: '🔒';
+            position: absolute;
+            font-size: 150px;
+            opacity: 0.1;
+            top: -30px;
+            right: -30px;
+            animation: float 3s ease-in-out infinite;
+        }
+
+        @keyframes float {
+            0%, 100% { transform: translateY(0px); }
+            50% { transform: translateY(-20px); }
+        }
+
+        .header h1 {
+            font-size: 2.5em;
+            margin-bottom: 10px;
+            position: relative;
+            z-index: 1;
+        }
+
+        .header .subtitle {
+            font-size: 1.2em;
+            opacity: 0.9;
+            position: relative;
+            z-index: 1;
+        }
+
+        .content {
+            padding: 40px;
+        }
+
+        .last-update {
+            background: #e8f5e9;
+            border-left: 4px solid #38ef7d;
+            padding: 15px;
+            margin-bottom: 30px;
+            border-radius: 5px;
+            font-style: italic;
+            color: #555;
+        }
+
+        h2 {
+            color: #0f2027;
+            margin-top: 30px;
+            margin-bottom: 15px;
+            font-size: 1.5em;
+            border-bottom: 2px solid #11998e;
+            padding-bottom: 10px;
+        }
+
+        h3 {
+            color: #203a43;
+            margin-top: 20px;
+            margin-bottom: 10px;
+            font-size: 1.2em;
+        }
+
+        p {
+            margin-bottom: 15px;
+            text-align: justify;
+        }
+
+        ul {
+            margin-left: 20px;
+            margin-bottom: 15px;
+        }
+
+        li {
+            margin-bottom: 8px;
+        }
+
+        .highlight-box {
+            background: #e3f2fd;
+            border: 1px solid #2196f3;
+            border-radius: 10px;
+            padding: 20px;
+            margin: 20px 0;
+            border-left: 5px solid #2196f3;
+        }
+
+        .warning-box {
+            background: #fff3e0;
+            border: 1px solid #ff9800;
+            border-radius: 10px;
+            padding: 20px;
+            margin: 20px 0;
+            border-left: 5px solid #ff9800;
+        }
+
+        .contact-section {
+            background: linear-gradient(135deg, #0f2027 0%, #203a43 50%, #2c5364 100%);
+            color: white;
+            padding: 30px;
+            border-radius: 15px;
+            margin-top: 30px;
+            text-align: center;
+        }
+
+        .contact-section h2 {
+            color: white;
+            border-bottom: 2px solid rgba(255,255,255,0.3);
+        }
+
+        .contact-info {
+            display: flex;
+            justify-content: center;
+            gap: 40px;
+            margin-top: 20px;
+            flex-wrap: wrap;
+        }
+
+        .contact-item {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            font-size: 1.1em;
+        }
+
+        .contact-item a {
+            color: #38ef7d;
+            text-decoration: none;
+            border-bottom: 1px solid transparent;
+            transition: border-color 0.3s;
+        }
+
+        .contact-item a:hover {
+            border-bottom-color: #38ef7d;
+        }
+
+        .icon {
+            font-size: 1.5em;
+        }
+
+        .section-number {
+            display: inline-block;
+            background: #11998e;
+            color: white;
+            width: 30px;
+            height: 30px;
+            border-radius: 50%;
+            text-align: center;
+            line-height: 30px;
+            margin-right: 10px;
+            font-weight: bold;
+            font-size: 0.8em;
+        }
+
+        .data-table {
+            width: 100%;
+            border-collapse: collapse;
+            margin: 20px 0;
+            background: white;
+            border-radius: 10px;
+            overflow: hidden;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+        }
+
+        .data-table th {
+            background: #0f2027;
+            color: white;
+            padding: 15px;
+            text-align: left;
+        }
+
+        .data-table td {
+            padding: 12px 15px;
+            border-bottom: 1px solid #eee;
+        }
+
+        .data-table tr:hover {
+            background: #f5f5f5;
+        }
+
+        .rights-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+            gap: 20px;
+            margin: 20px 0;
+        }
+
+        .right-card {
+            background: #f5f5f5;
+            padding: 20px;
+            border-radius: 10px;
+            border-left: 4px solid #11998e;
+        }
+
+        .right-card h4 {
+            color: #0f2027;
+            margin-bottom: 10px;
+        }
+
+        @media (max-width: 768px) {
+            .header h1 {
+                font-size: 1.8em;
+            }
+            
+            .content {
+                padding: 20px;
+            }
+            
+            .contact-info {
+                flex-direction: column;
+                gap: 15px;
+            }
+
+            .data-table {
+                font-size: 0.9em;
+            }
+        }
+
+        .footer {
+            background: #0f2027;
+            color: white;
+            text-align: center;
+            padding: 20px;
+            font-size: 0.9em;
+        }
+
+        a {
+            color: #11998e;
+            text-decoration: none;
+        }
+
+        a:hover {
+            text-decoration: underline;
+        }
+
+        strong {
+            color: #0f2027;
+        }
+
+        .badge {
+            display: inline-block;
+            background: #11998e;
+            color: white;
+            padding: 3px 10px;
+            border-radius: 15px;
+            font-size: 0.8em;
+            margin-left: 10px;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <header class="header">
+            <h1>🔒 Politique de Confidentialité</h1>
+            <p class="subtitle">Electroinfo Pro - Protection de vos données personnelles</p>
+        </header>
+
+        <div class="content">
+            <div class="last-update">
+                📅 <strong>Dernière mise à jour :</strong> 22 février 2025
+            </div>
+
+            <div class="highlight-box">
+                <strong>Notre engagement :</strong> Electroinfo Pro s'engage à protéger la vie privée de ses utilisateurs. Cette politique explique quelles données nous collectons, comment nous les utilisons et quels sont vos droits concernant vos informations personnelles.
+            </div>
+
+            <h2><span class="section-number">1</span>Qui sommes-nous ?</h2>
+            <p>
+                <strong>Electroinfo Pro</strong> est une plateforme éducative dédiée à l'électricité industrielle en Afrique, accessible via <a href="https://electroinfo.online">https://electroinfo.online</a>.
+            </p>
+            <p>
+                <strong>Responsable du traitement :</strong><br>
+                Email : <a href="mailto:doanyonafrica@gmail.com">doanyonafrica@gmail.com</a><br>
+                Site : <a href="https://electroinfo.online">electroinfo.online</a>
+            </p>
+
+            <h2><span class="section-number">2</span>Données collectées</h2>
+            
+            <h3>2.1 Données que vous nous fournissez</h3>
+            <table class="data-table">
+                <thead>
+                    <tr>
+                        <th>Donnée</th>
+                        <th>Finalité</th>
+                        <th>Base légale</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr>
+                        <td>Adresse email</td>
+                        <td>Authentification, communication</td>
+                        <td>Exécution du contrat</td>
+                    </tr>
+                    <tr>
+                        <td>Nom/prénom</td>
+                        <td>Personnalisation du profil</td>
+                        <td>Consentement</td>
+                    </tr>
+                    <tr>
+                        <td>Niveau d'études (CAP, BEP, etc.)</td>
+                        <td>Adaptation des contenus pédagogiques</td>
+                        <td>Intérêt légitime</td>
+                    </tr>
+                    <tr>
+                        <td>Photo de profil (optionnel)</td>
+                        <td>Personnalisation</td>
+                        <td>Consentement</td>
+                    </tr>
+                </tbody>
+            </table>
+
+            <h3>2.2 Données collectées automatiquement</h3>
+            <ul>
+                <li><strong>Données de connexion :</strong> Adresse IP, date et heure de connexion, type de navigateur</li>
+                <li><strong>Données d'utilisation :</strong> Cours consultés, progression, temps passé sur la plateforme</li>
+                <li><strong>Cookies :</strong> Voir section 6</li>
+            </ul>
+
+            <h2><span class="section-number">3</span>Utilisation de Firebase Authentication <span class="badge">Google</span></h2>
+            <p>
+                Nous utilisons <strong>Firebase Authentication</strong> (service de Google) pour sécuriser l'authentification des utilisateurs. Cela implique :
+            </p>
+            <ul>
+                <li>Stockage sécurisé des identifiants par Google</li>
+                <li>Authentification via email/mot de passe ou fournisseurs tiers (si activé)</li>
+                <li>Chiffrement des données de connexion</li>
+            </ul>
+            <p>
+                En vous inscrivant, vous acceptez les <a href="https://policies.google.com/privacy" target="_blank">Conditions de confidentialité de Google</a> relatives à Firebase.
+            </p>
+
+            <h2><span class="section-number">4</span>Finalités du traitement</h2>
+            <p>Vos données sont utilisées pour :</p>
+            <ul>
+                <li>✅ Créer et gérer votre compte utilisateur</li>
+                <li>✅ Vous fournir l'accès aux cours et actualités</li>
+                <li>✅ Personnaliser votre expérience d'apprentissage selon votre niveau</li>
+                <li>✅ Vous envoyer des notifications importantes (mises à jour, sécurité)</li>
+                <li>✅ Améliorer nos services et contenus pédagogiques</li>
+                <li>✅ Assurer la sécurité de la plateforme et prévenir la fraude</li>
+            </ul>
+
+            <h2><span class="section-number">5</span>Durée de conservation</h2>
+            <table class="data-table">
+                <thead>
+                    <tr>
+                        <th>Type de donnée</th>
+                        <th>Durée de conservation</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr>
+                        <td>Données de compte actif</td>
+                        <td>Tant que le compte est actif</td>
+                    </tr>
+                    <tr>
+                        <td>Données après suppression du compte</td>
+                        <td>30 jours (sauf obligation légale)</td>
+                    </tr>
+                    <tr>
+                        <td>Logs de connexion</td>
+                        <td>1 an (sécurité)</td>
+                    </tr>
+                    <tr>
+                        <td>Cookies</td>
+                        <td>13 mois maximum</td>
+                    </tr>
+                </tbody>
+            </table>
+
+            <h2><span class="section-number">6</span>Cookies et technologies similaires</h2>
+            <p>Notre site utilise :</p>
+            <ul>
+                <li><strong>Cookies essentiels :</strong> Authentification, sécurité (obligatoires)</li>
+                <li><strong>Cookies de préférences :</strong> Langue, niveau d'études sélectionné</li>
+                <li><strong>Cookies analytiques :</strong> Google Analytics (anonymisés) pour améliorer le site</li>
+            </ul>
+            <p>
+                Vous pouvez gérer vos préférences cookies via le bandeau présent lors de votre première visite ou dans les paramètres de votre navigateur.
+            </p>
+
+            <h2><span class="section-number">7</span>Vos droits <span class="badge">RGPD</span></h2>
+            <p>Conformément au Règlement Général sur la Protection des Données (RGPD), vous disposez des droits suivants :</p>
+            
+            <div class="rights-grid">
+                <div class="right-card">
+                    <h4>📁 Droit d'accès</h4>
+                    <p>Obtenir une copie de vos données personnelles</p>
+                </div>
+                <div class="right-card">
+                    <h4>✏️ Droit de rectification</h4>
+                    <p>Corriger des données inexactes ou incomplètes</p>
+                </div>
+                <div class="right-card">
+                    <h4>🗑️ Droit à l'effacement</h4>
+                    <p>Demander la suppression de vos données ("droit à l'oubli")</p>
+                </div>
+                <div class="right-card">
+                    <h4>🚫 Droit d'opposition</h4>
+                    <p>Vous opposer au traitement de vos données</p>
+                </div>
+                <div class="right-card">
+                    <h4>📥 Droit à la portabilité</h4>
+                    <p>Récupérer vos données dans un format structuré</p>
+                </div>
+                <div class="right-card">
+                    <h4>⏸️ Droit de limitation</h4>
+                    <p>Restreindre temporairement le traitement</p>
+                </div>
+            </div>
+
+            <p>
+                <strong>Pour exercer vos droits :</strong> Envoyez-nous un email à <a href="mailto:doanyonafrica@gmail.com">doanyonafrica@gmail.com</a> avec une copie de votre pièce d'identité. Nous répondons sous 30 jours maximum.
+            </p>
+
+            <h2><span class="section-number">8</span>Sécurité des données</h2>
+            <p>Nous mettons en œuvre des mesures de sécurité appropriées :</p>
+            <ul>
+                <li>Chiffrement SSL/TLS des connexions (HTTPS)</li>
+                <li>Authentification sécurisée via Firebase</li>
+                <li>Sauvegardes régulières et cryptées</li>
+                <li>Accès restreint aux données personnelles (personnel autorisé uniquement)</li>
+            </ul>
+
+            <h2><span class="section-number">9</span>Destinataires des données</h2>
+            <p>Vos données peuvent être communiquées à :</p>
+            <ul>
+                <li><strong>Google LLC :</strong> Hébergement et authentification (Firebase)</li>
+                <li><strong>Autorités légales :</strong> En cas d'obligation légale</li>
+            </ul>
+            <p>
+                <strong>Nous ne vendons jamais vos données personnelles à des tiers.</strong>
+            </p>
+
+            <h2><span class="section-number">10</span>Transfert de données hors UE</h2>
+            <p>
+                Firebase (Google) peut transférer des données vers les États-Unis. Google est certifié <strong>Privacy Shield</strong> et met en place des clauses contractuelles types approuvées par la Commission européenne pour garantir un niveau de protection adéquat.
+            </p>
+
+            <h2><span class="section-number">11</span>Modifications de la politique</h2>
+            <p>
+                Nous pouvons mettre à jour cette politique. Les modifications seront publiées sur cette page avec la date de mise à jour. En cas de changement substantiel, nous vous en informerons par email.
+            </p>
+
+            <div class="warning-box">
+                <strong>⚠️ Important :</strong> Si vous avez moins de 16 ans, vous devez obtenir le consentement d'un parent ou tuteur légal pour utiliser notre plateforme. Nous ne collectons pas sciemment de données d'enfants de moins de 13 ans.
+            </div>
+
+            <div class="contact-section">
+                <h2>📞 Contact - Délégué à la Protection des Données</h2>
+                <p>Pour toute question concernant vos données personnelles ou cette politique :</p>
+                
+                <div class="contact-info">
+                    <div class="contact-item">
+                        <span class="icon">📧</span>
+                        <a href="mailto:doanyonafrica@gmail.com">doanyonafrica@gmail.com</a>
+                    </div>
+                    <div class="contact-item">
+                        <span class="icon">🌐</span>
+                        <a href="https://electroinfo.online">electroinfo.online</a>
+                    </div>
+                </div>
+                <p style="margin-top: 20px; font-size: 0.9em;">
+                    Vous avez également le droit d'introduire une réclamation auprès de l'autorité de protection des données de votre pays.
+                </p>
+            </div>
+        </div>
+
+        <footer class="footer">
+            <p>© 2025 Electroinfo Pro - Tous droits réservés | <a href="conditions.html" style="color: #38ef7d;">Conditions d'Utilisation</a></p>
+        </footer>
+    </div>
+</body>
+</html>

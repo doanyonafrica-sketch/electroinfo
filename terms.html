@@ -1,0 +1,381 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Conditions Générales d'Utilisation - Electroinfo Pro</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            line-height: 1.6;
+            color: #333;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            padding: 20px;
+        }
+
+        .container {
+            max-width: 900px;
+            margin: 0 auto;
+            background: white;
+            border-radius: 20px;
+            box-shadow: 0 20px 60px rgba(0,0,0,0.3);
+            overflow: hidden;
+        }
+
+        .header {
+            background: linear-gradient(135deg, #1e3c72 0%, #2a5298 100%);
+            color: white;
+            padding: 40px;
+            text-align: center;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .header::before {
+            content: '⚡';
+            position: absolute;
+            font-size: 200px;
+            opacity: 0.1;
+            top: -50px;
+            right: -50px;
+            animation: pulse 2s infinite;
+        }
+
+        @keyframes pulse {
+            0%, 100% { transform: scale(1); }
+            50% { transform: scale(1.1); }
+        }
+
+        .header h1 {
+            font-size: 2.5em;
+            margin-bottom: 10px;
+            position: relative;
+            z-index: 1;
+        }
+
+        .header .subtitle {
+            font-size: 1.2em;
+            opacity: 0.9;
+            position: relative;
+            z-index: 1;
+        }
+
+        .content {
+            padding: 40px;
+        }
+
+        .last-update {
+            background: #f0f4ff;
+            border-left: 4px solid #667eea;
+            padding: 15px;
+            margin-bottom: 30px;
+            border-radius: 5px;
+            font-style: italic;
+            color: #555;
+        }
+
+        h2 {
+            color: #1e3c72;
+            margin-top: 30px;
+            margin-bottom: 15px;
+            font-size: 1.5em;
+            border-bottom: 2px solid #667eea;
+            padding-bottom: 10px;
+        }
+
+        h3 {
+            color: #2a5298;
+            margin-top: 20px;
+            margin-bottom: 10px;
+            font-size: 1.2em;
+        }
+
+        p {
+            margin-bottom: 15px;
+            text-align: justify;
+        }
+
+        ul {
+            margin-left: 20px;
+            margin-bottom: 15px;
+        }
+
+        li {
+            margin-bottom: 8px;
+        }
+
+        .warning-box {
+            background: #fff3cd;
+            border: 1px solid #ffeaa7;
+            border-radius: 10px;
+            padding: 20px;
+            margin: 20px 0;
+            border-left: 5px solid #f39c12;
+        }
+
+        .warning-box strong {
+            color: #d68910;
+        }
+
+        .contact-section {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            padding: 30px;
+            border-radius: 15px;
+            margin-top: 30px;
+            text-align: center;
+        }
+
+        .contact-section h2 {
+            color: white;
+            border-bottom: 2px solid rgba(255,255,255,0.3);
+        }
+
+        .contact-info {
+            display: flex;
+            justify-content: center;
+            gap: 40px;
+            margin-top: 20px;
+            flex-wrap: wrap;
+        }
+
+        .contact-item {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            font-size: 1.1em;
+        }
+
+        .contact-item a {
+            color: white;
+            text-decoration: none;
+            border-bottom: 1px solid transparent;
+            transition: border-color 0.3s;
+        }
+
+        .contact-item a:hover {
+            border-bottom-color: white;
+        }
+
+        .icon {
+            font-size: 1.5em;
+        }
+
+        .section-number {
+            display: inline-block;
+            background: #667eea;
+            color: white;
+            width: 30px;
+            height: 30px;
+            border-radius: 50%;
+            text-align: center;
+            line-height: 30px;
+            margin-right: 10px;
+            font-weight: bold;
+            font-size: 0.8em;
+        }
+
+        @media (max-width: 768px) {
+            .header h1 {
+                font-size: 1.8em;
+            }
+            
+            .content {
+                padding: 20px;
+            }
+            
+            .contact-info {
+                flex-direction: column;
+                gap: 15px;
+            }
+        }
+
+        .footer {
+            background: #1e3c72;
+            color: white;
+            text-align: center;
+            padding: 20px;
+            font-size: 0.9em;
+        }
+
+        a {
+            color: #667eea;
+            text-decoration: none;
+        }
+
+        a:hover {
+            text-decoration: underline;
+        }
+
+        strong {
+            color: #1e3c72;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <header class="header">
+            <h1>⚡ Conditions Générales d'Utilisation</h1>
+            <p class="subtitle">Electroinfo Pro - Plateforme d'actualités et de formation en électricité industrielle</p>
+        </header>
+
+        <div class="content">
+            <div class="last-update">
+                📅 <strong>Dernière mise à jour :</strong> 22 février 2025
+            </div>
+
+            <h2><span class="section-number">1</span>Préambule</h2>
+            <p>
+                Les présentes Conditions Générales d'Utilisation (ci-après « CGU ») régissent l'accès et l'utilisation de la plateforme <strong>Electroinfo Pro</strong> (ci-après « la Plateforme »), accessible via <a href="https://electroinfo.online">https://electroinfo.online</a> et ses applications éventuelles.
+            </p>
+            <p>
+                En accédant à la Plateforme, l'utilisateur (ci-après « l'Utilisateur ») accepte sans réserve l'intégralité des présentes CGU. Si l'Utilisateur n'accepte pas ces conditions, il doit immédiatement cesser toute utilisation de la Plateforme.
+            </p>
+
+            <h2><span class="section-number">2</span>Objet de la Plateforme</h2>
+            <p>Electroinfo Pro est une plateforme éducative dédiée à l'électricité industrielle en Afrique, offrant :</p>
+            <ul>
+                <li>Des <strong>actualités</strong> du secteur électrique et industriel</li>
+                <li>Des <strong>cours structurés</strong> par niveau d'études (CAP, BEP, BAC PRO, BTS)</li>
+                <li>Des <strong>ressources pédagogiques</strong> (documents, vidéos, exercices)</li>
+                <li>Un <strong>espace communautaire</strong> pour les apprenants et professionnels</li>
+            </ul>
+
+            <h2><span class="section-number">3</span>Accès à la Plateforme</h2>
+            
+            <h3>3.1 Inscription</h3>
+            <p>
+                L'accès à certains contenus nécessite la création d'un compte utilisateur via <strong>Firebase Authentication</strong>. L'Utilisateur s'engage à fournir des informations exactes, complètes et à jour.
+            </p>
+
+            <h3>3.2 Sécurité du compte</h3>
+            <p>
+                L'Utilisateur est responsable de la confidentialité de ses identifiants de connexion. Toute activité réalisée depuis son compte est réputée avoir été effectuée par l'Utilisateur lui-même.
+            </p>
+
+            <h3>3.3 Suspension d'accès</h3>
+            <p>Electroinfo Pro se réserve le droit de suspendre ou supprimer tout compte en cas de :</p>
+            <ul>
+                <li>Violation des présentes CGU</li>
+                <li>Fourniture d'informations fausses ou trompeuses</li>
+                <li>Comportement frauduleux ou malveillant</li>
+            </ul>
+
+            <h2><span class="section-number">4</span>Propriété Intellectuelle</h2>
+            
+            <h3>4.1 Contenus de la Plateforme</h3>
+            <p>
+                Tous les contenus présents sur Electroinfo Pro (cours, articles, images, logos, vidéos, code source) sont protégés par les lois sur la propriété intellectuelle. Ces contenus sont la propriété exclusive de leurs auteurs respectifs ou d'Electroinfo Pro.
+            </p>
+
+            <h3>4.2 Licence d'utilisation</h3>
+            <p>
+                L'Utilisateur dispose d'une <strong>licence limitée, non exclusive et non transférable</strong> pour accéder aux contenus à des fins strictement personnelles et éducatives.
+            </p>
+
+            <h3>4.3 Interdictions strictes</h3>
+            <p>Sauf autorisation écrite préalable, il est interdit de :</p>
+            <ul>
+                <li>Copier, reproduire, distribuer ou diffuser les contenus</li>
+                <li>Modifier, adapter ou créer des œuvres dérivées</li>
+                <li>Utiliser les contenus à des fins commerciales</li>
+                <li>Décompiler, désassembler ou tenter d'extraire le code source</li>
+                <li>Contourner les mesures de protection des contenus</li>
+            </ul>
+
+            <h2><span class="section-number">5</span>Utilisation Autorisée</h2>
+            
+            <h3>5.1 Bonne conduite</h3>
+            <p>L'Utilisateur s'engage à :</p>
+            <ul>
+                <li>Utiliser la Plateforme de manière loyale et conforme à sa destination éducative</li>
+                <li>Respecter les autres utilisateurs et les modérateurs</li>
+                <li>Ne pas perturber le fonctionnement technique de la Plateforme</li>
+            </ul>
+
+            <h3>5.2 Contenus interdits</h3>
+            <p>Il est strictement interdit de publier ou transmettre :</p>
+            <ul>
+                <li>Des contenus illégaux, diffamatoires, injurieux ou discriminatoires</li>
+                <li>Des virus, malwares ou tout code nuisible</li>
+                <li>Du spam ou des sollicitations commerciales non autorisées</li>
+                <li>Des contenus violant les droits de propriété intellectuelle tiers</li>
+            </ul>
+
+            <h2><span class="section-number">6</span>Données Personnelles</h2>
+            
+            <h3>6.1 Collecte et traitement</h3>
+            <p>
+                Les données personnelles collectées (nom, email, niveau d'études) sont traitées conformément à la <strong>Politique de Confidentialité</strong> et aux réglementations applicables sur la protection des données.
+            </p>
+
+            <h3>6.2 Firebase Auth</h3>
+            <p>
+                L'authentification est assurée par Firebase (Google). L'Utilisateur consent à ce que ses données d'authentification soient traitées selon les conditions de Google Firebase.
+            </p>
+
+            <h2><span class="section-number">7</span>Responsabilité</h2>
+            
+            <h3>7.1 Exactitude des contenus</h3>
+            <p>
+                Electroinfo Pro s'efforce de fournir des informations exactes et à jour, mais ne garantit pas l'exhaustivité ni l'absence d'erreurs dans les contenus éducatifs. Les cours sont fournis à titre indicatif.
+            </p>
+
+            <h3>7.2 Limitation de responsabilité</h3>
+            <p>Electroinfo Pro ne saurait être tenu responsable de :</p>
+            <ul>
+                <li>Dommages directs ou indirects liés à l'utilisation de la Plateforme</li>
+                <li>Interruptions temporaires pour maintenance technique</li>
+                <li>Contenus publiés par les utilisateurs dans l'espace communautaire</li>
+            </ul>
+
+            <div class="warning-box">
+                <strong>⚠️ Avertissement important - Travaux électriques</strong><br>
+                Les connaissances acquises sur la Plateforme ne constituent pas une qualification professionnelle. Tout travail sur des installations électriques doit être réalisé par des personnes qualifiées et conformément aux normes de sécurité en vigueur.
+            </div>
+
+            <h2><span class="section-number">8</span>Modifications</h2>
+            <p>
+                Electroinfo Pro se réserve le droit de modifier les présentes CGU à tout moment. Les modifications entrent en vigueur dès leur publication sur la Plateforme. Les Utilisateurs seront informés des modifications substantielles par email ou notification.
+            </p>
+
+            <h2><span class="section-number">9</span>Résiliation</h2>
+            <p>
+                L'Utilisateur peut supprimer son compte à tout moment. Electroinfo Pro se réserve le droit de résilier l'accès en cas de violation grave des CGU, sans préjudice des éventuelles actions judiciaires.
+            </p>
+
+            <h2><span class="section-number">10</span>Droit Applicable et Juridiction</h2>
+            <p>
+                Les présentes CGU sont régies par le droit applicable. En cas de litige, les parties s'efforceront de trouver une solution amiable avant de saisir les juridictions compétentes.
+            </p>
+
+            <div class="contact-section">
+                <h2>📞 Contact</h2>
+                <p>Pour toute question relative aux présentes CGU ou à l'utilisation de la Plateforme :</p>
+                
+                <div class="contact-info">
+                    <div class="contact-item">
+                        <span class="icon">📧</span>
+                        <a href="mailto:doanyonafrica@gmail.com">doanyonafrica@gmail.com</a>
+                    </div>
+                    <div class="contact-item">
+                        <span class="icon">🌐</span>
+                        <a href="https://electroinfo.online">electroinfo.online</a>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <footer class="footer">
+            <p>© 2025 Electroinfo Pro - Tous droits réservés</p>
+        </footer>
+    </div>
+</body>
+</html>
