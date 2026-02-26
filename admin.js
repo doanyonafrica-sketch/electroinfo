@@ -552,6 +552,9 @@ function initQuillEditor() {
             makeImagesResizable();
         });
 
+        // Exposer pour le sélecteur de mode HTML
+        window._quillEditorRef = quillEditor;
+
     }
 }
 
@@ -621,52 +624,66 @@ articleForm?.addEventListener('submit', async (e) => {
     console.log('📝 Début de soumission du formulaire...');
 
     try {
-        // Vérifier que Quill est initialisé
-        if (!quillEditor) {
-            console.error('❌ L\'éditeur Quill n\'est pas initialisé');
-            showNotification('❌ Erreur: éditeur non initialisé. Rechargez la page.', 'error');
-            return;
-        }
+        // Récupérer le contenu selon le mode actif
+        let content;
+        const editorMode = window.articleEditorMode || 'quill';
 
-        // Récupérer le contenu brut de Quill
-        let content = quillEditor.root.innerHTML;
-        console.log('📄 Taille initiale du contenu:', getContentSize(content), 'bytes');
-
-        // 🧹 NETTOYER le HTML pour réduire la taille
-        content = cleanQuillHTML(content);
-        console.log('🧹 Taille après nettoyage:', getContentSize(content), 'bytes');
-
-        // ✂️ TRONQUER si nécessaire (limite Firestore: 1MB)
-        const contentSize = getContentSize(content);
-        if (contentSize > 950000) {
-            const confirmTruncate = confirm(
-                `⚠️ ATTENTION: Votre article est très long (${Math.round(contentSize / 1024)} KB).\n\n` +
-                `La limite Firebase est de 1MB par champ.\n\n` +
-                `Options:\n` +
-                `- OK: Tronquer automatiquement l'article\n` +
-                `- Annuler: Réduire manuellement le contenu\n\n` +
-                `Que souhaitez-vous faire ?`
-            );
-            
-            if (!confirmTruncate) {
-                showNotification('⚠️ Publication annulée. Réduisez le contenu de votre article.', 'warning');
+        if (editorMode === 'html') {
+            // Mode HTML CodeMirror
+            content = window.articleCmInstance ? window.articleCmInstance.getValue() : '';
+            if (!content || content.trim().length < 10) {
+                showNotification('⚠️ Le contenu HTML est trop court (minimum 10 caractères)', 'error');
                 return;
             }
+        } else {
+            // Mode Quill (comportement d'origine)
+            // Vérifier que Quill est initialisé
+            if (!quillEditor) {
+                console.error('❌ L\'éditeur Quill n\'est pas initialisé');
+                showNotification('❌ Erreur: éditeur non initialisé. Rechargez la page.', 'error');
+                return;
+            }
+
+            // Récupérer le contenu brut de Quill
+            content = quillEditor.root.innerHTML;
+            console.log('📄 Taille initiale du contenu:', getContentSize(content), 'bytes');
+
+            // 🧹 NETTOYER le HTML pour réduire la taille
+            content = cleanQuillHTML(content);
+            console.log('🧹 Taille après nettoyage:', getContentSize(content), 'bytes');
+
+            // ✂️ TRONQUER si nécessaire (limite Firestore: 1MB)
+            const contentSize = getContentSize(content);
+            if (contentSize > 950000) {
+                const confirmTruncate = confirm(
+                    `⚠️ ATTENTION: Votre article est très long (${Math.round(contentSize / 1024)} KB).\n\n` +
+                    `La limite Firebase est de 1MB par champ.\n\n` +
+                    `Options:\n` +
+                    `- OK: Tronquer automatiquement l'article\n` +
+                    `- Annuler: Réduire manuellement le contenu\n\n` +
+                    `Que souhaitez-vous faire ?`
+                );
+                
+                if (!confirmTruncate) {
+                    showNotification('⚠️ Publication annulée. Réduisez le contenu de votre article.', 'warning');
+                    return;
+                }
+                
+                content = truncateContent(content);
+                console.log('✂️ Taille après troncature:', getContentSize(content), 'bytes');
+            }
+
+            // Vérifier que le contenu n'est pas vide
+            const textContent = quillEditor.getText().trim();
+            console.log('📏 Longueur du contenu texte:', textContent.length);
             
-            content = truncateContent(content);
-            console.log('✂️ Taille après troncature:', getContentSize(content), 'bytes');
+            if (!textContent || textContent.length < 10) {
+                showNotification('⚠️ Le contenu de l\'article est trop court (minimum 10 caractères)', 'error');
+                return;
+            }
         }
 
         document.getElementById('content').value = content;
-
-        // Vérifier que le contenu n'est pas vide (seulement <p><br></p>)
-        const textContent = quillEditor.getText().trim();
-        console.log('📏 Longueur du contenu texte:', textContent.length);
-        
-        if (!textContent || textContent.length < 10) {
-            showNotification('⚠️ Le contenu de l\'article est trop court (minimum 10 caractères)', 'error');
-            return;
-        }
 
         const title = document.getElementById('title').value.trim();
         const category = document.getElementById('category').value;
@@ -1037,7 +1054,16 @@ window.editArticle = async function(articleId) {
         
         toggleScheduleFields();
         
-        quillEditor.root.innerHTML = article.content;
+        // Charger dans l'éditeur actif
+        const editorMode = window.articleEditorMode || 'quill';
+        if (editorMode === 'html') {
+            if (window.articleCmInstance) {
+                window.articleCmInstance.setValue(article.content || '');
+                window.articleCmInstance.refresh();
+            }
+        } else {
+            quillEditor.root.innerHTML = article.content;
+        }
 
         editMode = true;
         currentEditId = articleId;
@@ -1061,6 +1087,7 @@ window.cancelEdit = function() {
     toggleScheduleFields();
     articleForm.reset();
     quillEditor.setText('');
+    if (window.articleCmInstance) window.articleCmInstance.setValue('');
 };
 
 // ============================================

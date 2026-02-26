@@ -16,6 +16,124 @@
     <link rel="stylesheet" href="/admin-improvements.css">
     <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
     <link href="https://cdn.quilljs.com/1.3.6/quill.snow.css" rel="stylesheet">
+    <!-- CodeMirror pour mode HTML -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.16/codemirror.min.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.16/theme/dracula.min.css">
+    <style>
+        /* ── Sélecteur de mode éditeur ── */
+        .editor-mode-selector {
+            display: flex;
+            gap: 0.5rem;
+            margin-bottom: 0.75rem;
+            background: #f1f5f9;
+            padding: 0.4rem;
+            border-radius: 10px;
+            width: fit-content;
+        }
+        .mode-btn {
+            padding: 0.45rem 1.1rem;
+            border: none;
+            border-radius: 7px;
+            cursor: pointer;
+            font-weight: 600;
+            font-size: 0.875rem;
+            transition: all 0.2s;
+            color: #64748b;
+            background: transparent;
+            display: flex;
+            align-items: center;
+            gap: 0.4rem;
+        }
+        .mode-btn.active {
+            background: white;
+            color: #7c3aed;
+            box-shadow: 0 2px 6px rgba(0,0,0,0.12);
+        }
+        .mode-btn:hover:not(.active) {
+            background: #e2e8f0;
+            color: #374151;
+        }
+        /* ── Éditeur HTML (CodeMirror) dans admin articles ── */
+        #htmlEditorSection .editor-toolbar {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            background: #282a36;
+            padding: 0.5rem 0.75rem;
+            border-radius: 8px 8px 0 0;
+            flex-wrap: wrap;
+            gap: 0.5rem;
+        }
+        #htmlEditorSection .editor-label {
+            color: #f8f8f2;
+            font-weight: 600;
+            font-size: 0.9rem;
+        }
+        #htmlEditorSection .editor-actions {
+            display: flex;
+            gap: 0.35rem;
+            flex-wrap: wrap;
+        }
+        #htmlEditorSection .editor-btn {
+            background: #44475a;
+            color: #f8f8f2;
+            border: none;
+            padding: 0.3rem 0.6rem;
+            border-radius: 4px;
+            cursor: pointer;
+            font-size: 0.78rem;
+            font-weight: 600;
+            transition: background 0.2s;
+        }
+        #htmlEditorSection .editor-btn:hover { background: #6272a4; }
+        #htmlEditorSection .editor-btn.btn-preview { background: #50fa7b; color: #282a36; }
+        #htmlEditorSection .editor-btn.btn-preview:hover { background: #69ff94; }
+        #htmlEditorSection .editor-btn.btn-format { background: #bd93f9; color: #282a36; }
+        #htmlEditorSection .editor-btn.btn-format:hover { background: #caa9fa; }
+        #htmlEditorSection .editor-container {
+            border: 2px solid #282a36;
+            border-top: none;
+        }
+        #htmlEditorSection .CodeMirror {
+            height: 350px;
+            font-size: 0.9rem;
+            font-family: 'Fira Code', 'Consolas', monospace;
+        }
+        #htmlEditorSection .editor-footer {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 0.4rem 0.75rem;
+            background: #1e1f29;
+            border-radius: 0 0 8px 8px;
+            font-size: 0.8rem;
+            flex-wrap: wrap;
+            gap: 0.5rem;
+        }
+        #htmlEditorSection .char-count { color: #6272a4; }
+        #htmlEditorSection .editor-hint { color: #6272a4; font-style: italic; }
+        .article-html-preview {
+            margin-top: 0.75rem;
+            border: 2px solid #e5e7eb;
+            border-radius: 8px;
+            overflow: hidden;
+        }
+        .article-html-preview.hidden { display: none; }
+        .article-html-preview .preview-header {
+            background: #f9fafb;
+            padding: 0.6rem 1rem;
+            font-weight: 600;
+            color: #374151;
+            border-bottom: 1px solid #e5e7eb;
+            font-size: 0.9rem;
+        }
+        .article-html-preview .preview-body {
+            padding: 1.5rem;
+            background: white;
+            min-height: 100px;
+            overflow-x: auto;
+        }
+    </style>
 </head>
 <body>
     <!-- Navigation -->
@@ -169,7 +287,51 @@
                         <div class="form-row">
                             <div class="form-group">
                                 <label>Contenu *</label>
-                                <div id="editor" style="min-height: 300px; background: white;"></div>
+
+                                <!-- Sélecteur de mode -->
+                                <div class="editor-mode-selector">
+                                    <button type="button" class="mode-btn active" id="modeQuillBtn" onclick="switchArticleEditorMode('quill')">
+                                        <i class="fas fa-align-left"></i> Éditeur Visuel
+                                    </button>
+                                    <button type="button" class="mode-btn" id="modeHtmlBtn" onclick="switchArticleEditorMode('html')">
+                                        <i class="fas fa-code"></i> HTML Avancé
+                                    </button>
+                                </div>
+
+                                <!-- MODE QUILL (par défaut) -->
+                                <div id="quillEditorSection">
+                                    <div id="editor" style="min-height: 300px; background: white;"></div>
+                                </div>
+
+                                <!-- MODE HTML CODEMIRROR -->
+                                <div id="htmlEditorSection" style="display:none;">
+                                    <div class="editor-toolbar">
+                                        <span class="editor-label"><i class="fas fa-code"></i> Contenu HTML de l'article</span>
+                                        <div class="editor-actions">
+                                            <button type="button" class="editor-btn" onclick="articleInsertSnippet('heading')" title="Titre h2">H2</button>
+                                            <button type="button" class="editor-btn" onclick="articleInsertSnippet('paragraph')" title="Paragraphe"><i class="fas fa-paragraph"></i></button>
+                                            <button type="button" class="editor-btn" onclick="articleInsertSnippet('table')" title="Tableau"><i class="fas fa-table"></i></button>
+                                            <button type="button" class="editor-btn" onclick="articleInsertSnippet('image')" title="Image"><i class="fas fa-image"></i></button>
+                                            <button type="button" class="editor-btn" onclick="articleInsertSnippet('list')" title="Liste"><i class="fas fa-list"></i></button>
+                                            <button type="button" class="editor-btn" onclick="articleInsertSnippet('alert')" title="Alerte"><i class="fas fa-exclamation-circle"></i></button>
+                                            <button type="button" class="editor-btn" onclick="articleInsertSnippet('grid')" title="Grille"><i class="fas fa-th"></i></button>
+                                            <button type="button" class="editor-btn btn-format" onclick="articleFormatCode()" title="Formater"><i class="fas fa-magic"></i></button>
+                                            <button type="button" class="editor-btn btn-preview" onclick="articleTogglePreview()" title="Aperçu"><i class="fas fa-eye"></i> Aperçu</button>
+                                        </div>
+                                    </div>
+                                    <div class="editor-container">
+                                        <div id="articleCmEditor" class="codemirror-wrapper"></div>
+                                    </div>
+                                    <div id="articleHtmlPreview" class="article-html-preview hidden">
+                                        <div class="preview-header"><i class="fas fa-eye"></i> Aperçu du rendu</div>
+                                        <div class="preview-body"></div>
+                                    </div>
+                                    <div class="editor-footer">
+                                        <span class="char-count" id="articleCmCount">0 caractères</span>
+                                        <span class="editor-hint">💡 HTML complet — tables, flex, grid, images, styles inline supportés</span>
+                                    </div>
+                                </div>
+
                                 <textarea id="content" style="display: none;"></textarea>
                             </div>
                         </div>
@@ -340,8 +502,139 @@
     <div id="notification" class="notification hidden"></div>
 
     <!-- Scripts -->
+    <!-- CodeMirror JS pour mode HTML -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.16/codemirror.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.16/mode/xml/xml.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.16/mode/javascript/javascript.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.16/mode/css/css.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.16/mode/htmlmixed/htmlmixed.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.16/addon/edit/closetag.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.16/addon/edit/closebrackets.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.16/addon/fold/foldcode.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.16/addon/fold/foldgutter.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.16/addon/fold/xml-fold.min.js"></script>
     <script src="https://cdn.quilljs.com/1.3.6/quill.js"></script>
     <script>
+        // ============================================
+        // SÉLECTEUR DE MODE ÉDITEUR ARTICLE
+        // ============================================
+        let articleEditorMode = 'quill'; // 'quill' ou 'html'
+        let articleCmInstance = null;
+
+        window.switchArticleEditorMode = function(mode) {
+            if (mode === articleEditorMode) return;
+            articleEditorMode = mode;
+
+            const quillSection = document.getElementById('quillEditorSection');
+            const htmlSection = document.getElementById('htmlEditorSection');
+            const modeQuillBtn = document.getElementById('modeQuillBtn');
+            const modeHtmlBtn = document.getElementById('modeHtmlBtn');
+
+            if (mode === 'html') {
+                // Récupérer le contenu Quill actuel avant de basculer
+                let currentContent = '';
+                if (window._quillEditorRef) {
+                    currentContent = window._quillEditorRef.root.innerHTML;
+                    if (currentContent === '<p><br></p>') currentContent = '';
+                }
+
+                quillSection.style.display = 'none';
+                htmlSection.style.display = 'block';
+                modeQuillBtn.classList.remove('active');
+                modeHtmlBtn.classList.add('active');
+
+                // Initialiser CodeMirror si pas encore fait
+                if (!articleCmInstance) {
+                    const wrapper = document.getElementById('articleCmEditor');
+                    const textarea = document.createElement('textarea');
+                    textarea.id = 'articleCmTextarea';
+                    wrapper.appendChild(textarea);
+                    articleCmInstance = CodeMirror.fromTextArea(textarea, {
+                        mode: 'htmlmixed',
+                        theme: 'dracula',
+                        lineNumbers: true,
+                        lineWrapping: true,
+                        autoCloseTags: true,
+                        autoCloseBrackets: true,
+                        matchTags: { bothTags: true },
+                        extraKeys: { 'Ctrl-Space': 'autocomplete' },
+                        tabSize: 2,
+                        indentWithTabs: false
+                    });
+                    articleCmInstance.on('change', function(cm) {
+                        document.getElementById('articleCmCount').textContent = cm.getValue().length + ' caractères';
+                    });
+                }
+                articleCmInstance.setValue(currentContent);
+                articleCmInstance.refresh();
+                setTimeout(() => articleCmInstance.refresh(), 100);
+
+            } else {
+                // Récupérer le HTML de CodeMirror avant de basculer
+                let htmlContent = articleCmInstance ? articleCmInstance.getValue() : '';
+
+                quillSection.style.display = 'block';
+                htmlSection.style.display = 'none';
+                modeQuillBtn.classList.add('active');
+                modeHtmlBtn.classList.remove('active');
+
+                // Injecter dans Quill
+                if (window._quillEditorRef && htmlContent) {
+                    window._quillEditorRef.root.innerHTML = htmlContent;
+                }
+            }
+        };
+
+        window.articleInsertSnippet = function(type) {
+            if (!articleCmInstance) return;
+            const snippets = {
+                heading: '<h2>Titre de section</h2>\n',
+                paragraph: '<p>Votre texte ici...</p>\n',
+                table: '<table style="width:100%; border-collapse:collapse;">\n  <thead>\n    <tr>\n      <th style="border:1px solid #ddd; padding:8px; background:#f2f2f2;">Colonne 1</th>\n      <th style="border:1px solid #ddd; padding:8px; background:#f2f2f2;">Colonne 2</th>\n    </tr>\n  </thead>\n  <tbody>\n    <tr>\n      <td style="border:1px solid #ddd; padding:8px;">Valeur 1</td>\n      <td style="border:1px solid #ddd; padding:8px;">Valeur 2</td>\n    </tr>\n  </tbody>\n</table>\n',
+                image: '<img src="URL_IMAGE" alt="Description" style="max-width:100%; border-radius:8px;">\n',
+                list: '<ul>\n  <li>Élément 1</li>\n  <li>Élément 2</li>\n  <li>Élément 3</li>\n</ul>\n',
+                alert: '<div style="background:#fef3c7; border-left:4px solid #f59e0b; padding:1rem; border-radius:4px; margin:1rem 0;">\n  <strong>⚠️ Important :</strong> Votre message ici.\n</div>\n',
+                grid: '<div style="display:grid; grid-template-columns:1fr 1fr; gap:1rem;">\n  <div style="background:#f8fafc; padding:1rem; border-radius:8px;">Colonne gauche</div>\n  <div style="background:#f8fafc; padding:1rem; border-radius:8px;">Colonne droite</div>\n</div>\n'
+            };
+            const cursor = articleCmInstance.getCursor();
+            articleCmInstance.replaceRange(snippets[type] || '', cursor);
+            articleCmInstance.focus();
+        };
+
+        window.articleFormatCode = function() {
+            if (!articleCmInstance) return;
+            let code = articleCmInstance.getValue();
+            let indent = 0;
+            const formatted = code
+                .replace(/>\s*</g, '>\n<')
+                .split('\n')
+                .map(line => {
+                    line = line.trim();
+                    if (!line) return '';
+                    if (line.match(/^<\//)) indent = Math.max(0, indent - 1);
+                    const result = '  '.repeat(indent) + line;
+                    if (line.match(/^<[^/!][^>]*[^/]>$/) && !line.match(/^<(br|hr|img|input|meta|link)/i)) indent++;
+                    return result;
+                })
+                .filter(l => l !== '')
+                .join('\n');
+            articleCmInstance.setValue(formatted);
+        };
+
+        window.articleTogglePreview = function() {
+            const preview = document.getElementById('articleHtmlPreview');
+            if (preview.classList.contains('hidden')) {
+                const html = articleCmInstance ? articleCmInstance.getValue() : '';
+                preview.querySelector('.preview-body').innerHTML = html;
+                preview.classList.remove('hidden');
+            } else {
+                preview.classList.add('hidden');
+            }
+        };
+
+        // ============================================
+        // Fonctions existantes
+        // ============================================
         function toggleScheduleFields() {
             const status = document.getElementById('publicationStatus').value;
             const scheduleFields = document.getElementById('scheduleFields');

@@ -21,6 +21,56 @@
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.16/addon/scroll/simplescrollbars.min.css">
     
     <style>
+        /* ── Sélecteur mode séance ── */
+        .session-mode-selector {
+            display: flex;
+            gap: 0.4rem;
+            margin-bottom: 0.75rem;
+            background: #f1f5f9;
+            padding: 0.35rem;
+            border-radius: 8px;
+            width: fit-content;
+        }
+        .session-mode-btn {
+            padding: 0.4rem 0.9rem;
+            border: none;
+            border-radius: 6px;
+            cursor: pointer;
+            font-weight: 600;
+            font-size: 0.8rem;
+            transition: all 0.2s;
+            color: #64748b;
+            background: transparent;
+            display: flex;
+            align-items: center;
+            gap: 0.35rem;
+        }
+        .session-mode-btn.active {
+            background: white;
+            color: #1e40af;
+            box-shadow: 0 2px 5px rgba(0,0,0,0.12);
+        }
+        .session-mode-btn:hover:not(.active) {
+            background: #e2e8f0;
+            color: #374151;
+        }
+        /* Texte simple pour séance */
+        .session-plain-textarea {
+            width: 100%;
+            min-height: 200px;
+            padding: 1rem;
+            border: 1px solid #d1d5db;
+            border-radius: 6px;
+            font-size: 1rem;
+            font-family: inherit;
+            resize: vertical;
+            line-height: 1.6;
+        }
+        .session-plain-textarea:focus {
+            outline: none;
+            border-color: #3b82f6;
+            box-shadow: 0 0 0 3px rgba(59,130,246,0.1);
+        }
         /* ── Éditeur CodeMirror ── */
         .editor-toolbar {
             display: flex;

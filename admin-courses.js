@@ -339,12 +339,17 @@ function addSequenceToForm(sequenceData = null, index = 0) {
     
     container.appendChild(sequenceDiv);
     
-    // Init CodeMirror pour chaque séance existante
+    // Init CodeMirror pour chaque séance existante (seulement si mode html)
     const sessions = sequenceData?.sessions || [];
-    sessions.forEach((_, sIndex) => {
+    sessions.forEach((sessionData, sIndex) => {
         const editorId = `cm-editor-${index}-${sIndex}`;
         const hiddenId = `cm-hidden-${index}-${sIndex}`;
-        setTimeout(() => initCodeMirrorForSession(editorId, hiddenId), 50);
+        const sessionContent = sessionData?.content || '';
+        const isHtml = sessionContent.trim().startsWith('<') || sessionContent.includes('<p>') || sessionContent.includes('<div>');
+        const mode = sessionData?.contentMode || (isHtml ? 'html' : 'plain');
+        if (mode === 'html') {
+            setTimeout(() => initCodeMirrorForSession(editorId, hiddenId), 50);
+        }
     });
 }
 
@@ -380,34 +385,63 @@ function createSessionHtml(seqIndex, sessionIndex, sessionData = null) {
                 <input type="text" class="session-title" value="${escapeHtml(sessionData?.title || '')}" placeholder="Ex: Les bases de l'électricité">
             </div>
             
-            <!-- ÉDITEUR HTML AVANCÉ -->
+            <!-- ÉDITEUR AVEC SÉLECTEUR DE MODE -->
             <div class="form-group">
-                <div class="editor-toolbar">
-                    <span class="editor-label"><i class="fas fa-code"></i> Contenu HTML de la séance</span>
-                    <div class="editor-actions">
-                        <button type="button" class="editor-btn" onclick="insertSnippet('${editorId}', 'heading')" title="Titre h2">H2</button>
-                        <button type="button" class="editor-btn" onclick="insertSnippet('${editorId}', 'paragraph')" title="Paragraphe"><i class="fas fa-paragraph"></i></button>
-                        <button type="button" class="editor-btn" onclick="insertSnippet('${editorId}', 'table')" title="Tableau"><i class="fas fa-table"></i></button>
-                        <button type="button" class="editor-btn" onclick="insertSnippet('${editorId}', 'image')" title="Image"><i class="fas fa-image"></i></button>
-                        <button type="button" class="editor-btn" onclick="insertSnippet('${editorId}', 'list')" title="Liste"><i class="fas fa-list"></i></button>
-                        <button type="button" class="editor-btn" onclick="insertSnippet('${editorId}', 'alert')" title="Alerte"><i class="fas fa-exclamation-circle"></i></button>
-                        <button type="button" class="editor-btn" onclick="insertSnippet('${editorId}', 'grid')" title="Grille"><i class="fas fa-th"></i></button>
-                        <button type="button" class="editor-btn btn-format" onclick="formatCode('${editorId}')" title="Formater"><i class="fas fa-magic"></i></button>
-                        <button type="button" class="editor-btn btn-preview" onclick="togglePreview('${editorId}', '${previewId}')" title="Aperçu"><i class="fas fa-eye"></i> Aperçu</button>
+                <label>Contenu de la séance</label>
+
+                <!-- Sélecteur de mode -->
+                <div class="session-mode-selector">
+                    <button type="button"
+                        class="session-mode-btn ${initialMode === 'plain' ? 'active' : ''}"
+                        id="btn-plain-${seqIndex}-${sessionIndex}"
+                        onclick="switchSessionMode('${seqIndex}', '${sessionIndex}', 'plain')">
+                        <i class="fas fa-align-left"></i> Texte Normal
+                    </button>
+                    <button type="button"
+                        class="session-mode-btn ${initialMode === 'html' ? 'active' : ''}"
+                        id="btn-html-${seqIndex}-${sessionIndex}"
+                        onclick="switchSessionMode('${seqIndex}', '${sessionIndex}', 'html')">
+                        <i class="fas fa-code"></i> HTML Avancé
+                    </button>
+                </div>
+
+                <!-- MODE TEXTE SIMPLE -->
+                <div id="plain-section-${seqIndex}-${sessionIndex}" ${initialMode !== 'plain' ? 'style="display:none;"' : ''}>
+                    <textarea id="${plainId}" class="session-plain-textarea" placeholder="Rédigez le contenu de la séance en texte simple...">${initialMode === 'plain' ? escapeHtml(content) : ''}</textarea>
+                </div>
+
+                <!-- MODE HTML CODEMIRROR -->
+                <div id="html-section-${seqIndex}-${sessionIndex}" ${initialMode !== 'html' ? 'style="display:none;"' : ''}>
+                    <div class="editor-toolbar">
+                        <span class="editor-label"><i class="fas fa-code"></i> Contenu HTML de la séance</span>
+                        <div class="editor-actions">
+                            <button type="button" class="editor-btn" onclick="insertSnippet('${editorId}', 'heading')" title="Titre h2">H2</button>
+                            <button type="button" class="editor-btn" onclick="insertSnippet('${editorId}', 'paragraph')" title="Paragraphe"><i class="fas fa-paragraph"></i></button>
+                            <button type="button" class="editor-btn" onclick="insertSnippet('${editorId}', 'table')" title="Tableau"><i class="fas fa-table"></i></button>
+                            <button type="button" class="editor-btn" onclick="insertSnippet('${editorId}', 'image')" title="Image"><i class="fas fa-image"></i></button>
+                            <button type="button" class="editor-btn" onclick="insertSnippet('${editorId}', 'list')" title="Liste"><i class="fas fa-list"></i></button>
+                            <button type="button" class="editor-btn" onclick="insertSnippet('${editorId}', 'alert')" title="Alerte"><i class="fas fa-exclamation-circle"></i></button>
+                            <button type="button" class="editor-btn" onclick="insertSnippet('${editorId}', 'grid')" title="Grille"><i class="fas fa-th"></i></button>
+                            <button type="button" class="editor-btn btn-format" onclick="formatCode('${editorId}')" title="Formater"><i class="fas fa-magic"></i></button>
+                            <button type="button" class="editor-btn btn-preview" onclick="togglePreview('${editorId}', '${previewId}')" title="Aperçu"><i class="fas fa-eye"></i> Aperçu</button>
+                        </div>
+                    </div>
+                    <div class="editor-container">
+                        <div id="${editorId}" class="codemirror-wrapper"></div>
+                        <textarea id="${hiddenId}" class="session-content" style="display:none;">${initialMode === 'html' ? escapeHtml(content) : ''}</textarea>
+                    </div>
+                    <div id="${previewId}" class="html-preview hidden">
+                        <div class="preview-header"><i class="fas fa-eye"></i> Aperçu du rendu</div>
+                        <div class="preview-body"></div>
+                    </div>
+                    <div class="editor-footer">
+                        <span class="char-count" id="count-${editorId}">0 caractères</span>
+                        <span class="editor-hint">💡 Collez votre HTML complet ici — tables, flex, grid, images, styles inline supportés</span>
                     </div>
                 </div>
-                <div class="editor-container">
-                    <div id="${editorId}" class="codemirror-wrapper"></div>
-                    <textarea id="${hiddenId}" class="session-content" style="display:none;">${escapeHtml(content)}</textarea>
-                </div>
-                <div id="${previewId}" class="html-preview hidden">
-                    <div class="preview-header"><i class="fas fa-eye"></i> Aperçu du rendu</div>
-                    <div class="preview-body"></div>
-                </div>
-                <div class="editor-footer">
-                    <span class="char-count" id="count-${editorId}">0 caractères</span>
-                    <span class="editor-hint">💡 Collez votre HTML complet ici — tables, flex, grid, images, styles inline supportés</span>
-                </div>
+
+                <!-- Champ caché : stocke le mode actif -->
+                <input type="hidden" class="session-content-mode" value="${initialMode}">
             </div>
             
             <!-- 3 MÉTHODES PDF -->
@@ -525,6 +559,70 @@ window.initCodeMirrorForSession = function(editorId, hiddenId) {
 };
 
 // ============================================
+// BASCULER LE MODE ÉDITEUR D'UNE SÉANCE
+// ============================================
+window.switchSessionMode = function(seqIndex, sessionIndex, mode) {
+    const plainSection = document.getElementById(`plain-section-${seqIndex}-${sessionIndex}`);
+    const htmlSection = document.getElementById(`html-section-${seqIndex}-${sessionIndex}`);
+    const btnPlain = document.getElementById(`btn-plain-${seqIndex}-${sessionIndex}`);
+    const btnHtml = document.getElementById(`btn-html-${seqIndex}-${sessionIndex}`);
+    const modeInput = document.querySelector(
+        `[data-seq="${seqIndex}"][data-session="${sessionIndex}"] .session-content-mode`
+    );
+
+    if (mode === 'plain') {
+        // Récupérer contenu HTML actuel si CodeMirror existe
+        const editorId = `cm-editor-${seqIndex}-${sessionIndex}`;
+        const cm = window._cmInstances?.[editorId];
+        const currentHtml = cm ? cm.getValue() : '';
+
+        plainSection.style.display = 'block';
+        htmlSection.style.display = 'none';
+        btnPlain.classList.add('active');
+        btnHtml.classList.remove('active');
+
+        // Pré-remplir le textarea plain si vide
+        const plainTextarea = document.getElementById(`plain-${seqIndex}-${sessionIndex}`);
+        if (plainTextarea && !plainTextarea.value && currentHtml) {
+            // Extraire le texte brut du HTML
+            const tmp = document.createElement('div');
+            tmp.innerHTML = currentHtml;
+            plainTextarea.value = tmp.textContent || tmp.innerText || '';
+        }
+    } else {
+        // Mode HTML : initialiser CodeMirror si pas encore fait
+        const editorId = `cm-editor-${seqIndex}-${sessionIndex}`;
+        const hiddenId = `cm-hidden-${seqIndex}-${sessionIndex}`;
+        const plainTextarea = document.getElementById(`plain-${seqIndex}-${sessionIndex}`);
+        const plainContent = plainTextarea ? plainTextarea.value : '';
+
+        plainSection.style.display = 'none';
+        htmlSection.style.display = 'block';
+        btnPlain.classList.remove('active');
+        btnHtml.classList.add('active');
+
+        if (!window._cmInstances?.[editorId]) {
+            // Initialiser CodeMirror
+            setTimeout(() => {
+                initCodeMirrorForSession(editorId, hiddenId);
+                // Si contenu plain existant, le mettre dans l'éditeur
+                if (plainContent) {
+                    const cm = window._cmInstances?.[editorId];
+                    if (cm) cm.setValue(`<p>${plainContent.replace(/\n\n/g, '</p>\n<p>').replace(/\n/g, '<br>')}</p>`);
+                }
+            }, 50);
+        } else {
+            const cm = window._cmInstances?.[editorId];
+            if (cm && plainContent && !cm.getValue()) {
+                cm.setValue(`<p>${plainContent.replace(/\n\n/g, '</p>\n<p>').replace(/\n/g, '<br>')}</p>`);
+            }
+        }
+    }
+
+    if (modeInput) modeInput.value = mode;
+};
+
+// ============================================
 // SNIPPETS HTML PRÉDÉFINIS
 // ============================================
 window.insertSnippet = function(editorId, type) {
@@ -615,10 +713,8 @@ window.addSession = function(seqIndex) {
     const sessionEl = wrapper.firstElementChild;
     sessionsContainer.appendChild(sessionEl);
     
-    // Init CodeMirror
-    const editorId = `cm-editor-${seqIndex}-${sessionCount}`;
-    const hiddenId = `cm-hidden-${seqIndex}-${sessionCount}`;
-    setTimeout(() => initCodeMirrorForSession(editorId, hiddenId), 50);
+    // Ne pas init CodeMirror automatiquement — la nouvelle séance démarre en mode "plain"
+    // CodeMirror sera initialisé seulement si l'utilisateur bascule en mode HTML
 };
 
 // ============================================
@@ -736,9 +832,25 @@ async function collectSequencesData() {
                 pdfUrl = urlInput.value.trim() || null;
             }
             
+            // Lire le contenu selon le mode actif
+            const contentModeInput = sessionItem.querySelector('.session-content-mode');
+            const contentMode = contentModeInput ? contentModeInput.value : 'html';
+            let sessionContent = '';
+            if (contentMode === 'plain') {
+                // Mode texte : lire le textarea plain
+                const seqIdx = sessionItem.dataset.seq;
+                const sessIdx = sessionItem.dataset.session;
+                const plainTA = sessionItem.querySelector(`#plain-${seqIdx}-${sessIdx}`);
+                sessionContent = plainTA ? plainTA.value.trim() : '';
+            } else {
+                // Mode HTML : lire le textarea caché de CodeMirror
+                sessionContent = sessionItem.querySelector('.session-content').value.trim();
+            }
+
             sessions.push({
                 title: sessionItem.querySelector('.session-title').value.trim(),
-                content: sessionItem.querySelector('.session-content').value.trim(),
+                content: sessionContent,
+                contentMode: contentMode,
                 pdfUrl: pdfUrl,
                 pdfMethod: pdfMethod  // Sauvegarder la méthode utilisée
             });
