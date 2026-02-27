@@ -164,9 +164,6 @@ async function loadCourses() {
 // ============================================
 function displayCourses() {
     const coursesTableBody = document.getElementById('coursesTableBody');
-    const coursesTable     = document.getElementById('coursesTable');
-    const loadingState     = document.getElementById('loadingState');
-    const emptyState       = document.getElementById('emptyState');
     
     if (!coursesTableBody) {
         console.error('Element coursesTableBody not found');
@@ -206,11 +203,6 @@ function displayCourses() {
             </tr>
         `;
     }).join('');
-
-    // ✅ Afficher la table et masquer loading/empty
-    if (coursesTable)  coursesTable.style.display  = 'table';
-    if (loadingState)  loadingState.style.display   = 'none';
-    if (emptyState)    emptyState.classList.add('hidden');
 }
 
 // ============================================

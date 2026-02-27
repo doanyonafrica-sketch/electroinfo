@@ -301,3 +301,61 @@ function redirectToCourse() {
 // INITIALISATION AU CHARGEMENT
 // ============================================
 document.addEventListener('DOMContentLoaded', loadSession);
+
+// ============================================
+// GESTION DES LIENS SIMULATION
+// ============================================
+
+// Intercepte les clics sur les liens class="sim-link" dans le contenu de la séance
+function initSimulationLinks() {
+    const content = $('sessionContent');
+    if (!content) return;
+
+    content.addEventListener('click', function(e) {
+        const link = e.target.closest('a.sim-link');
+        if (!link) return;
+        e.preventDefault();
+
+        const simHref = link.getAttribute('href');
+        if (!simHref) return;
+
+        // Sauvegarder la position de scroll actuelle
+        const scrollPos = Math.round(window.scrollY);
+
+        // URL de retour = page actuelle propre (sans scrollRestore)
+        const currentUrl = window.location.href.replace(/[&?]scrollRestore=\d+/, '');
+
+        // Nom de la séance pour l'afficher dans la barre simulation
+        const sessionTitle = $('sessionTitle')?.textContent || '';
+
+        // Construire l'URL de la simulation avec paramètres de retour
+        const sep    = simHref.includes('?') ? '&' : '?';
+        const simUrl = `${simHref}${sep}retour=${encodeURIComponent(currentUrl)}&scroll=${scrollPos}&seance=${encodeURIComponent(sessionTitle)}`;
+
+        window.location.href = simUrl;
+    });
+}
+
+// Restaure la position de scroll si on revient d'une simulation
+function restoreScrollIfNeeded() {
+    const params = new URLSearchParams(window.location.search);
+    const scrollRestore = params.get('scrollRestore');
+
+    if (scrollRestore) {
+        const pos = parseInt(scrollRestore, 10);
+        if (!isNaN(pos)) {
+            setTimeout(() => {
+                window.scrollTo({ top: pos, behavior: 'instant' });
+            }, 200);
+        }
+        // Nettoyer l'URL sans recharger la page
+        const cleanUrl = window.location.href.replace(/[&?]scrollRestore=\d+/, '');
+        window.history.replaceState({}, '', cleanUrl);
+    }
+}
+
+// Surcharger DOMContentLoaded pour appeler les nouvelles fonctions
+document.addEventListener('DOMContentLoaded', () => {
+    restoreScrollIfNeeded();
+    initSimulationLinks();
+});

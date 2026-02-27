@@ -1,92 +1,44 @@
-const functions = require('firebase-functions');
-const admin = require('firebase-admin');
+const { onDocumentCreated } = require("firebase-functions/v2/firestore");
+const admin = require("firebase-admin");
+const nodemailer = require("nodemailer");
+
 admin.initializeApp();
 
-const db = admin.firestore();
-const fs = require('fs');
-const path = require('path');
-
-exports.articleMetadata = functions.https.onRequest(async (req, res) => {
-    try {
-        // Récupérer le slug depuis l'URL
-        const slug = req.path.replace('/article/', '').replace('/', '');
-        
-        if (!slug) {
-            res.redirect(301, '/index.html');
-            return;
-        }
-        
-        // Chercher l'article dans Firestore
-        const querySnapshot = await db.collection('articles')
-            .where('slug', '==', slug)
-            .limit(1)
-            .get();
-        
-        if (querySnapshot.empty) {
-            res.redirect(301, '/index.html');
-            return;
-        }
-        
-        const articleDoc = querySnapshot.docs[0];
-        const article = articleDoc.data();
-        const articleId = articleDoc.id;
-        
-        // Générer le HTML avec les métadonnées
-        const html = generateHTML(article, articleId);
-        
-        // Envoyer la réponse
-        res.set('Cache-Control', 'public, max-age=300, s-maxage=600');
-        res.status(200).send(html);
-        
-    } catch (error) {
-        console.error('Erreur:', error);
-        res.redirect(301, '/index.html');
-    }
+const transporter = nodemailer.createTransport({
+  host: "smtp-relay.brevo.com",
+  port: 587,
+  secure: false, 
+  auth: {
+    user: "a30448001@smtp-brevo.com", // Ton identifiant SMTP Brevo
+    pass: "xsmtpsib-83b9827065ed194a1be54ace1908d0249eb096a3d51e7a694978d5c20b9bf49d-FAvRzMeeVJJUoLlt",    // REMPLACE par ta clé générée sur Brevo
+  },
 });
 
-function generateHTML(article, articleId) {
-    const title = escapeHtml(article.title || 'Article');
-    const description = escapeHtml(article.summary || '');
-    const imageUrl = escapeHtml(article.imageUrl || 'https://electroinfo.online/images/logo.png');
-    const slug = article.slug || articleId;
-    
-    return `<!DOCTYPE html>
-<html lang="fr">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>${title} | Électro-Actu</title>
-    
-    <!-- Open Graph -->
-    <meta property="og:type" content="article">
-    <meta property="og:title" content="${title}">
-    <meta property="og:description" content="${description}">
-    <meta property="og:image" content="${imageUrl}">
-    <meta property="og:image:width" content="1200">
-    <meta property="og:image:height" content="630">
-    <meta property="og:url" content="https://electroinfo.online/article/${slug}">
-    
-    <!-- Twitter -->
-    <meta name="twitter:card" content="summary_large_image">
-    <meta name="twitter:title" content="${title}">
-    <meta name="twitter:description" content="${description}">
-    <meta name="twitter:image" content="${imageUrl}">
-    
-    <!-- Redirection -->
-    <script>window.location.href="/article.html?id=${articleId}";</script>
-</head>
-<body>
-    <p>Chargement...</p>
-</body>
-</html>`;
-}
+exports.sendEmail = onDocumentCreated("newsletter_sends/{sendId}", async (event) => {
+  const snapshot = event.data;
+  if (!snapshot) return null;
 
-function escapeHtml(text) {
-    if (!text) return '';
-    return String(text)
-        .replace(/&/g, '&amp;')
-        .replace(/</g, '&lt;')
-        .replace(/>/g, '&gt;')
-        .replace(/"/g, '&quot;')
-        .replace(/'/g, '&#039;');
-}
+  const data = snapshot.data();
+  const mailOptions = {
+    from: '"ElectroInfo" <doanyonafrica@gmail.com>',
+    to: data.email,
+    subject: data.subject || "Test Newsletter",
+    html: data.htmlContent || "<p>Connexion réussie ! Ton système fonctionne.</p>",
+  };
+
+  try {
+    await transporter.sendMail(mailOptions);
+    console.log("✅ Succès ! Email envoyé !");
+    
+    return snapshot.ref.update({ 
+      status: "sent", 
+      sentAt: new Date().toISOString() 
+    });
+  } catch (error) {
+    console.error("❌ Erreur :", error);
+    return snapshot.ref.update({ 
+      status: "error", 
+      error: error.message 
+    });
+  }
+}); // <--- C'est cette accolade qui manquait !

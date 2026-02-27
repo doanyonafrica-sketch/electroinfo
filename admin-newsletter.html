@@ -1,0 +1,545 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Newsletter | ElectroInfo Admin</title>
+    <link rel="stylesheet" href="/styles.css">
+    <link rel="stylesheet" href="/admin-styles.css">
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
+    <style>
+        :root {
+            --primary: #7c3aed; --primary-dark: #5b21b6; --primary-light: #a78bfa;
+            --success: #16a34a; --danger: #dc2626; --warning: #f59e0b; --info: #0ea5e9;
+            --gray-50: #f9fafb; --gray-100: #f3f4f6; --gray-200: #e5e7eb;
+            --gray-300: #d1d5db; --gray-400: #9ca3af; --gray-500: #6b7280;
+            --gray-600: #4b5563; --gray-700: #374151; --gray-800: #1f2937; --gray-900: #111827;
+            --bg-body: #f1f5f9;
+            --shadow-sm: 0 1px 2px rgba(0,0,0,.05); --shadow: 0 4px 6px rgba(0,0,0,.1); --shadow-lg: 0 10px 25px rgba(0,0,0,.15);
+            --radius: .5rem; --radius-lg: 1rem;
+        }
+        * { margin:0; padding:0; box-sizing:border-box; }
+        body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; background: var(--bg-body); color: var(--gray-900); min-height: 100vh; }
+        .hidden { display: none !important; }
+
+        /* NAVBAR */
+        .navbar { background: linear-gradient(135deg, #7c3aed 0%, #5b21b6 100%); color: white; box-shadow: var(--shadow); position: sticky; top: 0; z-index: 100; }
+        .container { max-width: 1400px; margin: 0 auto; padding: 0 1rem; }
+        .navbar .container { display:flex; justify-content:space-between; align-items:center; height:64px; gap:.5rem; }
+        .nav-brand { display:flex; align-items:center; gap:.75rem; font-size:1.25rem; font-weight:700; color:white; text-decoration:none; }
+        .nav-actions { display:flex; gap:.75rem; align-items:center; }
+        .btn { display:inline-flex; align-items:center; justify-content:center; gap:.5rem; padding:.625rem 1.25rem; border:none; border-radius:var(--radius); font-weight:600; font-size:.9375rem; cursor:pointer; transition:all .3s; text-decoration:none; white-space:nowrap; }
+        .btn-outline { background:transparent; border:2px solid white; color:white; }
+        .btn-outline:hover { background:white; color:var(--primary); }
+        .btn-primary { background:var(--primary); color:white; }
+        .btn-primary:hover { background:var(--primary-dark); transform:translateY(-2px); box-shadow:var(--shadow); }
+        .btn-success { background:var(--success); color:white; }
+        .btn-success:hover { background:#15803d; }
+        .btn-danger { background:var(--danger); color:white; }
+        .btn-danger:hover { background:#b91c1c; }
+        .btn-secondary { background:var(--gray-600); color:white; }
+        .btn-sm { padding:.4rem .85rem; font-size:.8rem; }
+        .btn-warning { background:var(--warning); color:white; }
+
+        /* LOADING */
+        .loading-section { min-height:calc(100vh - 64px); display:flex; align-items:center; justify-content:center; }
+        .spinner { width:50px; height:50px; border:4px solid var(--gray-200); border-top-color:var(--primary); border-radius:50%; animation:spin .8s linear infinite; margin:0 auto 1rem; }
+        @keyframes spin { to { transform:rotate(360deg); } }
+        .access-denied-card { background:white; border-radius:var(--radius-lg); padding:3rem; text-align:center; box-shadow:var(--shadow-lg); max-width:480px; }
+        .access-denied-card i { font-size:4rem; color:var(--danger); margin-bottom:1rem; }
+
+        /* LAYOUT */
+        .admin-main { padding:2rem 1rem; }
+        .grid-2 { display:grid; grid-template-columns:1fr 1.4fr; gap:1.5rem; }
+        @media (max-width:900px) { .grid-2 { grid-template-columns:1fr; } }
+
+        /* STATS */
+        .stats-grid { display:grid; grid-template-columns:repeat(auto-fit, minmax(180px,1fr)); gap:1.25rem; margin-bottom:2rem; }
+        .stat-card { background:white; border-radius:var(--radius-lg); padding:1.5rem; box-shadow:var(--shadow-sm); display:flex; align-items:center; gap:1rem; border-left:4px solid transparent; transition:box-shadow .2s; }
+        .stat-card:hover { box-shadow:var(--shadow); }
+        .stat-card.subs { border-color:var(--primary); }
+        .stat-card.active { border-color:var(--success); }
+        .stat-card.unsub { border-color:var(--danger); }
+        .stat-card.campaigns { border-color:var(--info); }
+        .stat-icon { width:48px; height:48px; border-radius:var(--radius); display:flex; align-items:center; justify-content:center; font-size:1.4rem; flex-shrink:0; }
+        .stat-card.subs .stat-icon { background:#f3e8ff; color:var(--primary); }
+        .stat-card.active .stat-icon { background:#f0fdf4; color:var(--success); }
+        .stat-card.unsub .stat-icon { background:#fef2f2; color:var(--danger); }
+        .stat-card.campaigns .stat-icon { background:#e0f2fe; color:var(--info); }
+        .stat-number { font-size:2rem; font-weight:700; line-height:1; }
+        .stat-label { font-size:.875rem; color:var(--gray-500); margin-top:.25rem; }
+
+        /* CARD */
+        .card { background:white; border-radius:var(--radius-lg); box-shadow:var(--shadow-sm); margin-bottom:1.5rem; overflow:hidden; }
+        .card-header { padding:1.25rem 1.5rem; border-bottom:1px solid var(--gray-200); display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:.75rem; }
+        .card-header h2 { font-size:1.1rem; font-weight:700; display:flex; align-items:center; gap:.5rem; }
+        .card-body { padding:1.5rem; }
+
+        /* TABS */
+        .tabs { display:flex; border-bottom:2px solid var(--gray-200); margin-bottom:1.5rem; gap:.25rem; }
+        .tab-btn { padding:.75rem 1.25rem; border:none; background:transparent; color:var(--gray-600); font-weight:600; cursor:pointer; font-size:.9rem; border-bottom:3px solid transparent; margin-bottom:-2px; transition:all .2s; display:flex; align-items:center; gap:.5rem; }
+        .tab-btn.active { color:var(--primary); border-bottom-color:var(--primary); background:var(--gray-50); border-radius:var(--radius) var(--radius) 0 0; }
+        .tab-btn:hover:not(.active) { color:var(--gray-800); background:var(--gray-50); }
+        .tab-pane { display:none; }
+        .tab-pane.active { display:block; }
+
+        /* SUBSCRIBERS TABLE */
+        .toolbar { display:flex; gap:1rem; flex-wrap:wrap; margin-bottom:1.5rem; }
+        .search-wrap { position:relative; flex:1; min-width:200px; }
+        .search-wrap i { position:absolute; left:.875rem; top:50%; transform:translateY(-50%); color:var(--gray-400); pointer-events:none; }
+        .search-input { width:100%; padding:.75rem 1rem .75rem 2.5rem; border:2px solid var(--gray-200); border-radius:var(--radius); font-size:.9375rem; transition:border-color .2s; }
+        .search-input:focus { outline:none; border-color:var(--primary); }
+        .filter-select { padding:.75rem 1rem; border:2px solid var(--gray-200); border-radius:var(--radius); font-size:.9rem; background:white; cursor:pointer; }
+        .table-wrap { overflow-x:auto; }
+        table { width:100%; border-collapse:collapse; font-size:.9rem; }
+        thead th { padding:.875rem 1rem; text-align:left; font-weight:600; color:var(--gray-600); background:var(--gray-50); border-bottom:2px solid var(--gray-200); white-space:nowrap; }
+        tbody tr { border-bottom:1px solid var(--gray-100); transition:background .15s; }
+        tbody tr:hover { background:var(--gray-50); }
+        tbody td { padding:.875rem 1rem; vertical-align:middle; }
+        .empty-row td { text-align:center; padding:3rem; color:var(--gray-400); }
+        .empty-row i { font-size:2.5rem; display:block; margin-bottom:.75rem; color:var(--gray-300); }
+
+        /* STATUS BADGE */
+        .status-badge { display:inline-flex; align-items:center; gap:.35rem; padding:.25rem .7rem; border-radius:999px; font-size:.78rem; font-weight:700; }
+        .status-badge.active { background:#f0fdf4; color:var(--success); border:1px solid #bbf7d0; }
+        .status-badge.unsubscribed { background:#fef2f2; color:var(--danger); border:1px solid #fecaca; }
+        .status-badge.pending { background:#fffbeb; color:var(--warning); border:1px solid #fde68a; }
+
+        /* SOURCE BADGE */
+        .source-chip { background:var(--gray-100); color:var(--gray-600); padding:.2rem .5rem; border-radius:.25rem; font-size:.75rem; font-weight:600; }
+
+        /* PAGINATION */
+        .pagination { display:flex; justify-content:center; align-items:center; gap:.5rem; margin-top:1.5rem; padding-top:1.5rem; border-top:1px solid var(--gray-200); }
+        .page-btn { background:white; border:1px solid var(--gray-300); padding:.5rem .875rem; border-radius:var(--radius); cursor:pointer; font-size:.875rem; color:var(--gray-700); transition:all .2s; min-width:36px; font-weight:500; }
+        .page-btn:hover:not(:disabled) { background:var(--primary); border-color:var(--primary); color:white; }
+        .page-btn:disabled { opacity:.4; cursor:not-allowed; }
+        .page-btn.active { background:var(--primary); border-color:var(--primary); color:white; font-weight:700; }
+
+        /* COMPOSE CAMPAIGN */
+        .compose-form {}
+        .form-group { margin-bottom:1.25rem; }
+        .form-group label { display:block; font-weight:600; margin-bottom:.5rem; font-size:.9rem; color:var(--gray-700); }
+        .form-control { width:100%; padding:.75rem 1rem; border:2px solid var(--gray-200); border-radius:var(--radius); font-size:.9375rem; transition:border-color .2s; font-family:inherit; }
+        .form-control:focus { outline:none; border-color:var(--primary); }
+        textarea.form-control { resize:vertical; min-height:180px; }
+        .input-hint { font-size:.8rem; color:var(--gray-500); margin-top:.35rem; }
+        .char-count { float:right; }
+
+        /* EMAIL PREVIEW */
+        .email-preview-frame { border:2px solid var(--gray-200); border-radius:var(--radius); overflow:hidden; }
+        .email-preview-header { background:var(--gray-800); color:white; padding:.75rem 1rem; font-size:.8rem; display:flex; align-items:center; gap:.5rem; }
+        .email-preview-body { padding:2rem; background:white; min-height:300px; max-height:500px; overflow-y:auto; }
+        .email-template { font-family:'Helvetica Neue', Arial, sans-serif; }
+        .email-template .email-header { background:linear-gradient(135deg, #7c3aed, #5b21b6); color:white; padding:2rem; border-radius:.5rem .5rem 0 0; text-align:center; }
+        .email-template .email-header h1 { font-size:1.5rem; margin-bottom:.5rem; }
+        .email-template .email-header p { opacity:.85; font-size:.9rem; }
+        .email-template .email-content { border:1px solid #e5e7eb; border-top:none; padding:2rem; border-radius:0 0 .5rem .5rem; }
+        .email-template .email-content h2 { color:#7c3aed; font-size:1.25rem; margin-bottom:1rem; border-bottom:2px solid #e5e7eb; padding-bottom:.75rem; }
+        .email-template .email-footer { text-align:center; color:#9ca3af; font-size:.8rem; margin-top:1.5rem; padding:1rem; border-top:1px solid #e5e7eb; }
+
+        /* SEGMENT SELECTOR */
+        .segment-grid { display:grid; grid-template-columns:1fr 1fr; gap:.75rem; }
+        @media (max-width:480px) { .segment-grid { grid-template-columns:1fr; } }
+        .segment-card { border:2px solid var(--gray-200); border-radius:var(--radius); padding:1rem; cursor:pointer; transition:all .2s; display:flex; align-items:center; gap:.75rem; }
+        .segment-card.selected { border-color:var(--primary); background:#f5f3ff; }
+        .segment-card input[type=radio] { display:none; }
+        .seg-icon { width:40px; height:40px; border-radius:var(--radius); background:var(--gray-100); display:flex; align-items:center; justify-content:center; font-size:1.1rem; flex-shrink:0; transition:all .2s; }
+        .segment-card.selected .seg-icon { background:var(--primary); color:white; }
+        .seg-info strong { font-size:.9rem; color:var(--gray-800); }
+        .seg-info small { color:var(--gray-500); font-size:.78rem; }
+
+        /* SEND BUTTON AREA */
+        .send-area { background:var(--gray-50); border-radius:var(--radius); padding:1.25rem; border:1px solid var(--gray-200); display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:1rem; margin-top:1.5rem; }
+        .recipients-count { font-size:.9rem; color:var(--gray-600); }
+        .recipients-count strong { color:var(--primary); font-size:1.1rem; }
+
+        /* CAMPAIGN HISTORY */
+        .campaign-item { border:1px solid var(--gray-200); border-radius:var(--radius); padding:1.25rem; margin-bottom:.875rem; transition:box-shadow .2s; }
+        .campaign-item:hover { box-shadow:var(--shadow); }
+        .campaign-header { display:flex; justify-content:space-between; align-items:flex-start; flex-wrap:wrap; gap:.5rem; }
+        .campaign-title { font-weight:700; color:var(--gray-900); font-size:1rem; }
+        .campaign-meta { display:flex; gap:1rem; flex-wrap:wrap; font-size:.8rem; color:var(--gray-500); margin-top:.5rem; }
+        .campaign-meta span { display:flex; align-items:center; gap:.35rem; }
+        .campaign-preview { color:var(--gray-600); font-size:.875rem; margin-top:.5rem; line-height:1.5; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; }
+        .badge-sent { background:#f0fdf4; color:var(--success); border:1px solid #bbf7d0; padding:.2rem .6rem; border-radius:999px; font-size:.75rem; font-weight:700; }
+        .badge-draft { background:#f3f4f6; color:var(--gray-600); border:1px solid var(--gray-300); padding:.2rem .6rem; border-radius:999px; font-size:.75rem; font-weight:700; }
+        .badge-scheduled { background:#fffbeb; color:var(--warning); border:1px solid #fde68a; padding:.2rem .6rem; border-radius:999px; font-size:.75rem; font-weight:700; }
+
+        /* MODAL */
+        .modal-overlay { position:fixed; inset:0; background:rgba(0,0,0,.55); z-index:1000; display:flex; align-items:center; justify-content:center; padding:1rem; animation:fadeIn .2s ease; }
+        @keyframes fadeIn { from {opacity:0} to {opacity:1} }
+        .modal { background:white; border-radius:var(--radius-lg); width:100%; max-width:500px; max-height:90vh; overflow-y:auto; box-shadow:var(--shadow-lg); animation:slideUp .25s ease; }
+        @keyframes slideUp { from { transform:translateY(24px);opacity:0; } to { transform:translateY(0);opacity:1; } }
+        .modal-header { padding:1.5rem; border-bottom:1px solid var(--gray-200); display:flex; justify-content:space-between; align-items:center; position:sticky; top:0; background:white; z-index:1; }
+        .modal-header h3 { font-size:1.2rem; font-weight:700; display:flex; align-items:center; gap:.5rem; }
+        .modal-body { padding:1.5rem; }
+        .modal-footer { padding:1rem 1.5rem; border-top:1px solid var(--gray-200); display:flex; justify-content:flex-end; gap:.75rem; sticky-bottom:0; background:white; }
+        .btn-icon { background:none; border:none; cursor:pointer; color:var(--gray-500); font-size:1.2rem; width:32px; height:32px; display:flex; align-items:center; justify-content:center; border-radius:var(--radius); transition:all .2s; }
+        .btn-icon:hover { background:var(--gray-100); color:var(--gray-900); }
+
+        /* IMPORT AREA */
+        .import-drop { border:2px dashed var(--gray-300); border-radius:var(--radius); padding:2rem; text-align:center; cursor:pointer; transition:all .2s; }
+        .import-drop:hover, .import-drop.dragover { border-color:var(--primary); background:#f5f3ff; }
+        .import-drop i { font-size:2rem; color:var(--gray-400); display:block; margin-bottom:.75rem; }
+        .import-drop p { color:var(--gray-600); font-weight:600; }
+        .import-drop small { color:var(--gray-400); }
+
+        /* PROGRESS */
+        .send-progress { display:none; }
+        .send-progress.visible { display:block; }
+        .progress-bar { height:8px; background:var(--gray-200); border-radius:999px; overflow:hidden; margin-top:.5rem; }
+        .progress-fill { height:100%; background:linear-gradient(90deg, var(--primary), var(--primary-light)); transition:width .3s ease; border-radius:999px; }
+
+        /* TOAST */
+        .toast-container { position:fixed; top:80px; right:1rem; z-index:2000; display:flex; flex-direction:column; gap:.5rem; }
+        .toast { background:white; border-radius:var(--radius); padding:.875rem 1.25rem; box-shadow:var(--shadow-lg); display:flex; align-items:center; gap:.75rem; font-weight:500; animation:toastIn .3s ease; border-left:4px solid var(--primary); max-width:340px; }
+        .toast.success { border-color:var(--success); }
+        .toast.error { border-color:var(--danger); }
+        .toast i.success { color:var(--success); }
+        .toast i.error { color:var(--danger); }
+        .toast i.info { color:var(--info); }
+        @keyframes toastIn { from { transform:translateX(100%);opacity:0; } to { transform:translateX(0);opacity:1; } }
+
+        /* CONFIRM DIALOG */
+        .confirm-overlay { position:fixed; inset:0; background:rgba(0,0,0,.55); z-index:2000; display:flex; align-items:center; justify-content:center; padding:1rem; }
+
+        .divider { border:none; border-top:1px solid var(--gray-200); margin:1.5rem 0; }
+    </style>
+</head>
+<body>
+
+<!-- NAVBAR -->
+<nav class="navbar">
+    <div class="container">
+        <a href="admin.html" class="nav-brand">
+            <i class="fas fa-bolt"></i>
+            <span>ElectroInfo — Admin</span>
+        </a>
+        <div class="nav-actions">
+            <a href="admin.html" class="btn btn-outline btn-sm"><i class="fas fa-arrow-left"></i> Retour</a>
+            <button id="logoutBtn" class="btn btn-outline btn-sm"><i class="fas fa-sign-out-alt"></i> Déconnexion</button>
+        </div>
+    </div>
+</nav>
+
+<!-- LOADING -->
+<div id="loadingSection" class="loading-section">
+    <div style="text-align:center">
+        <div class="spinner"></div>
+        <p>Vérification des autorisations…</p>
+    </div>
+</div>
+
+<!-- ACCESS DENIED -->
+<div id="accessDenied" class="loading-section hidden">
+    <div class="access-denied-card">
+        <i class="fas fa-envelope-open-text"></i>
+        <h2 style="margin-bottom:.5rem">Accès refusé</h2>
+        <p style="color:#6b7280;margin-bottom:1.5rem">Vous n'avez pas les permissions pour accéder à la gestion de la newsletter.</p>
+        <a href="admin.html" class="btn btn-primary">Retour à l'admin</a>
+    </div>
+</div>
+
+<!-- MAIN DASHBOARD -->
+<main id="adminDashboard" class="admin-main hidden">
+    <div class="container">
+
+        <!-- Title -->
+        <div style="display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:1rem;margin-bottom:2rem">
+            <div>
+                <h1 style="font-size:1.75rem;font-weight:800;display:flex;align-items:center;gap:.75rem">
+                    <i class="fas fa-envelope" style="color:var(--primary)"></i> Gestion de la Newsletter
+                </h1>
+                <p style="color:var(--gray-500);margin-top:.25rem">Gérez vos abonnés et envoyez des campagnes email</p>
+            </div>
+            <div style="display:flex;gap:.75rem;flex-wrap:wrap">
+                <button class="btn btn-primary" onclick="switchTab('compose')">
+                    <i class="fas fa-paper-plane"></i> Nouvelle campagne
+                </button>
+                <button class="btn btn-outline" style="border-color:var(--primary);color:var(--primary)" onclick="openImportModal()">
+                    <i class="fas fa-upload"></i> Importer
+                </button>
+            </div>
+        </div>
+
+        <!-- Stats -->
+        <div class="stats-grid">
+            <div class="stat-card subs">
+                <div class="stat-icon"><i class="fas fa-envelope-open"></i></div>
+                <div><div class="stat-number" id="statTotal">—</div><div class="stat-label">Abonnés total</div></div>
+            </div>
+            <div class="stat-card active">
+                <div class="stat-icon"><i class="fas fa-check-circle"></i></div>
+                <div><div class="stat-number" id="statActive">—</div><div class="stat-label">Abonnés actifs</div></div>
+            </div>
+            <div class="stat-card unsub">
+                <div class="stat-icon"><i class="fas fa-user-minus"></i></div>
+                <div><div class="stat-number" id="statUnsub">—</div><div class="stat-label">Désabonnés</div></div>
+            </div>
+            <div class="stat-card campaigns">
+                <div class="stat-icon"><i class="fas fa-send"></i></div>
+                <div><div class="stat-number" id="statCampaigns">—</div><div class="stat-label">Campagnes envoyées</div></div>
+            </div>
+        </div>
+
+        <!-- Tabs -->
+        <div class="card">
+            <div class="card-header">
+                <div class="tabs" style="border:none;margin:0;flex:1">
+                    <button class="tab-btn active" id="tab-subscribers" onclick="switchTab('subscribers')">
+                        <i class="fas fa-users"></i> Abonnés
+                    </button>
+                    <button class="tab-btn" id="tab-compose" onclick="switchTab('compose')">
+                        <i class="fas fa-pencil-alt"></i> Rédiger
+                    </button>
+                    <button class="tab-btn" id="tab-history" onclick="switchTab('history')">
+                        <i class="fas fa-history"></i> Historique
+                    </button>
+                </div>
+            </div>
+            <div class="card-body">
+
+                <!-- ===== TAB: SUBSCRIBERS ===== -->
+                <div class="tab-pane active" id="pane-subscribers">
+                    <div class="toolbar">
+                        <div class="search-wrap">
+                            <i class="fas fa-search"></i>
+                            <input type="text" id="subSearch" class="search-input" placeholder="Rechercher par email ou nom…">
+                        </div>
+                        <select id="subFilter" class="filter-select">
+                            <option value="all">Tous les statuts</option>
+                            <option value="active">Actifs</option>
+                            <option value="unsubscribed">Désabonnés</option>
+                            <option value="pending">En attente</option>
+                        </select>
+                        <span id="subCount" style="padding:.75rem;color:var(--gray-500);font-size:.875rem;align-self:center"></span>
+                    </div>
+
+                    <div class="table-wrap">
+                        <table>
+                            <thead>
+                                <tr>
+                                    <th><input type="checkbox" id="selectAll" onchange="toggleSelectAll(this)"></th>
+                                    <th>Email</th>
+                                    <th>Nom</th>
+                                    <th>Statut</th>
+                                    <th>Source</th>
+                                    <th>Abonné le</th>
+                                    <th>Actions</th>
+                                </tr>
+                            </thead>
+                            <tbody id="subTableBody">
+                                <tr class="empty-row"><td colspan="7"><div class="spinner" style="width:30px;height:30px;border-width:3px;margin:0 auto .5rem"></div>Chargement…</td></tr>
+                            </tbody>
+                        </table>
+                    </div>
+
+                    <div id="bulkActions" class="hidden" style="display:flex;gap:.75rem;padding:.875rem;background:var(--gray-50);border-radius:var(--radius);margin-top:1rem;align-items:center;flex-wrap:wrap">
+                        <span id="selectedCount" style="font-weight:600;color:var(--gray-700)"></span>
+                        <button class="btn btn-danger btn-sm" onclick="bulkUnsubscribe()"><i class="fas fa-user-minus"></i> Désabonner</button>
+                        <button class="btn btn-secondary btn-sm" onclick="exportSelected()"><i class="fas fa-download"></i> Exporter sélection</button>
+                    </div>
+
+                    <div id="subPagination" class="pagination"></div>
+                </div>
+
+                <!-- ===== TAB: COMPOSE ===== -->
+                <div class="tab-pane" id="pane-compose">
+                    <div class="grid-2">
+
+                        <!-- Left: form -->
+                        <div class="compose-form">
+                            <div class="form-group">
+                                <label><i class="fas fa-tag" style="color:var(--primary)"></i> Objet de l'email *</label>
+                                <input type="text" id="campaignSubject" class="form-control" placeholder="Ex: ✨ Nouvelles ressources ElectroInfo !" maxlength="150" oninput="updatePreview()">
+                                <div class="input-hint"><span id="subjectCount">0</span>/150 caractères</div>
+                            </div>
+
+                            <div class="form-group">
+                                <label><i class="fas fa-heading" style="color:var(--primary)"></i> Titre principal</label>
+                                <input type="text" id="campaignTitle" class="form-control" placeholder="Titre visible dans l'email" oninput="updatePreview()">
+                            </div>
+
+                            <div class="form-group">
+                                <label><i class="fas fa-align-left" style="color:var(--primary)"></i> Accroche (intro)</label>
+                                <input type="text" id="campaignIntro" class="form-control" placeholder="Une phrase d'accroche sous le titre" oninput="updatePreview()">
+                            </div>
+
+                            <div class="form-group">
+                                <label><i class="fas fa-paragraph" style="color:var(--primary)"></i> Corps du message *</label>
+                                <textarea id="campaignBody" class="form-control" rows="8" maxlength="5000" placeholder="Rédigez votre annonce ici. Vous pouvez inclure du HTML simple." oninput="updatePreview(); updateBodyCount()"></textarea>
+                                <div class="input-hint"><span id="bodyCount">0</span>/5000 caractères <span class="char-count" id="htmlHint" style="color:var(--gray-400)">HTML basique supporté</span></div>
+                            </div>
+
+                            <div class="form-group">
+                                <label><i class="fas fa-link" style="color:var(--primary)"></i> Bouton d'action (optionnel)</label>
+                                <div style="display:grid;grid-template-columns:2fr 1fr;gap:.75rem">
+                                    <input type="url" id="campaignBtnUrl" class="form-control" placeholder="https://electroinfo.fr/..." oninput="updatePreview()">
+                                    <input type="text" id="campaignBtnLabel" class="form-control" placeholder="Voir maintenant" oninput="updatePreview()">
+                                </div>
+                            </div>
+
+                            <hr class="divider">
+
+                            <div class="form-group">
+                                <label><i class="fas fa-filter" style="color:var(--primary)"></i> Destinataires</label>
+                                <div class="segment-grid">
+                                    <label class="segment-card selected" id="seg-all" onclick="selectSegment('all', this)">
+                                        <input type="radio" name="segment" value="all" checked>
+                                        <div class="seg-icon"><i class="fas fa-users"></i></div>
+                                        <div class="seg-info">
+                                            <strong>Tous les abonnés</strong>
+                                            <small id="seg-all-count">Chargement…</small>
+                                        </div>
+                                    </label>
+                                    <label class="segment-card" id="seg-new" onclick="selectSegment('new', this)">
+                                        <input type="radio" name="segment" value="new">
+                                        <div class="seg-icon"><i class="fas fa-user-plus"></i></div>
+                                        <div class="seg-info">
+                                            <strong>Nouveaux (30j)</strong>
+                                            <small id="seg-new-count">Chargement…</small>
+                                        </div>
+                                    </label>
+                                </div>
+                            </div>
+
+                            <div class="send-area">
+                                <div class="recipients-count">
+                                    Envoi à <strong id="recipientCount">—</strong> abonné(s) actif(s)
+                                </div>
+                                <div style="display:flex;gap:.75rem;flex-wrap:wrap">
+                                    <button class="btn btn-secondary btn-sm" onclick="saveDraft()"><i class="fas fa-save"></i> Brouillon</button>
+                                    <button class="btn btn-primary" onclick="openSendConfirm()"><i class="fas fa-paper-plane"></i> Envoyer</button>
+                                </div>
+                            </div>
+
+                            <div class="send-progress" id="sendProgress">
+                                <p style="font-size:.875rem;color:var(--gray-600);margin-bottom:.35rem" id="progressLabel">Envoi en cours…</p>
+                                <div class="progress-bar"><div class="progress-fill" id="progressFill" style="width:0%"></div></div>
+                            </div>
+                        </div>
+
+                        <!-- Right: preview -->
+                        <div>
+                            <div style="font-weight:700;color:var(--gray-700);margin-bottom:.875rem;display:flex;align-items:center;gap:.5rem">
+                                <i class="fas fa-eye" style="color:var(--primary)"></i> Aperçu de l'email
+                            </div>
+                            <div class="email-preview-frame">
+                                <div class="email-preview-header">
+                                    <i class="fas fa-envelope"></i>
+                                    <span id="previewSubjectLine">Objet : (aucun)</span>
+                                </div>
+                                <div class="email-preview-body">
+                                    <div class="email-template" id="emailPreview">
+                                        <div class="email-header">
+                                            <h1 id="prev-title" style="font-size:1.5rem;margin-bottom:.5rem">Titre de l'email</h1>
+                                            <p id="prev-intro">Votre accroche ici…</p>
+                                        </div>
+                                        <div class="email-content">
+                                            <div id="prev-body" style="color:#374151;line-height:1.8;white-space:pre-wrap">Le corps de votre message apparaîtra ici.</div>
+                                            <div id="prev-btn-wrap" style="text-align:center;margin-top:1.5rem;display:none">
+                                                <a id="prev-btn" href="#" style="background:#7c3aed;color:white;padding:.75rem 1.75rem;border-radius:.5rem;text-decoration:none;font-weight:700;display:inline-block">Bouton</a>
+                                            </div>
+                                        </div>
+                                        <div class="email-footer">
+                                            <p>Vous recevez cet email car vous êtes abonné à ElectroInfo.</p>
+                                            <p style="margin-top:.5rem"><a href="#" style="color:#9ca3af">Se désabonner</a></p>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- ===== TAB: HISTORY ===== -->
+                <div class="tab-pane" id="pane-history">
+                    <div id="campaignsList">
+                        <div style="text-align:center;padding:2rem;color:var(--gray-400)">
+                            <div class="spinner" style="width:30px;height:30px;border-width:3px;margin:0 auto .5rem"></div>
+                            Chargement des campagnes…
+                        </div>
+                    </div>
+                    <div id="campaignPagination" class="pagination"></div>
+                </div>
+
+            </div>
+        </div>
+
+    </div>
+</main>
+
+<!-- MODAL: SEND CONFIRM -->
+<div id="sendConfirmModal" class="modal-overlay hidden">
+    <div class="modal" style="max-width:460px">
+        <div class="modal-header">
+            <h3><i class="fas fa-paper-plane" style="color:var(--primary)"></i> Confirmer l'envoi</h3>
+            <button class="btn-icon" onclick="$('sendConfirmModal').classList.add('hidden')"><i class="fas fa-times"></i></button>
+        </div>
+        <div class="modal-body">
+            <div style="background:#f0fdf4;border:1px solid #bbf7d0;border-radius:var(--radius);padding:1rem;margin-bottom:1.25rem">
+                <p style="font-size:.9rem;color:var(--gray-700)">Vous êtes sur le point d'envoyer la campagne à :</p>
+                <p style="font-size:1.5rem;font-weight:700;color:var(--success);margin:.5rem 0" id="confirmRecipCount">— abonnés</p>
+                <p style="font-size:.875rem;color:var(--gray-600)">Objet : <strong id="confirmSubjectLine">—</strong></p>
+            </div>
+            <p style="color:var(--gray-600);font-size:.9rem">Cette action est irréversible. Vérifiez l'aperçu avant d'envoyer.</p>
+        </div>
+        <div class="modal-footer">
+            <button class="btn btn-secondary" onclick="$('sendConfirmModal').classList.add('hidden')">Annuler</button>
+            <button class="btn btn-primary" id="confirmSendBtn" onclick="sendCampaign()"><i class="fas fa-paper-plane"></i> Envoyer maintenant</button>
+        </div>
+    </div>
+</div>
+
+<!-- MODAL: IMPORT -->
+<div id="importModal" class="modal-overlay hidden">
+    <div class="modal">
+        <div class="modal-header">
+            <h3><i class="fas fa-upload" style="color:var(--primary)"></i> Importer des abonnés</h3>
+            <button class="btn-icon" onclick="$('importModal').classList.add('hidden')"><i class="fas fa-times"></i></button>
+        </div>
+        <div class="modal-body">
+            <div class="import-drop" id="importDrop" onclick="$('importFile').click()" ondrop="handleImportDrop(event)" ondragover="handleDragOver(event)" ondragleave="this.classList.remove('dragover')">
+                <i class="fas fa-file-csv"></i>
+                <p>Glissez votre fichier CSV ici</p>
+                <small>ou cliquez pour sélectionner — Format: email,nom (une par ligne)</small>
+                <input type="file" id="importFile" accept=".csv,.txt" style="display:none" onchange="processImportFile(this.files[0])">
+            </div>
+            <div id="importPreview" class="hidden" style="margin-top:1.25rem">
+                <div style="background:var(--gray-50);border-radius:var(--radius);padding:1rem;font-family:monospace;font-size:.8rem;max-height:200px;overflow-y:auto;border:1px solid var(--gray-200)" id="importPreviewText"></div>
+                <p style="margin-top:.75rem;font-size:.875rem;color:var(--gray-600)">
+                    <strong id="importCountValid">0</strong> adresses valides trouvées.
+                    <span id="importCountSkipped" style="color:var(--warning)"></span>
+                </p>
+            </div>
+            <div class="form-group" style="margin-top:1.25rem">
+                <label style="display:flex;align-items:center;gap:.5rem;cursor:pointer">
+                    <input type="checkbox" id="importSkipDuplicates" checked style="width:16px;height:16px">
+                    Ignorer les doublons existants
+                </label>
+            </div>
+        </div>
+        <div class="modal-footer">
+            <button class="btn btn-secondary" onclick="$('importModal').classList.add('hidden')">Annuler</button>
+            <button class="btn btn-primary" id="importBtn" disabled onclick="confirmImport()"><i class="fas fa-upload"></i> Importer</button>
+        </div>
+    </div>
+</div>
+
+<!-- MODAL: VIEW CAMPAIGN -->
+<div id="viewCampaignModal" class="modal-overlay hidden">
+    <div class="modal" style="max-width:700px">
+        <div class="modal-header">
+            <h3 id="viewCampaignTitle"><i class="fas fa-envelope" style="color:var(--primary)"></i> Campagne</h3>
+            <button class="btn-icon" onclick="$('viewCampaignModal').classList.add('hidden')"><i class="fas fa-times"></i></button>
+        </div>
+        <div class="modal-body" id="viewCampaignBody"></div>
+    </div>
+</div>
+
+<!-- TOAST CONTAINER -->
+<div class="toast-container" id="toastContainer"></div>
+
+<script type="module" src="/admin-newsletter.js"></script>
+</body>
+</html>

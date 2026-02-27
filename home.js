@@ -369,7 +369,7 @@ function createArticleCard(article) {
 }
 
 // ============================================
-// NEWSLETTER
+// NEWSLETTER - CORRIGÉ POUR "Bulletin d'information"
 // ============================================
 window.openNewsletterModal = function() {
     document.getElementById('newsletterModal').classList.remove('hidden');
@@ -395,8 +395,16 @@ document.getElementById('newsletterFormHome')?.addEventListener('submit', async 
 async function subscribeNewsletter(email) {
     email = email.trim();
     
+    // Validation email
+    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+    if (!emailRegex.test(email)) {
+        showNotification('Veuillez entrer un email valide', 'error');
+        return;
+    }
+    
     try {
-        const emailDoc = await getDocs(query(collection(db, 'newsletter'), where('email', '==', email)));
+        // Vérifie si l'email existe déjà (dans Bulletin d'information)
+        const emailDoc = await getDocs(query(collection(db, "Bulletin d'information"), where('email', '==', email.toLowerCase())));
 
         if (!emailDoc.empty) {
             showNotification('Vous êtes déjà inscrit !', 'info');
@@ -404,9 +412,15 @@ async function subscribeNewsletter(email) {
             return;
         }
 
-        await addDoc(collection(db, 'newsletter'), {
-            email: email,
-            subscribedAt: new Date()
+        // Ajoute dans Bulletin d'information (collection avec accent)
+        await addDoc(collection(db, "Bulletin d'information"), {
+            Email: email,
+            email: email.toLowerCase(),
+            nom: '',
+            name: '',
+            status: 'active',
+            source: 'website',
+            'abonnéAt': new Date()
         });
 
         showNotification('Merci pour votre inscription ! 🎉', 'success');
@@ -416,7 +430,7 @@ async function subscribeNewsletter(email) {
         document.getElementById('newsletterEmailHome').value = '';
     } catch (error) {
         console.error('Erreur inscription newsletter:', error);
-        showNotification('Erreur lors de l\'inscription', 'error');
+        showNotification('Erreur lors de l\'inscription: ' + error.message, 'error');
     }
 }
 

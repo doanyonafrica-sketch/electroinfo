@@ -330,9 +330,39 @@ function showError() {
 const mobileToggle = document.getElementById('mobileToggle');
 const navMenu = document.getElementById('navMenu');
 
+function closeMobileNav() {
+    if (!navMenu) return;
+    navMenu.classList.remove('active');
+    const icon = mobileToggle?.querySelector('i');
+    if (icon) icon.className = 'fas fa-bars';
+}
+
+function openMobileNav() {
+    if (!navMenu) return;
+    navMenu.classList.add('active');
+    const icon = mobileToggle?.querySelector('i');
+    if (icon) icon.className = 'fas fa-times';
+}
+
 if (mobileToggle && navMenu) {
-    mobileToggle.addEventListener('click', () => {
-        navMenu.classList.toggle('active');
+    mobileToggle.addEventListener('click', (e) => {
+        e.stopPropagation();
+        const isOpen = navMenu.classList.contains('active');
+        isOpen ? closeMobileNav() : openMobileNav();
+    });
+
+    // Fermer quand on clique sur un lien de navigation
+    document.querySelectorAll('.nav-link').forEach(link => {
+        link.addEventListener('click', closeMobileNav);
+    });
+
+    // Fermer quand on clique en dehors
+    document.addEventListener('click', (e) => {
+        if (navMenu.classList.contains('active') &&
+            !navMenu.contains(e.target) &&
+            !mobileToggle.contains(e.target)) {
+            closeMobileNav();
+        }
     });
 }
 
