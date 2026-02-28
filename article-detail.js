@@ -514,16 +514,23 @@ function setupReactions(article) {
 }
 
 function setupShareButtons(article) {
-    const url = encodeURIComponent(window.location.href);
+    const pageUrl = encodeURIComponent(window.location.href);
     const title = encodeURIComponent(article.title);
+    const imageUrl = article.imageUrl || 'https://electroinfo.online/images/logo.png';
+    const summary = encodeURIComponent(article.summary || article.excerpt || article.title);
     
     const twitterBtn = document.getElementById('twitterShare');
     const linkedinBtn = document.getElementById('linkedinShare');
     const whatsappBtn = document.getElementById('whatsappShare');
     
-    if (twitterBtn) twitterBtn.href = `https://twitter.com/intent/tweet?url=${url}&text=${title}`;
-    if (linkedinBtn) linkedinBtn.href = `https://www.linkedin.com/sharing/share-offsite/?url=${url}`;
-    if (whatsappBtn) whatsappBtn.href = `https://wa.me/?text=${title}%20${url}`;
+    // Twitter: image affichée via og:image (déjà mis à jour dans updatePageMeta)
+    if (twitterBtn) twitterBtn.href = `https://twitter.com/intent/tweet?url=${pageUrl}&text=${title}`;
+    
+    // LinkedIn: image affichée via og:image (déjà mis à jour dans updatePageMeta)
+    if (linkedinBtn) linkedinBtn.href = `https://www.linkedin.com/sharing/share-offsite/?url=${pageUrl}`;
+    
+    // WhatsApp: on inclut le titre + l'URL dans le message
+    if (whatsappBtn) whatsappBtn.href = `https://wa.me/?text=${title}%0A${pageUrl}`;
 }
 
 // ============================================
@@ -795,6 +802,38 @@ function showNotification(message, type = 'info') {
         setTimeout(() => el.remove(), 300);
     }, 3000);
 }
+
+// ============================================
+// FONCTIONS GLOBALES (appelées depuis le HTML)
+// ============================================
+window.copyLink = function() {
+    navigator.clipboard.writeText(window.location.href)
+        .then(() => showNotification('Lien copié !', 'success'))
+        .catch(() => {
+            // Fallback pour les navigateurs plus anciens
+            const el = document.createElement('input');
+            el.value = window.location.href;
+            document.body.appendChild(el);
+            el.select();
+            document.execCommand('copy');
+            document.body.removeChild(el);
+            showNotification('Lien copié !', 'success');
+        });
+};
+
+window.filterByTag = function(tag) {
+    window.location.href = `/articles.html?tag=${encodeURIComponent(tag)}`;
+};
+
+window.openNewsletterModal = function() {
+    const modal = document.getElementById('newsletterModal');
+    if (modal) modal.classList.remove('hidden');
+};
+
+window.closeNewsletterModal = function() {
+    const modal = document.getElementById('newsletterModal');
+    if (modal) modal.classList.add('hidden');
+};
 
 // ============================================
 // ÉCOUTEURS RÉSEAU

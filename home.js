@@ -1,6 +1,6 @@
 // home.js - Script pour la page d'accueil avec CACHE LOCAL
 import { initializeApp } from 'https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js';
-import { getFirestore, collection, getDocs, query, orderBy, limit, where, addDoc, enableIndexedDbPersistence } from 'https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js';
+import { getFirestore, collection, getDocs, doc, getDoc, query, orderBy, limit, where, addDoc, enableIndexedDbPersistence } from 'https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js';
 import { getAuth, onAuthStateChanged, signOut } from 'https://www.gstatic.com/firebasejs/10.7.1/firebase-auth.js';
 
 // Configuration Firebase
@@ -102,26 +102,42 @@ onAuthStateChanged(auth, async (user) => {
         loginBtn.classList.add('hidden');
         userMenu.classList.remove('hidden');
 
-        const displayName = user.displayName || user.email.split('@')[0];
+        // Affichage immédiat avec les données Firebase Auth
+        let displayName = user.displayName || user.email.split('@')[0];
+        let avatarUrl = user.photoURL || `https://ui-avatars.com/api/?name=${encodeURIComponent(displayName)}&background=1e40af&color=fff`;
+
         document.getElementById('userName').textContent = displayName;
         document.getElementById('userNameDropdown').textContent = displayName;
         document.getElementById('userEmailDropdown').textContent = user.email;
-
-        const avatarUrl = user.photoURL || `https://ui-avatars.com/api/?name=${encodeURIComponent(displayName)}&background=1e40af&color=fff`;
         document.getElementById('userAvatar').src = avatarUrl;
         document.getElementById('userAvatarDropdown').src = avatarUrl;
 
+        // Mise à jour depuis Firestore (priorité : photo + nom personnalisés)
         try {
-            const userDoc = await getDocs(query(collection(db, 'users'), where('__name__', '==', user.uid)));
-            if (!userDoc.empty) {
-                const userData = userDoc.docs[0].data();
+            const userDoc = await getDoc(doc(db, 'users', user.uid));
+            if (userDoc.exists()) {
+                const userData = userDoc.data();
+
+                // Mettre à jour le nom si personnalisé dans Firestore
+                if (userData.displayName) {
+                    document.getElementById('userName').textContent = userData.displayName;
+                    document.getElementById('userNameDropdown').textContent = userData.displayName;
+                }
+
+                // Mettre à jour la photo depuis Firestore (plus fiable que Firebase Auth)
+                if (userData.photoURL) {
+                    document.getElementById('userAvatar').src = userData.photoURL;
+                    document.getElementById('userAvatarDropdown').src = userData.photoURL;
+                }
+
+                // Vérifier le rôle admin
                 if (userData.role === 'admin' || userData.role === 'superadmin') {
                     adminLink.classList.remove('hidden');
                     adminDivider.classList.remove('hidden');
                 }
             }
         } catch (error) {
-            console.error('Erreur vérification admin:', error);
+            console.error('Erreur chargement profil utilisateur:', error);
         }
     } else {
         loginBtn.classList.remove('hidden');

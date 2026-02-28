@@ -1,0 +1,902 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Mon Profil | ElectroInfo</title>
+    <meta name="description" content="Gérez votre profil ElectroInfo">
+
+    <!-- Favicons -->
+    <link rel="icon" type="image/x-icon" href="/images/favicon.ico">
+    <link rel="icon" type="image/png" sizes="48x48" href="/images/logo-small.png">
+    <link rel="apple-touch-icon" sizes="180x180" href="/images/apple-touch-icon.png">
+
+    <!-- Styles -->
+    <link rel="stylesheet" href="/styles.css">
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
+
+    <style>
+        /* ============================================
+           PAGE PROFIL - STYLES SPÉCIFIQUES
+           ============================================ */
+
+        .profile-page {
+            min-height: calc(100vh - 64px);
+            background: var(--bg-color);
+            padding: 2rem 0 4rem;
+        }
+
+        /* ---- HERO BANNER ---- */
+        .profile-banner {
+            background: linear-gradient(135deg, var(--primary) 0%, #0f2f80 60%, #1e3a8a 100%);
+            height: 180px;
+            position: relative;
+            overflow: hidden;
+        }
+        .profile-banner::before {
+            content: '';
+            position: absolute;
+            inset: 0;
+            background: url("data:image/svg+xml,%3Csvg width='60' height='60' viewBox='0 0 60 60' xmlns='http://www.w3.org/2000/svg'%3E%3Cg fill='none' fill-rule='evenodd'%3E%3Cg fill='%23ffffff' fill-opacity='0.04'%3E%3Cpath d='M36 34v-4h-2v4h-4v2h4v4h2v-4h4v-2h-4zm0-30V0h-2v4h-4v2h4v4h2V6h4V4h-4zM6 34v-4H4v4H0v2h4v4h2v-4h4v-2H6zM6 4V0H4v4H0v2h4v4h2V6h4V4H6z'/%3E%3C/g%3E%3C/g%3E%3C/svg%3E");
+        }
+        .profile-banner-edit {
+            position: absolute;
+            bottom: 12px;
+            right: 16px;
+            background: rgba(255,255,255,0.15);
+            backdrop-filter: blur(8px);
+            border: 1px solid rgba(255,255,255,0.25);
+            color: white;
+            padding: 6px 14px;
+            border-radius: 20px;
+            font-size: 0.8rem;
+            cursor: pointer;
+            transition: background 0.2s;
+            display: flex;
+            align-items: center;
+            gap: 6px;
+        }
+        .profile-banner-edit:hover { background: rgba(255,255,255,0.25); }
+
+        /* ---- AVATAR ZONE ---- */
+        .profile-header {
+            max-width: 900px;
+            margin: 0 auto;
+            padding: 0 1rem;
+            position: relative;
+        }
+        .profile-avatar-wrapper {
+            position: relative;
+            display: inline-block;
+            margin-top: -60px;
+            margin-left: 1.5rem;
+        }
+        .profile-avatar-img {
+            width: 120px;
+            height: 120px;
+            border-radius: 50%;
+            border: 4px solid white;
+            object-fit: cover;
+            box-shadow: 0 4px 20px rgba(0,0,0,0.2);
+            background: #e5e7eb;
+        }
+        .avatar-edit-btn {
+            position: absolute;
+            bottom: 4px;
+            right: 4px;
+            width: 34px;
+            height: 34px;
+            border-radius: 50%;
+            background: var(--primary);
+            color: white;
+            border: 2px solid white;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 0.85rem;
+            box-shadow: var(--shadow);
+            transition: background 0.2s, transform 0.15s;
+        }
+        .avatar-edit-btn:hover {
+            background: var(--primary-dark);
+            transform: scale(1.1);
+        }
+
+        .profile-info-header {
+            display: flex;
+            align-items: flex-end;
+            justify-content: space-between;
+            flex-wrap: wrap;
+            gap: 1rem;
+            padding: 0.75rem 0 1.5rem;
+        }
+        .profile-name-block {
+            margin-left: 1.5rem;
+        }
+        .profile-display-name {
+            font-size: 1.5rem;
+            font-weight: 700;
+            color: var(--gray-900);
+            margin-bottom: 0.2rem;
+        }
+        .profile-email {
+            color: var(--gray-500);
+            font-size: 0.9rem;
+            display: flex;
+            align-items: center;
+            gap: 6px;
+        }
+        .profile-badge {
+            display: inline-flex;
+            align-items: center;
+            gap: 4px;
+            background: #dbeafe;
+            color: var(--primary);
+            font-size: 0.75rem;
+            font-weight: 600;
+            padding: 3px 10px;
+            border-radius: 20px;
+            margin-left: 8px;
+        }
+
+        /* ---- TABS ---- */
+        .profile-tabs {
+            max-width: 900px;
+            margin: 0 auto 0;
+            padding: 0 1rem;
+            display: flex;
+            border-bottom: 2px solid var(--border-color);
+            gap: 0;
+        }
+        .profile-tab {
+            padding: 0.75rem 1.25rem;
+            font-size: 0.9rem;
+            font-weight: 500;
+            color: var(--gray-500);
+            cursor: pointer;
+            border-bottom: 2px solid transparent;
+            margin-bottom: -2px;
+            display: flex;
+            align-items: center;
+            gap: 7px;
+            transition: color 0.2s;
+        }
+        .profile-tab:hover { color: var(--primary); }
+        .profile-tab.active {
+            color: var(--primary);
+            border-bottom-color: var(--primary);
+            font-weight: 600;
+        }
+
+        /* ---- CONTENT PANELS ---- */
+        .profile-content {
+            max-width: 900px;
+            margin: 2rem auto 0;
+            padding: 0 1rem;
+        }
+        .tab-panel { display: none; }
+        .tab-panel.active { display: block; }
+
+        /* ---- CARD ---- */
+        .profile-card {
+            background: var(--card-bg);
+            border: 1px solid var(--border-color);
+            border-radius: var(--radius-lg);
+            padding: 1.75rem;
+            margin-bottom: 1.5rem;
+            box-shadow: var(--shadow-sm);
+        }
+        .profile-card-title {
+            font-size: 1rem;
+            font-weight: 700;
+            color: var(--gray-800);
+            margin-bottom: 1.25rem;
+            padding-bottom: 0.75rem;
+            border-bottom: 1px solid var(--border-color);
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+        .profile-card-title i { color: var(--primary); }
+
+        /* ---- FORM ---- */
+        .form-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 1.25rem;
+        }
+        .form-grid .full-width { grid-column: 1 / -1; }
+        @media(max-width: 600px) { .form-grid { grid-template-columns: 1fr; } }
+
+        .form-field label {
+            display: block;
+            font-size: 0.85rem;
+            font-weight: 600;
+            color: var(--gray-700);
+            margin-bottom: 0.4rem;
+        }
+        .form-field .input {
+            width: 100%;
+            padding: 0.6rem 0.85rem;
+            border: 1px solid var(--border-color);
+            border-radius: var(--radius);
+            font-size: 0.9rem;
+            color: var(--gray-800);
+            background: var(--card-bg);
+            transition: border-color 0.2s, box-shadow 0.2s;
+        }
+        .form-field .input:focus {
+            outline: none;
+            border-color: var(--primary);
+            box-shadow: 0 0 0 3px rgba(30,64,175,0.1);
+        }
+        .form-field .input:disabled {
+            background: var(--gray-50);
+            color: var(--gray-400);
+            cursor: not-allowed;
+        }
+        .form-hint {
+            font-size: 0.78rem;
+            color: var(--gray-400);
+            margin-top: 0.3rem;
+        }
+
+        .form-actions {
+            display: flex;
+            gap: 0.75rem;
+            justify-content: flex-end;
+            margin-top: 1.5rem;
+            padding-top: 1.25rem;
+            border-top: 1px solid var(--border-color);
+        }
+
+        /* ---- AVATAR PICKER MODAL ---- */
+        .modal-overlay {
+            position: fixed;
+            inset: 0;
+            background: rgba(0,0,0,0.5);
+            z-index: 2000;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 1rem;
+            animation: fadeIn 0.15s ease;
+        }
+        @keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
+
+        .avatar-modal {
+            background: white;
+            border-radius: var(--radius-lg);
+            padding: 1.75rem;
+            width: 100%;
+            max-width: 540px;
+            box-shadow: 0 20px 60px rgba(0,0,0,0.2);
+            animation: slideUp 0.2s ease;
+        }
+        @keyframes slideUp { from { transform: translateY(20px); opacity: 0; } to { transform: translateY(0); opacity: 1; } }
+
+        .avatar-modal-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 1.5rem;
+        }
+        .avatar-modal-header h3 { font-size: 1.1rem; font-weight: 700; }
+        .modal-close-btn {
+            width: 32px; height: 32px;
+            border-radius: 50%;
+            border: none;
+            background: var(--gray-100);
+            cursor: pointer;
+            display: flex; align-items: center; justify-content: center;
+            color: var(--gray-600);
+            transition: background 0.2s;
+        }
+        .modal-close-btn:hover { background: var(--gray-200); }
+
+        /* Upload zone */
+        .upload-zone {
+            border: 2px dashed var(--border-color);
+            border-radius: var(--radius-lg);
+            padding: 2rem 1rem;
+            text-align: center;
+            cursor: pointer;
+            transition: border-color 0.2s, background 0.2s;
+            margin-bottom: 1.5rem;
+            position: relative;
+        }
+        .upload-zone:hover, .upload-zone.drag-over {
+            border-color: var(--primary);
+            background: #eff6ff;
+        }
+        .upload-zone input[type="file"] {
+            position: absolute;
+            inset: 0;
+            opacity: 0;
+            cursor: pointer;
+        }
+        .upload-icon {
+            font-size: 2rem;
+            color: var(--primary);
+            margin-bottom: 0.75rem;
+        }
+        .upload-zone p { color: var(--gray-500); font-size: 0.875rem; }
+        .upload-zone strong { color: var(--primary); }
+
+        /* Crop preview */
+        .crop-preview-section { display: none; text-align: center; margin-bottom: 1.5rem; }
+        .crop-preview-section.show { display: block; }
+        .crop-canvas-wrapper {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 2rem;
+            flex-wrap: wrap;
+        }
+        #cropCanvas {
+            border-radius: var(--radius);
+            border: 1px solid var(--border-color);
+            max-width: 240px;
+            max-height: 240px;
+            cursor: crosshair;
+        }
+        .preview-circle {
+            width: 100px;
+            height: 100px;
+            border-radius: 50%;
+            overflow: hidden;
+            border: 3px solid var(--primary);
+            box-shadow: var(--shadow);
+        }
+        .preview-circle img { width: 100%; height: 100%; object-fit: cover; }
+
+        /* Avatar presets */
+        .presets-title {
+            font-size: 0.85rem;
+            font-weight: 600;
+            color: var(--gray-600);
+            margin-bottom: 0.75rem;
+            display: flex;
+            align-items: center;
+            gap: 6px;
+        }
+        .presets-title::after {
+            content: '';
+            flex: 1;
+            height: 1px;
+            background: var(--border-color);
+        }
+        .avatar-presets-grid {
+            display: grid;
+            grid-template-columns: repeat(6, 1fr);
+            gap: 0.6rem;
+            margin-bottom: 1.5rem;
+        }
+        @media(max-width:480px) { .avatar-presets-grid { grid-template-columns: repeat(5, 1fr); } }
+
+        .preset-avatar {
+            width: 100%;
+            aspect-ratio: 1;
+            border-radius: 50%;
+            cursor: pointer;
+            border: 3px solid transparent;
+            transition: border-color 0.15s, transform 0.15s;
+            object-fit: cover;
+        }
+        .preset-avatar:hover { transform: scale(1.1); }
+        .preset-avatar.selected { border-color: var(--primary); }
+
+        /* Color avatars (generated) */
+        .color-avatar-option {
+            width: 100%;
+            aspect-ratio: 1;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1.1rem;
+            font-weight: 700;
+            color: white;
+            cursor: pointer;
+            border: 3px solid transparent;
+            transition: border-color 0.15s, transform 0.15s;
+        }
+        .color-avatar-option:hover { transform: scale(1.1); }
+        .color-avatar-option.selected { border-color: var(--primary); }
+
+        /* ---- STATS GRID ---- */
+        .stats-grid {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 1rem;
+            margin-bottom: 1.5rem;
+        }
+        @media(max-width:600px) { .stats-grid { grid-template-columns: repeat(2, 1fr); } }
+
+        .stat-card {
+            background: var(--card-bg);
+            border: 1px solid var(--border-color);
+            border-radius: var(--radius-lg);
+            padding: 1.25rem;
+            text-align: center;
+            box-shadow: var(--shadow-sm);
+        }
+        .stat-value {
+            font-size: 1.75rem;
+            font-weight: 800;
+            color: var(--primary);
+            line-height: 1;
+        }
+        .stat-label {
+            font-size: 0.8rem;
+            color: var(--gray-500);
+            margin-top: 0.3rem;
+        }
+
+        /* ---- ACTIVITY LIST ---- */
+        .activity-list { list-style: none; }
+        .activity-item {
+            display: flex;
+            gap: 1rem;
+            padding: 0.9rem 0;
+            border-bottom: 1px solid var(--border-color);
+            align-items: flex-start;
+        }
+        .activity-item:last-child { border-bottom: none; }
+        .activity-icon {
+            width: 36px; height: 36px;
+            border-radius: 50%;
+            display: flex; align-items: center; justify-content: center;
+            font-size: 0.875rem;
+            flex-shrink: 0;
+        }
+        .activity-icon.comment { background: #dbeafe; color: var(--primary); }
+        .activity-icon.like { background: #fee2e2; color: #dc2626; }
+        .activity-icon.view { background: #d1fae5; color: #059669; }
+        .activity-text { font-size: 0.875rem; color: var(--gray-700); line-height: 1.4; }
+        .activity-time { font-size: 0.78rem; color: var(--gray-400); margin-top: 0.2rem; }
+
+        /* ---- DANGER ZONE ---- */
+        .danger-card {
+            background: #fff5f5;
+            border: 1px solid #fecaca;
+        }
+        .danger-card .profile-card-title { color: #dc2626; }
+        .danger-card .profile-card-title i { color: #dc2626; }
+
+        .btn-danger {
+            background: #dc2626;
+            color: white;
+            border: none;
+            padding: 0.6rem 1.25rem;
+            border-radius: var(--radius);
+            font-size: 0.875rem;
+            font-weight: 600;
+            cursor: pointer;
+            transition: background 0.2s;
+        }
+        .btn-danger:hover { background: #b91c1c; }
+
+        /* ---- PASSWORD STRENGTH ---- */
+        .password-strength {
+            margin-top: 0.4rem;
+            height: 4px;
+            background: var(--gray-200);
+            border-radius: 2px;
+            overflow: hidden;
+        }
+        .password-strength-bar {
+            height: 100%;
+            width: 0;
+            border-radius: 2px;
+            transition: width 0.3s, background 0.3s;
+        }
+
+        /* ---- SAVE TOAST ---- */
+        .save-toast {
+            position: fixed;
+            bottom: 2rem;
+            right: 2rem;
+            background: #065f46;
+            color: white;
+            padding: 0.875rem 1.5rem;
+            border-radius: var(--radius-lg);
+            font-size: 0.9rem;
+            font-weight: 500;
+            box-shadow: var(--shadow-lg);
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+            z-index: 9999;
+            transform: translateY(100px);
+            opacity: 0;
+            transition: transform 0.3s, opacity 0.3s;
+        }
+        .save-toast.show { transform: translateY(0); opacity: 1; }
+
+        /* ---- LOADING ---- */
+        .page-loading {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            min-height: 60vh;
+            flex-direction: column;
+            gap: 1rem;
+            color: var(--gray-400);
+        }
+        .page-loading i { font-size: 2rem; }
+
+        /* ---- NOT CONNECTED ---- */
+        .not-connected {
+            max-width: 420px;
+            margin: 5rem auto;
+            text-align: center;
+            padding: 2rem;
+        }
+        .not-connected i { font-size: 3rem; color: var(--gray-300); margin-bottom: 1rem; }
+        .not-connected h2 { font-size: 1.25rem; color: var(--gray-700); margin-bottom: 0.5rem; }
+        .not-connected p { color: var(--gray-500); margin-bottom: 1.5rem; }
+    </style>
+</head>
+<body>
+
+    <!-- Navigation -->
+    <nav class="navbar">
+        <div class="container">
+            <div class="nav-brand">
+                <img src="/images/logo-small.png" alt="Logo ElectroInfo" class="nav-logo">
+                <span>ELECTROINFO</span>
+            </div>
+            <div class="nav-menu" id="navMenu">
+                <a href="/index.html" class="nav-link"><i class="fas fa-home"></i> Accueil</a>
+                <a href="/articles.html" class="nav-link"><i class="fas fa-newspaper"></i> Articles</a>
+                <a href="/courses.html" class="nav-link"><i class="fas fa-graduation-cap"></i> Cours</a>
+                <a href="/about.html" class="nav-link"><i class="fas fa-info-circle"></i> À propos</a>
+                <a href="/contact.html" class="nav-link"><i class="fas fa-envelope"></i> Contact</a>
+            </div>
+            <div class="nav-actions">
+                <button id="mobileMenuToggle" class="mobile-toggle" aria-label="Menu">
+                    <i class="fas fa-bars"></i>
+                </button>
+            </div>
+        </div>
+    </nav>
+
+    <!-- Page Content -->
+    <div class="profile-page">
+
+        <!-- Loading -->
+        <div id="pageLoading" class="page-loading">
+            <i class="fas fa-spinner fa-spin"></i>
+            <span>Chargement du profil...</span>
+        </div>
+
+        <!-- Not Connected -->
+        <div id="notConnected" class="not-connected hidden">
+            <i class="fas fa-user-lock"></i>
+            <h2>Connexion requise</h2>
+            <p>Vous devez être connecté pour accéder à votre profil.</p>
+            <a href="/auth.html" class="btn btn-primary">
+                <i class="fas fa-sign-in-alt"></i> Se connecter
+            </a>
+        </div>
+
+        <!-- Main Profile (shown when connected) -->
+        <div id="profileMain" class="hidden">
+
+            <!-- Banner -->
+            <div class="profile-banner">
+                <button class="profile-banner-edit" id="bannerEditBtn">
+                    <i class="fas fa-camera"></i> Modifier
+                </button>
+            </div>
+
+            <!-- Header -->
+            <div class="profile-header">
+                <div style="display: flex; align-items: flex-end; gap: 0; flex-wrap: wrap;">
+                    <div class="profile-avatar-wrapper">
+                        <img id="profileAvatarDisplay" src="" alt="Avatar" class="profile-avatar-img">
+                        <button class="avatar-edit-btn" id="openAvatarModal" title="Changer la photo">
+                            <i class="fas fa-camera"></i>
+                        </button>
+                    </div>
+                    <div class="profile-info-header" style="flex: 1; min-width: 200px;">
+                        <div class="profile-name-block">
+                            <div class="profile-display-name" id="headerDisplayName">Chargement...</div>
+                            <div class="profile-email">
+                                <i class="fas fa-envelope"></i>
+                                <span id="headerEmail"></span>
+                                <span class="profile-badge" id="headerBadge" style="display:none">
+                                    <i class="fas fa-shield-alt"></i> Admin
+                                </span>
+                            </div>
+                        </div>
+                        <div>
+                            <a href="/auth.html" id="logoutHeaderBtn" class="btn btn-secondary" style="font-size:0.85rem;padding:0.5rem 1rem;">
+                                <i class="fas fa-sign-out-alt"></i> Déconnexion
+                            </a>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Tabs -->
+            <div class="profile-tabs">
+                <div class="profile-tab active" data-tab="infos">
+                    <i class="fas fa-user"></i> Informations
+                </div>
+                <div class="profile-tab" data-tab="security">
+                    <i class="fas fa-lock"></i> Sécurité
+                </div>
+                <div class="profile-tab" data-tab="activity">
+                    <i class="fas fa-chart-bar"></i> Activité
+                </div>
+                <div class="profile-tab" data-tab="preferences">
+                    <i class="fas fa-sliders-h"></i> Préférences
+                </div>
+            </div>
+
+            <!-- Content -->
+            <div class="profile-content">
+
+                <!-- ===== TAB: INFORMATIONS ===== -->
+                <div class="tab-panel active" id="tab-infos">
+
+                    <div class="profile-card">
+                        <div class="profile-card-title">
+                            <i class="fas fa-id-card"></i> Informations personnelles
+                        </div>
+                        <div class="form-grid">
+                            <div class="form-field">
+                                <label for="fieldDisplayName">Nom d'affichage</label>
+                                <input type="text" id="fieldDisplayName" class="input" placeholder="Votre nom">
+                            </div>
+                            <div class="form-field">
+                                <label for="fieldEmail">Adresse email</label>
+                                <input type="email" id="fieldEmail" class="input" disabled>
+                                <p class="form-hint"><i class="fas fa-info-circle"></i> L'email ne peut pas être modifié ici.</p>
+                            </div>
+                            <div class="form-field full-width">
+                                <label for="fieldBio">Bio</label>
+                                <textarea id="fieldBio" class="input" rows="3" placeholder="Parlez de vous en quelques mots..."></textarea>
+                            </div>
+                            <div class="form-field">
+                                <label for="fieldLocation">Localisation</label>
+                                <input type="text" id="fieldLocation" class="input" placeholder="Paris, France">
+                            </div>
+                            <div class="form-field">
+                                <label for="fieldWebsite">Site web</label>
+                                <input type="url" id="fieldWebsite" class="input" placeholder="https://monsite.fr">
+                            </div>
+                        </div>
+                        <div class="form-actions">
+                            <button class="btn btn-secondary" id="cancelInfoBtn">Annuler</button>
+                            <button class="btn btn-primary" id="saveInfoBtn">
+                                <i class="fas fa-save"></i> Enregistrer
+                            </button>
+                        </div>
+                    </div>
+
+                </div>
+
+                <!-- ===== TAB: SÉCURITÉ ===== -->
+                <div class="tab-panel" id="tab-security">
+
+                    <div class="profile-card">
+                        <div class="profile-card-title">
+                            <i class="fas fa-key"></i> Changer le mot de passe
+                        </div>
+                        <div class="form-grid">
+                            <div class="form-field full-width">
+                                <label for="fieldCurrentPwd">Mot de passe actuel</label>
+                                <input type="password" id="fieldCurrentPwd" class="input" placeholder="••••••••">
+                            </div>
+                            <div class="form-field">
+                                <label for="fieldNewPwd">Nouveau mot de passe</label>
+                                <input type="password" id="fieldNewPwd" class="input" placeholder="••••••••">
+                                <div class="password-strength">
+                                    <div class="password-strength-bar" id="pwdStrengthBar"></div>
+                                </div>
+                                <p class="form-hint" id="pwdStrengthText"></p>
+                            </div>
+                            <div class="form-field">
+                                <label for="fieldConfirmPwd">Confirmer le mot de passe</label>
+                                <input type="password" id="fieldConfirmPwd" class="input" placeholder="••••••••">
+                            </div>
+                        </div>
+                        <div class="form-actions">
+                            <button class="btn btn-primary" id="savePwdBtn">
+                                <i class="fas fa-lock"></i> Mettre à jour
+                            </button>
+                        </div>
+                    </div>
+
+                    <div class="profile-card">
+                        <div class="profile-card-title">
+                            <i class="fas fa-shield-alt"></i> Sessions actives
+                        </div>
+                        <div id="sessionInfo" style="color: var(--gray-600); font-size: 0.9rem;">
+                            <div style="display:flex;align-items:center;gap:12px;padding:0.75rem 0;">
+                                <div style="width:40px;height:40px;background:#dbeafe;border-radius:50%;display:flex;align-items:center;justify-content:center;color:var(--primary);">
+                                    <i class="fas fa-desktop"></i>
+                                </div>
+                                <div>
+                                    <strong>Session actuelle</strong>
+                                    <p style="font-size:0.8rem;color:var(--gray-400)" id="sessionBrowser"></p>
+                                </div>
+                                <span style="margin-left:auto;font-size:0.78rem;background:#d1fae5;color:#065f46;padding:3px 10px;border-radius:20px;font-weight:600;">Actif</span>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="profile-card danger-card">
+                        <div class="profile-card-title">
+                            <i class="fas fa-exclamation-triangle"></i> Zone de danger
+                        </div>
+                        <p style="font-size:0.875rem;color:var(--gray-600);margin-bottom:1rem;">
+                            La suppression de votre compte est irréversible. Toutes vos données seront définitivement effacées.
+                        </p>
+                        <button class="btn-danger" id="deleteAccountBtn">
+                            <i class="fas fa-trash-alt"></i> Supprimer mon compte
+                        </button>
+                    </div>
+
+                </div>
+
+                <!-- ===== TAB: ACTIVITÉ ===== -->
+                <div class="tab-panel" id="tab-activity">
+
+                    <div class="stats-grid">
+                        <div class="stat-card">
+                            <div class="stat-value" id="statComments">0</div>
+                            <div class="stat-label"><i class="fas fa-comment"></i> Commentaires</div>
+                        </div>
+                        <div class="stat-card">
+                            <div class="stat-value" id="statReactions">0</div>
+                            <div class="stat-label"><i class="fas fa-heart"></i> Réactions</div>
+                        </div>
+                        <div class="stat-card">
+                            <div class="stat-value" id="statDays">0</div>
+                            <div class="stat-label"><i class="fas fa-calendar-alt"></i> Jours membre</div>
+                        </div>
+                    </div>
+
+                    <div class="profile-card">
+                        <div class="profile-card-title">
+                            <i class="fas fa-history"></i> Activité récente
+                        </div>
+                        <ul class="activity-list" id="activityList">
+                            <li style="padding:1.5rem;text-align:center;color:var(--gray-400);">
+                                <i class="fas fa-clock"></i> Aucune activité récente
+                            </li>
+                        </ul>
+                    </div>
+
+                </div>
+
+                <!-- ===== TAB: PRÉFÉRENCES ===== -->
+                <div class="tab-panel" id="tab-preferences">
+
+                    <div class="profile-card">
+                        <div class="profile-card-title">
+                            <i class="fas fa-bell"></i> Notifications
+                        </div>
+                        <div style="display:flex;flex-direction:column;gap:1.1rem;">
+                            <label class="pref-toggle" style="display:flex;align-items:center;justify-content:space-between;cursor:pointer;">
+                                <div>
+                                    <div style="font-weight:600;font-size:0.9rem;">Nouveaux articles</div>
+                                    <div style="font-size:0.8rem;color:var(--gray-400);">Recevoir un email pour chaque nouvel article</div>
+                                </div>
+                                <input type="checkbox" id="prefArticles" style="width:18px;height:18px;accent-color:var(--primary);" checked>
+                            </label>
+                            <label class="pref-toggle" style="display:flex;align-items:center;justify-content:space-between;cursor:pointer;">
+                                <div>
+                                    <div style="font-weight:600;font-size:0.9rem;">Réponses aux commentaires</div>
+                                    <div style="font-size:0.8rem;color:var(--gray-400);">Être notifié quand quelqu'un répond</div>
+                                </div>
+                                <input type="checkbox" id="prefComments" style="width:18px;height:18px;accent-color:var(--primary);" checked>
+                            </label>
+                            <label class="pref-toggle" style="display:flex;align-items:center;justify-content:space-between;cursor:pointer;">
+                                <div>
+                                    <div style="font-weight:600;font-size:0.9rem;">Newsletter hebdomadaire</div>
+                                    <div style="font-size:0.8rem;color:var(--gray-400);">Résumé des meilleures publications</div>
+                                </div>
+                                <input type="checkbox" id="prefNewsletter" style="width:18px;height:18px;accent-color:var(--primary);">
+                            </label>
+                        </div>
+                        <div class="form-actions">
+                            <button class="btn btn-primary" id="savePrefsBtn">
+                                <i class="fas fa-save"></i> Enregistrer
+                            </button>
+                        </div>
+                    </div>
+
+                    <div class="profile-card">
+                        <div class="profile-card-title">
+                            <i class="fas fa-palette"></i> Apparence
+                        </div>
+                        <div style="display:flex;gap:1rem;flex-wrap:wrap;">
+                            <button class="btn" id="toggleThemeBtn" style="display:flex;align-items:center;gap:8px;">
+                                <i class="fas fa-moon" id="themeIconPref"></i>
+                                <span id="themeTextPref">Activer le mode sombre</span>
+                            </button>
+                        </div>
+                    </div>
+
+                </div>
+
+            </div><!-- /profile-content -->
+        </div><!-- /profileMain -->
+
+    </div><!-- /profile-page -->
+
+    <!-- ========== AVATAR PICKER MODAL ========== -->
+    <div id="avatarModal" class="modal-overlay hidden" style="display:none;">
+        <div class="avatar-modal">
+            <div class="avatar-modal-header">
+                <h3><i class="fas fa-user-circle" style="color:var(--primary)"></i> Changer la photo de profil</h3>
+                <button class="modal-close-btn" id="closeAvatarModal"><i class="fas fa-times"></i></button>
+            </div>
+
+            <!-- Upload zone -->
+            <div class="upload-zone" id="uploadZone">
+                <input type="file" id="avatarFileInput" accept="image/*">
+                <div class="upload-icon"><i class="fas fa-cloud-upload-alt"></i></div>
+                <p><strong>Cliquez pour uploader</strong> ou glissez-déposez</p>
+                <p style="font-size:0.78rem;margin-top:4px;">PNG, JPG, GIF jusqu'à 5 Mo</p>
+            </div>
+
+            <!-- Crop/Preview section (shown after file selected) -->
+            <div class="crop-preview-section" id="cropSection">
+                <div class="crop-canvas-wrapper">
+                    <div>
+                        <p style="font-size:0.8rem;color:var(--gray-500);margin-bottom:0.5rem;">Aperçu</p>
+                        <canvas id="cropCanvas" width="200" height="200"></canvas>
+                    </div>
+                    <div>
+                        <p style="font-size:0.8rem;color:var(--gray-500);margin-bottom:0.5rem;">Résultat</p>
+                        <div class="preview-circle">
+                            <img id="cropPreviewCircle" src="" alt="Preview">
+                        </div>
+                    </div>
+                </div>
+                <div style="margin-top:1rem;display:flex;gap:0.75rem;justify-content:center;">
+                    <button class="btn btn-secondary" id="cancelCropBtn">Annuler</button>
+                    <button class="btn btn-primary" id="applyCropBtn"><i class="fas fa-check"></i> Utiliser cette photo</button>
+                </div>
+            </div>
+
+            <!-- Color Avatars -->
+            <div id="colorAvatarsSection">
+                <div class="presets-title">Avatars colorés</div>
+                <div class="avatar-presets-grid" id="colorAvatarsGrid">
+                    <!-- Filled by JS -->
+                </div>
+
+                <!-- Preset illustrations -->
+                <div class="presets-title">Avatars prédéfinis</div>
+                <div class="avatar-presets-grid" id="presetAvatarsGrid">
+                    <!-- Filled by JS -->
+                </div>
+
+                <div class="form-actions" style="margin-top:1rem;">
+                    <button class="btn btn-secondary" id="cancelAvatarModal">Annuler</button>
+                    <button class="btn btn-primary" id="applyAvatarBtn" disabled>
+                        <i class="fas fa-check"></i> Appliquer
+                    </button>
+                </div>
+            </div>
+
+        </div>
+    </div>
+
+    <!-- Toast -->
+    <div class="save-toast" id="saveToast">
+        <i class="fas fa-check-circle"></i>
+        <span id="toastMsg">Modifications enregistrées !</span>
+    </div>
+
+    <script type="module" src="/profile.js"></script>
+</body>
+</html>
