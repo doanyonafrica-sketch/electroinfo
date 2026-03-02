@@ -25,6 +25,29 @@
     <link rel="stylesheet" href="/styles.css">
     <link rel="stylesheet" href="/article-styles.css">
     <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
+    <style>
+        .lang-switcher { position:relative; display:inline-flex; align-items:center; }
+        .lang-current-btn {
+            background:rgba(255,255,255,0.18); border:1.5px solid rgba(255,255,255,0.5);
+            color:white; padding:0.4rem 0.85rem; border-radius:2rem;
+            font-size:0.82rem; font-weight:700; cursor:pointer; transition:all 0.2s; white-space:nowrap;
+        }
+        .lang-current-btn:hover { background:rgba(255,255,255,0.3); }
+        .lang-dropdown {
+            display:none; position:absolute; top:calc(100% + 8px); right:0;
+            background:#fff; border-radius:0.75rem; box-shadow:0 8px 28px rgba(0,0,0,0.18);
+            overflow:hidden; z-index:99999; min-width:160px;
+        }
+        .lang-dropdown.open { display:block; animation:langIn 0.15s ease; }
+        @keyframes langIn { from{opacity:0;transform:translateY(-6px)} to{opacity:1;transform:translateY(0)} }
+        .lang-option {
+            display:flex; align-items:center; gap:0.5rem; width:100%;
+            padding:0.7rem 1.1rem; text-align:left; background:none; border:none;
+            font-size:0.9rem; font-weight:500; color:#374151; cursor:pointer; transition:background 0.15s;
+        }
+        .lang-option:hover { background:#f3f4f6; }
+        .lang-option.lang-active { background:#eff6ff; color:#1e40af; font-weight:700; }
+    </style>
 </head>
 <body>
 
@@ -36,23 +59,34 @@
                 <span>ELECTROINFO</span>
             </div>
 
+            <!-- 🌍 Sélecteur de langue -->
+            <div id="langSwitcher" class="lang-switcher">
+                <button id="langCurrentBtn" class="lang-current-btn" onclick="toggleLangDropdown()" aria-label="Changer la langue">
+                    🌍 Eʋe
+                </button>
+                <div class="lang-dropdown" id="langDropdown">
+                    <button class="lang-option lang-active" data-lang="ewe" onclick="setLang('ewe')">🌍 Eʋegbe</button>
+                    <button class="lang-option" data-lang="fr" onclick="setLang('fr')">🇫🇷 Français</button>
+                    <button class="lang-option" data-lang="en" onclick="setLang('en')">🇬🇧 English</button>
+                </div>
+            </div>
             <button class="mobile-toggle" id="mobileToggle">
                 <i class="fas fa-bars"></i>
             </button>
 
             <div class="nav-menu" id="mobileMenu">
                 <div class="nav-links">
-                    <a href="/index.html" class="nav-link">Accueil</a>
-                    <a href="/articles.html" class="nav-link active">Articles</a>
-                    <a href="/courses.html" class="nav-link">Cours</a>
-                    <a href="/about.html" class="nav-link">À propos</a>
-                    <a href="/contact.html" class="nav-link">Contact</a>
+                    <a href="/index.html" class="nav-link" data-i18n="nav_home">Accueil</a>
+                    <a href="/articles.html" class="nav-link active" data-i18n="nav_articles">Articles</a>
+                    <a href="/courses.html" class="nav-link" data-i18n="nav_courses">Cours</a>
+                    <a href="/about.html" class="nav-link" data-i18n="nav_about">À propos</a>
+                    <a href="/contact.html" class="nav-link" data-i18n="nav_contact">Contact</a>
                 </div>
                 <div class="nav-actions">
                     <!-- Non connecté -->
                     <a href="/auth.html" id="loginBtn" class="btn btn-primary">
                         <i class="fas fa-sign-in-alt"></i>
-                        <span class="btn-text">Connexion</span>
+                        <span class="btn-text" data-i18n="nav_login">Connexion</span>
                     </a>
                     <!-- Connecté -->
                     <div id="userMenu" class="user-menu hidden">
@@ -71,15 +105,15 @@
                             </div>
                             <div class="dropdown-divider"></div>
                             <a href="/profile.html" class="dropdown-item">
-                                <i class="fas fa-user"></i> Mon profil
+                                <i class="fas fa-user"></i> <span data-i18n="nav_profile">Mon profil</span>
                             </a>
                             <div class="dropdown-divider hidden" id="adminDivider"></div>
                             <a href="/admin/admin.html" class="dropdown-item hidden" id="adminLink">
-                                <i class="fas fa-cog"></i> Administration
+                                <i class="fas fa-cog"></i> <span data-i18n="nav_admin">Administration</span>
                             </a>
                             <div class="dropdown-divider"></div>
                             <button class="dropdown-item" id="logoutBtn">
-                                <i class="fas fa-sign-out-alt"></i> Déconnexion
+                                <i class="fas fa-sign-out-alt"></i> <span data-i18n="nav_logout">Déconnexion</span>
                             </button>
                         </div>
                     </div>
@@ -91,8 +125,8 @@
     <!-- Page Header -->
     <header class="page-header">
         <div class="container">
-            <h1><i class="fas fa-newspaper"></i> Tous les Articles</h1>
-            <p>Explorez nos publications sur l'électricité industrielle, les innovations et les tutoriels pratiques</p>
+            <h1><i class="fas fa-newspaper"></i> <span data-i18n="articles_page_title">Tous les Articles</span></h1>
+            <p data-i18n="articles_page_subtitle">Explorez nos publications sur l'électricité industrielle, les innovations et les tutoriels pratiques</p>
         </div>
     </header>
 
@@ -101,7 +135,7 @@
         <div class="search-bar">
             <div class="search-input-wrapper">
                 <i class="fas fa-search"></i>
-                <input type="text" id="searchInput" placeholder="Rechercher un article...">
+                <input type="text" id="searchInput" placeholder="Rechercher un article..." data-i18n-placeholder="search_placeholder">
             </div>
         </div>
     </div>
@@ -114,28 +148,28 @@
                 <!-- Articles Section -->
                 <section class="articles-section">
                     <div class="filters">
-                        <button class="filter-btn active" data-category="all">Tous</button>
-                        <button class="filter-btn" data-category="INNOVATION">Innovation</button>
-                        <button class="filter-btn" data-category="SÉCURITÉ">Sécurité</button>
-                        <button class="filter-btn" data-category="NOUVEAUTÉ">Nouveauté</button>
-                        <button class="filter-btn" data-category="TUTO">Tuto</button>
-                        <button class="filter-btn" data-category="DOMOTIQUE">Domotique</button>
+                        <button class="filter-btn active" data-category="all" data-i18n="filter_all">Tous</button>
+                        <button class="filter-btn" data-category="INNOVATION" data-i18n="filter_innovation">Innovation</button>
+                        <button class="filter-btn" data-category="SÉCURITÉ" data-i18n="filter_security">Sécurité</button>
+                        <button class="filter-btn" data-category="NOUVEAUTÉ" data-i18n="filter_new">Nouveauté</button>
+                        <button class="filter-btn" data-category="TUTO" data-i18n="filter_tuto">Tuto</button>
+                        <button class="filter-btn" data-category="DOMOTIQUE" data-i18n="filter_domotique">Domotique</button>
                     </div>
 
                     <div class="sort-bar">
-                        <label>Trier par :</label>
+                        <label data-i18n="sort_label">Trier par :</label>
                         <select id="sortSelect">
-                            <option value="date-desc">Plus récent</option>
-                            <option value="date-asc">Plus ancien</option>
-                            <option value="popular">Plus populaire</option>
-                            <option value="title">Titre (A-Z)</option>
+                            <option value="date-desc" data-i18n="sort_recent">Plus récent</option>
+                            <option value="date-asc" data-i18n="sort_old">Plus ancien</option>
+                            <option value="popular" data-i18n="sort_popular">Plus populaire</option>
+                            <option value="title" data-i18n="sort_title">Titre (A-Z)</option>
                         </select>
                     </div>
 
                     <div id="articlesGrid" class="articles-grid">
                         <div class="loading">
                             <i class="fas fa-spinner fa-spin"></i>
-                            <p>Chargement des articles...</p>
+                            <p data-i18n="loading_articles">Chargement des articles...</p>
                         </div>
                     </div>
 
@@ -145,7 +179,7 @@
                 <!-- Sidebar -->
                 <aside class="sidebar">
                     <div class="widget">
-                        <h3>Articles Populaires</h3>
+                        <h3 data-i18n="sidebar_popular">Articles Populaires</h3>
                         <div id="popularArticles">
                             <div class="loading-small">
                                 <i class="fas fa-spinner fa-spin"></i>
@@ -155,25 +189,25 @@
 
                     <div class="widget widget-courses">
                         <i class="fas fa-graduation-cap widget-icon-large"></i>
-                        <h3>Cours &amp; Exercices</h3>
-                        <p>BAC PRO · BEP · CAP · BTS · Licence</p>
+                        <h3 data-i18n="sidebar_courses">Cours &amp; Exercices</h3>
+                        <p data-i18n="sidebar_courses_levels">BAC PRO · BEP · CAP · BTS · Licence</p>
                         <a href="/courses.html" class="btn btn-block btn-white">
-                            Voir les cours →
+                            <span data-i18n="sidebar_courses_btn">Voir les cours →</span>
                         </a>
                     </div>
 
                     <div class="widget widget-newsletter">
                         <i class="fas fa-envelope-open-text widget-icon"></i>
-                        <h3>Newsletter</h3>
-                        <p>Restez informé des dernières actualités électriques</p>
-                        <button class="btn btn-block btn-primary" onclick="openNewsletterModal()">
+                        <h3 data-i18n="sidebar_newsletter">Newsletter</h3>
+                        <p data-i18n="sidebar_newsletter_desc">Restez informé des dernières actualités électriques</p>
+                        <button class="btn btn-block btn-primary" onclick="openNewsletterModal()" data-i18n="sidebar_newsletter_btn">
                             S'abonner
                         </button>
                     </div>
 
                     <div class="widget">
-                        <h3>À Propos</h3>
-                        <p class="widget-text">Bienvenue sur votre portail d'expertise. Ici, nous parlons volt, ampère et watt sans concession.</p>
+                        <h3 data-i18n="sidebar_about">À Propos</h3>
+                        <p class="widget-text" data-i18n="sidebar_about_text">Bienvenue sur votre portail d'expertise. Ici, nous parlons volt, ampère et watt sans concession.</p>
                     </div>
                 </aside>
             </div>
@@ -189,12 +223,12 @@
             </button>
             <div class="modal-body">
                 <i class="fas fa-envelope modal-icon"></i>
-                <h2>Abonnez-vous à notre Newsletter</h2>
-                <p>Recevez les dernières actualités directement dans votre boîte mail.</p>
+                <h2 data-i18n="modal_newsletter_title">Abonnez-vous à notre Newsletter</h2>
+                <p data-i18n="modal_newsletter_desc">Recevez les dernières actualités directement dans votre boîte mail.</p>
                 <form id="newsletterForm">
-                    <input type="email" id="newsletterEmail" required placeholder="votre@email.fr" class="input">
+                    <input type="email" id="newsletterEmail" required placeholder="votre@email.fr" data-i18n-placeholder="newsletter_placeholder" class="input">
                     <button type="submit" class="btn btn-primary btn-block">
-                        <i class="fas fa-check"></i> S'abonner
+                        <i class="fas fa-check"></i> <span data-i18n="modal_newsletter_btn">S'abonner</span>
                     </button>
                 </form>
             </div>
@@ -210,8 +244,7 @@
                         <i class="fas fa-bolt"></i> ElectroInfo
                     </h3>
                     <p class="footer-description">
-                        Votre portail d'expertise en électricité et électronique.
-                        Nous parlons volt, ampère et watt sans concession.
+                        <span data-i18n="footer_desc">Votre portail d'expertise en électricité et électronique. Nous parlons volt, ampère et watt sans concession.</span>
                     </p>
                     <div class="social-links">
                         <a href="#" aria-label="Facebook"><i class="fab fa-facebook"></i></a>
@@ -222,7 +255,7 @@
                 </div>
 
                 <div class="footer-section">
-                    <h4 class="footer-subtitle">Navigation</h4>
+                    <h4 class="footer-subtitle" data-i18n="footer_nav">Navigation</h4>
                     <ul class="footer-links">
                         <li><a href="/index.html">Accueil</a></li>
                         <li><a href="/articles.html">Articles</a></li>
@@ -233,7 +266,7 @@
                 </div>
 
                 <div class="footer-section">
-                    <h4 class="footer-subtitle">Ressources</h4>
+                    <h4 class="footer-subtitle" data-i18n="footer_resources">Ressources</h4>
                     <ul class="footer-links">
                         <li><a href="/articles.html?category=SÉCURITÉ">Sécurité</a></li>
                         <li><a href="/articles.html?category=INNOVATION">Innovations</a></li>
@@ -243,18 +276,18 @@
                 </div>
 
                 <div class="footer-section">
-                    <h4 class="footer-subtitle">Informations Légales</h4>
+                    <h4 class="footer-subtitle" data-i18n="footer_legal">Informations Légales</h4>
                     <ul class="footer-links">
-                        <li><a href="/privacy.html">Politique de confidentialité</a></li>
-                        <li><a href="/terms.html">Conditions d'utilisation</a></li>
-                        <li><a href="/mentions-legales.html">Mentions légales</a></li>
-                        <li><a href="/cookies.html">Gestion des cookies</a></li>
+                        <li><a href="/privacy.html" data-i18n="footer_privacy">Politique de confidentialité</a></li>
+                        <li><a href="/terms.html" data-i18n="footer_terms">Conditions d'utilisation</a></li>
+                        <li><a href="/mentions-legales.html" data-i18n="footer_legal_mentions">Mentions légales</a></li>
+                        <li><a href="/cookies.html" data-i18n="footer_cookies">Gestion des cookies</a></li>
                     </ul>
                 </div>
             </div>
 
             <div class="footer-bottom">
-                <p>&copy; 2025 ElectroInfo. Tous droits réservés.</p>
+                <p><span data-i18n="footer_copyright">© 2025 ElectroInfo. Tous droits réservés.</span></p>
                 <p class="footer-credit">
                     Développé avec <i class="fas fa-heart" style="color:#dc2626"></i> pour la communauté électrique
                 </p>
@@ -263,5 +296,201 @@
     </footer>
 
     <script type="module" src="/articles.js"></script>
+
+    <script>
+    (function(){
+        const T={
+                        ewe:{
+                nav_home:'Ŋɔliƒe',
+                nav_articles:'Nuŋlɔɖiwo',
+                nav_courses:'Nunya Ɖeɖewo',
+                nav_about:'Míaƒe Ŋutinyenye',
+                nav_contact:'Ɖoɖo',
+                nav_login:'Yi ŋu',
+                nav_logout:'Tso ŋu',
+                nav_profile:'Míaƒe Ame Ŋutinyenye',
+                nav_admin:'Dɔwɔƒe Ŋutiŋuti',
+                hero_title:'Woezo ElectroInfo ŋu',
+                hero_subtitle:'Mia ƒe lɔlɔ̃ƒe le industrial electricity dɔwɔwɔ me. Nutiawo, nunya ɖeɖewo kple alɔɖeɖewo ame dɔwɔlawo kple wɔlawo ƒe nyuiwo.',
+                hero_btn_articles:'Kpɔ Nuŋlɔɖiwo',
+                hero_btn_courses:'Kpɔ Nunya Ɖeɖewo',
+                features_title:'Alɔɖeɖe si míe wɔ',
+                features_subtitle:'Nusiwo hã ame le electricity dɔwɔwɔ me',
+                feat_news_title:'Nutiawo',
+                feat_news_desc:'Dɔwɔwɔ yeye kple ƒoƒo lea le industrial electricity me, ŋgɔɖoɖo blibo.',
+                feat_courses_title:'Nunya Ɖeɖe Gãwo',
+                feat_courses_desc:'Ɖeɖewo ƒe BAC PRO, BEP, CAP, BTS kple Licence le electricity kple electrotechnique nunya me.',
+                feat_tuto_title:'Alɔse Ɖeɖewo',
+                feat_tuto_desc:'Alɔse ɖeɖewo kple nyatakaka vovowo ɖe electricity teƒewo wɔwɔ nyui ŋuti.',
+                feat_security_title:'Teƒe Nyui Dɔwɔwɔ',
+                feat_security_desc:'Normes, nyatakakawo kple dɔ wɔwɔ nyui ɖe teƒe nyui me.',
+                feat_newsletter_title:'Nuŋlɔɖi Tso Mí Gbɔ',
+                feat_newsletter_desc:'Ƒu nuŋlɔɖi yeye kple nutiawo siwo yɔu le ne email me.',
+                feat_community_title:'Haɖegbɔgbɔ',
+                feat_community_desc:'Ze ŋu ɖo haɖegbɔgbɔ si le electricity dɔwɔla kple wɔla dome.',
+                latest_title:'Nuŋlɔɖi Yeye Siwo',
+                latest_subtitle:'Kpɔ míaƒe nuŋlɔɖi yeye siwo',
+                view_all:'Kpɔ nuŋlɔɖi katã',
+                cta_title:'Nɔ ŋgɔ eye wòkpɔ nutiawo',
+                cta_subtitle:'Ze ŋu ɖo míaƒe nuŋlɔɖi tso mí gbɔ me ƒu nutiawo yeye kple nunya ɖeɖewo yeye',
+                newsletter_placeholder:'wò@email.com',
+                newsletter_btn:'Ŋu Do',
+                footer_desc:'Míaƒe lɔlɔ̃ƒe le electricity kple electronics dɔwɔwɔ me. Míe gbɔ volt, ampère kple watt nyuie.',
+                footer_nav:'Biabia Ŋutifafa',
+                footer_resources:'Alɔɖeɖewo',
+                footer_legal:'Ameŋutinyenye Nyatakakawo',
+                footer_follow:'Dze míadzi',
+                footer_privacy:'Ame Ŋutinyenye Ƒe Teƒe',
+                footer_terms:'Zãzã Ƒe Nyatakakawo',
+                footer_legal_mentions:'Kɔkɔɛ Nyatakakawo',
+                footer_cookies:'Cookie Ŋutiŋuti',
+                footer_copyright:'© 2025 ElectroInfo. Dɔ katã kpɔe.',
+                articles_page_title:'Nuŋlɔɖi Katã',
+                articles_page_subtitle:'Kpɔ míaƒe nuŋlɔɖiwo le industrial electricity, dɔwɔwɔ yeye, teƒe nyui dɔwɔwɔ kple alɔse ɖeɖewo ŋuti',
+                search_placeholder:'Ba nuŋlɔɖi...',
+                filter_all:'Katã',
+                filter_innovation:'Dɔwɔwɔ Yeye',
+                filter_security:'Teƒe Nyui',
+                filter_new:'Nú Yeye',
+                filter_tuto:'Alɔse Ɖeɖe',
+                filter_domotique:'Xɔ Ŋutiŋuti',
+                sort_label:'Ɖo enu:',
+                sort_recent:'Yeye siwo ŋgɔ',
+                sort_old:'Dɔna siwo ŋgɔ',
+                sort_popular:'Ame dada kpɔwo ŋgɔ',
+                sort_title:'Ŋkɔ (A-Z)',
+                loading_articles:'Nuŋlɔɖiwo ɖe dɔme...',
+                sidebar_popular:'Nuŋlɔɖi Dada Kpɔwo',
+                sidebar_courses:'Nunya Ɖeɖe kple Biabiawo',
+                sidebar_courses_levels:'BAC PRO · BEP · CAP · BTS · Licence',
+                sidebar_courses_btn:'Kpɔ nunya ɖeɖewo →',
+                sidebar_newsletter:'Nuŋlɔɖi Tso Mí Gbɔ',
+                sidebar_newsletter_desc:'Nɔ ŋgɔ eye wòkpɔ electricity ƒe nutiawo yeye',
+                sidebar_newsletter_btn:'Ŋu Do',
+                sidebar_about:'Míaƒe Ŋutinyenye',
+                sidebar_about_text:'Woezo míaƒe lɔlɔ̃ƒe me. Afi sia, míe gbɔ volt, ampère kple watt nyuie.',
+                loading_article:'Nuŋlɔɖi ɖe dɔme...',
+                article_not_found:'Nuŋlɔɖi Meɖo O',
+                article_not_found_desc:'Nusɔsɔ, nuŋlɔɖi sia meɖo o, alo wowɔ ne yi.',
+                back_home:'Tso Ŋɔliƒe Gbɔ',
+                reading_time_suffix:' aɖabaƒoƒo ŋuti',
+                views_suffix:' kpɔkpɔwo',
+                share_copy:'Kɔpi link la',
+                share_twitter:'Ɖo Twitter dzi',
+                share_linkedin:'Ɖo LinkedIn dzi',
+                share_whatsapp:'Ɖo WhatsApp dzi',
+                tags_title:'Ŋkɔbowo',
+                comments_title:'Susuwo',
+                comment_name_placeholder:'Wò ŋkɔ',
+                comment_email_placeholder:'Wò email',
+                comment_text_placeholder:'Ŋlɔ wò susu fii...',
+                comment_submit:'Ɖo Agbe Me',
+                newsletter_widget_title:'Nuŋlɔɖi Tso Mí Gbɔ',
+                newsletter_widget_text:'Ƒu nuŋlɔɖi yeye le ne email me.',
+                newsletter_email_placeholder:'wò@email.com',
+                newsletter_subscribe_btn:'Ŋu Do',
+                related_articles:'Nuŋlɔɖi Si Ɖo Edzi',
+                modal_newsletter_title:'Ze Ŋu Ɖo Míaƒe Nuŋlɔɖi Tso Mí Gbɔ Me',
+                modal_newsletter_desc:'Ƒu nutiawo yeye le ne email me.',
+                modal_newsletter_btn:'Ŋu Do',
+                modal_thanks_title:'Akpe!',
+                modal_thanks_desc:'Woze wò ŋu ɖo míaƒe nuŋlɔɖi me.',
+                theme_dark:'Gbãgbã',
+                theme_light:'Ɣeyiɣi',
+            },
+            fr:{
+                nav_home:"Accueil",nav_articles:"Articles",nav_courses:"Cours",
+                nav_about:"À propos",nav_contact:"Contact",nav_login:"Connexion",
+                nav_logout:"Déconnexion",nav_profile:"Mon profil",nav_admin:"Administration",
+                articles_page_title:"Tous les Articles",
+                articles_page_subtitle:"Explorez nos publications sur l'électricité industrielle, les innovations et les tutoriels pratiques",
+                search_placeholder:"Rechercher un article...",
+                filter_all:"Tous",filter_innovation:"Innovation",filter_security:"Sécurité",
+                filter_new:"Nouveauté",filter_tuto:"Tuto",filter_domotique:"Domotique",
+                sort_label:"Trier par :",sort_recent:"Plus récent",sort_old:"Plus ancien",
+                sort_popular:"Plus populaire",sort_title:"Titre (A-Z)",
+                loading_articles:"Chargement des articles...",
+                sidebar_popular:"Articles Populaires",sidebar_courses:"Cours & Exercices",
+                sidebar_courses_levels:"BAC PRO · BEP · CAP · BTS · Licence",
+                sidebar_courses_btn:"Voir les cours →",sidebar_newsletter:"Newsletter",
+                sidebar_newsletter_desc:"Restez informé des dernières actualités électriques",
+                sidebar_newsletter_btn:"S'abonner",sidebar_about:"À Propos",
+                sidebar_about_text:"Bienvenue sur votre portail d'expertise. Ici, nous parlons volt, ampère et watt sans concession.",
+                footer_nav:"Navigation",footer_resources:"Ressources",
+                footer_legal:"Informations Légales",footer_privacy:"Politique de confidentialité",
+                footer_terms:"Conditions d'utilisation",footer_legal_mentions:"Mentions légales",
+                footer_cookies:"Gestion des cookies",footer_copyright:"© 2025 ElectroInfo. Tous droits réservés.",
+                footer_desc:"Votre portail d'expertise en électricité et électronique. Nous parlons volt, ampère et watt sans concession.",
+                modal_newsletter_title:"Abonnez-vous à notre Newsletter",
+                modal_newsletter_desc:"Recevez les dernières actualités directement dans votre boîte mail.",
+                modal_newsletter_btn:"S'abonner",newsletter_placeholder:"votre@email.fr",
+            },
+            en:{
+                nav_home:"Home",nav_articles:"Articles",nav_courses:"Courses",
+                nav_about:"About",nav_contact:"Contact",nav_login:"Login",
+                nav_logout:"Logout",nav_profile:"My Profile",nav_admin:"Administration",
+                articles_page_title:"All Articles",
+                articles_page_subtitle:"Explore our publications on industrial electricity, innovations and practical tutorials",
+                search_placeholder:"Search an article...",
+                filter_all:"All",filter_innovation:"Innovation",filter_security:"Safety",
+                filter_new:"New",filter_tuto:"Tutorial",filter_domotique:"Home Automation",
+                sort_label:"Sort by:",sort_recent:"Most recent",sort_old:"Oldest",
+                sort_popular:"Most popular",sort_title:"Title (A-Z)",
+                loading_articles:"Loading articles...",
+                sidebar_popular:"Popular Articles",sidebar_courses:"Courses & Exercises",
+                sidebar_courses_levels:"BAC PRO · BEP · CAP · BTS · Degree",
+                sidebar_courses_btn:"View courses →",sidebar_newsletter:"Newsletter",
+                sidebar_newsletter_desc:"Stay updated on the latest electrical news",
+                sidebar_newsletter_btn:"Subscribe",sidebar_about:"About",
+                sidebar_about_text:"Welcome to your expertise portal. Here, we talk volts, amps and watts without compromise.",
+                footer_nav:"Navigation",footer_resources:"Resources",
+                footer_legal:"Legal Information",footer_privacy:"Privacy Policy",
+                footer_terms:"Terms of Use",footer_legal_mentions:"Legal Notices",
+                footer_cookies:"Cookie Settings",footer_copyright:"© 2025 ElectroInfo. All rights reserved.",
+                footer_desc:"Your expertise portal in electricity and electronics. We talk volts, amps and watts without compromise.",
+                modal_newsletter_title:"Subscribe to our Newsletter",
+                modal_newsletter_desc:"Receive the latest news directly in your inbox.",
+                modal_newsletter_btn:"Subscribe",newsletter_placeholder:"your@email.com",
+            }
+        };
+        const LABELS={ewe:'🌍 Eʋe',fr:'🇫🇷 FR',en:'🇬🇧 EN'};
+        const KEY='electroinfo_lang';
+        window.setLang=function(lang){
+            localStorage.setItem(KEY,lang);
+            const d=T[lang];if(!d)return;
+            document.querySelectorAll('[data-i18n]').forEach(el=>{
+                const k=el.getAttribute('data-i18n');
+                if(d[k]!==undefined)el.textContent=d[k];
+            });
+            document.querySelectorAll('[data-i18n-placeholder]').forEach(el=>{
+                const k=el.getAttribute('data-i18n-placeholder');
+                if(d[k]!==undefined)el.placeholder=d[k];
+            });
+            const btn=document.getElementById('langCurrentBtn');
+            if(btn)btn.textContent=LABELS[lang];
+            document.querySelectorAll('.lang-option').forEach(o=>{
+                o.classList.toggle('lang-active',o.dataset.lang===lang);
+            });
+            document.documentElement.lang=lang==='ewe'?'ee':lang;
+            const dd=document.getElementById('langDropdown');
+            if(dd)dd.classList.remove('open');
+        };
+        window.toggleLangDropdown=function(){
+            const dd=document.getElementById('langDropdown');
+            if(dd)dd.classList.toggle('open');
+        };
+        document.addEventListener('click',function(e){
+            if(!e.target.closest('#langSwitcher')){
+                const dd=document.getElementById('langDropdown');
+                if(dd)dd.classList.remove('open');
+            }
+        });
+        document.addEventListener('DOMContentLoaded',function(){
+            const saved=localStorage.getItem(KEY)||'ewe';
+            setLang(saved);
+        });
+    })();
+    </script>
+
 </body>
 </html>

@@ -666,6 +666,62 @@
             color: #eab308;
         }
     </style>
+    <style>
+        /* ---- LANG SWITCHER ---- */
+        .lang-switcher {
+            position: relative;
+            display: inline-flex;
+            align-items: center;
+        }
+        .lang-current-btn {
+            background: rgba(255,255,255,0.18);
+            border: 1.5px solid rgba(255,255,255,0.5);
+            color: white;
+            padding: 0.4rem 0.85rem;
+            border-radius: 2rem;
+            font-size: 0.82rem;
+            font-weight: 700;
+            cursor: pointer;
+            transition: all 0.2s;
+            white-space: nowrap;
+            letter-spacing: 0.3px;
+        }
+        .lang-current-btn:hover { background: rgba(255,255,255,0.3); }
+        .lang-dropdown {
+            display: none;
+            position: absolute;
+            top: calc(100% + 8px);
+            right: 0;
+            background: #fff;
+            border-radius: 0.75rem;
+            box-shadow: 0 8px 28px rgba(0,0,0,0.18);
+            overflow: hidden;
+            z-index: 99999;
+            min-width: 160px;
+        }
+        .lang-dropdown.open { display: block; animation: langIn 0.15s ease; }
+        @keyframes langIn {
+            from { opacity:0; transform:translateY(-6px); }
+            to   { opacity:1; transform:translateY(0); }
+        }
+        .lang-option {
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+            width: 100%;
+            padding: 0.7rem 1.1rem;
+            text-align: left;
+            background: none;
+            border: none;
+            font-size: 0.9rem;
+            font-weight: 500;
+            color: #374151;
+            cursor: pointer;
+            transition: background 0.15s;
+        }
+        .lang-option:hover { background: #f3f4f6; }
+        .lang-option.lang-active { background: #eff6ff; color: #1e40af; font-weight: 700; }
+    </style>
 </head>
 <body>
 
@@ -677,23 +733,35 @@
                 <span>ELECTROINFO</span>
             </div>
 
+            <!-- 🌍 Sélecteur de langue -->
+            <div id="langSwitcher" class="lang-switcher">
+                <button id="langCurrentBtn" class="lang-current-btn" onclick="toggleLangDropdown()" aria-label="Changer la langue">
+                    🌍 Eʋe
+                </button>
+                <div class="lang-dropdown" id="langDropdown">
+                    <button class="lang-option lang-active" data-lang="ewe" onclick="setLang('ewe')">🌍 Eʋegbe</button>
+                    <button class="lang-option" data-lang="fr" onclick="setLang('fr')">🇫🇷 Français</button>
+                    <button class="lang-option" data-lang="en" onclick="setLang('en')">🇬🇧 English</button>
+                </div>
+            </div>
+
             <button class="mobile-toggle" id="mobileToggle">
                 <i class="fas fa-bars"></i>
             </button>
 
             <div class="nav-menu" id="mobileMenu">
                 <div class="nav-links">
-                    <a href="index.html" class="nav-link active">Accueil</a>
-                    <a href="articles.html" class="nav-link">Articles</a>
-                    <a href="courses.html" class="nav-link">Cours</a>
-                    <a href="about.html" class="nav-link">À propos</a>
-                    <a href="contact.html" class="nav-link">Contact</a>
+                    <a href="index.html" class="nav-link active" data-i18n="nav_home">Accueil</a>
+                    <a href="articles.html" class="nav-link" data-i18n="nav_articles">Articles</a>
+                    <a href="courses.html" class="nav-link" data-i18n="nav_courses">Cours</a>
+                    <a href="about.html" class="nav-link" data-i18n="nav_about">À propos</a>
+                    <a href="contact.html" class="nav-link" data-i18n="nav_contact">Contact</a>
                 </div>
                 <div class="nav-actions">
                     <!-- Non connecté -->
                     <a href="auth.html" id="loginBtn" class="btn btn-primary">
                         <i class="fas fa-sign-in-alt"></i>
-                        <span class="btn-text">Connexion</span>
+                        <span class="btn-text" data-i18n="nav_login">Connexion</span>
                     </a>
 
                     <!-- Connecté -->
@@ -713,15 +781,15 @@
                             </div>
                             <div class="dropdown-divider"></div>
                             <a href="profile.html" class="dropdown-item">
-                                <i class="fas fa-user"></i> Mon profil
+                                <i class="fas fa-user"></i> <span data-i18n="nav_profile">Mon profil</span>
                             </a>
                             <div class="dropdown-divider hidden" id="adminDivider"></div>
                             <a href="/admin.html" class="dropdown-item hidden" id="adminLink">
-                                <i class="fas fa-cog"></i> Administration
+                                <i class="fas fa-cog"></i> <span data-i18n="nav_admin">Administration</span>
                             </a>
                             <div class="dropdown-divider"></div>
                             <button class="dropdown-item" id="logoutBtn">
-                                <i class="fas fa-sign-out-alt"></i> Déconnexion
+                                <i class="fas fa-sign-out-alt"></i> <span data-i18n="nav_logout">Déconnexion</span>
                             </button>
                         </div>
                     </div>
@@ -750,18 +818,15 @@
         <div class="hero-content">
             <h1>
                 <i class="fas fa-bolt" style="color: #fbbf24;"></i><br>
-                Bienvenue sur ElectroInfo
+                <span data-i18n="hero_title">Bienvenue sur ElectroInfo</span>
             </h1>
-            <p class="subtitle">
-                Votre portail d'expertise en électricité industrielle.<br>
-                Actualités, cours complets et ressources pour professionnels et étudiants.
-            </p>
+            <p class="subtitle" data-i18n="hero_subtitle">Votre portail d'expertise en électricité industrielle. Actualités, cours complets et ressources pour professionnels et étudiants.</p>
             <div class="hero-cta">
                 <a href="articles.html" class="btn btn-hero-primary">
-                    <i class="fas fa-newspaper"></i> Découvrir les articles
+                    <i class="fas fa-newspaper"></i> <span data-i18n="hero_btn_articles">Découvrir les articles</span>
                 </a>
                 <a href="courses.html" class="btn btn-hero-secondary">
-                    <i class="fas fa-graduation-cap"></i> Voir les cours
+                    <i class="fas fa-graduation-cap"></i> <span data-i18n="hero_btn_courses">Voir les cours</span>
                 </a>
             </div>
         </div>
@@ -771,45 +836,45 @@
     <section class="features-section">
         <div class="container">
             <div class="section-header">
-                <h2>Ce que nous proposons</h2>
-                <p>Tout ce dont vous avez besoin pour exceller dans le domaine de l'électricité</p>
+                <h2 data-i18n="features_title">Ce que nous proposons</h2>
+                <p data-i18n="features_subtitle">Tout ce dont vous avez besoin pour exceller dans le domaine de l'électricité</p>
             </div>
 
             <div class="features-grid">
                 <div class="feature-card" onclick="window.location.href='articles.html'">
                     <div class="feature-icon"><i class="fas fa-newspaper"></i></div>
-                    <h3>Actualités</h3>
-                    <p>Les dernières innovations et tendances en électricité industrielle, mises à jour régulièrement.</p>
+                    <h3 data-i18n="feat_news_title">Actualités</h3>
+                    <p data-i18n="feat_news_desc">Les dernières innovations et tendances en électricité industrielle, mises à jour régulièrement.</p>
                 </div>
 
                 <div class="feature-card" onclick="window.location.href='courses.html'">
                     <div class="feature-icon"><i class="fas fa-graduation-cap"></i></div>
-                    <h3>Cours Complets</h3>
-                    <p>Formations pour BAC PRO, BEP, CAP, BTS et Licence en électricité et électrotechnique.</p>
+                    <h3 data-i18n="feat_courses_title">Cours Complets</h3>
+                    <p data-i18n="feat_courses_desc">Formations pour BAC PRO, BEP, CAP, BTS et Licence en électricité et électrotechnique.</p>
                 </div>
 
                 <div class="feature-card" onclick="window.location.href='articles.html?category=TUTO'">
                     <div class="feature-icon"><i class="fas fa-tools"></i></div>
-                    <h3>Tutoriels</h3>
-                    <p>Guides pratiques et tutoriels détaillés pour maîtriser les techniques électriques.</p>
+                    <h3 data-i18n="feat_tuto_title">Tutoriels</h3>
+                    <p data-i18n="feat_tuto_desc">Guides pratiques et tutoriels détaillés pour maîtriser les techniques électriques.</p>
                 </div>
 
                 <div class="feature-card" onclick="window.location.href='articles.html?category=SÉCURITÉ'">
                     <div class="feature-icon"><i class="fas fa-shield-alt"></i></div>
-                    <h3>Sécurité</h3>
-                    <p>Normes, réglementations et bonnes pratiques pour travailler en toute sécurité.</p>
+                    <h3 data-i18n="feat_security_title">Sécurité</h3>
+                    <p data-i18n="feat_security_desc">Normes, réglementations et bonnes pratiques pour travailler en toute sécurité.</p>
                 </div>
 
                 <div class="feature-card" onclick="openNewsletterModal()">
                     <div class="feature-icon"><i class="fas fa-envelope"></i></div>
-                    <h3>Newsletter</h3>
-                    <p>Recevez les derniers articles et actualités directement dans votre boîte mail.</p>
+                    <h3 data-i18n="feat_newsletter_title">Newsletter</h3>
+                    <p data-i18n="feat_newsletter_desc">Recevez les derniers articles et actualités directement dans votre boîte mail.</p>
                 </div>
 
                 <div class="feature-card" onclick="window.location.href='about.html'">
                     <div class="feature-icon"><i class="fas fa-users"></i></div>
-                    <h3>Communauté</h3>
-                    <p>Rejoignez une communauté de passionnés et professionnels de l'électricité.</p>
+                    <h3 data-i18n="feat_community_title">Communauté</h3>
+                    <p data-i18n="feat_community_desc">Rejoignez une communauté de passionnés et professionnels de l'électricité.</p>
                 </div>
             </div>
         </div>
@@ -819,8 +884,8 @@
     <section class="latest-articles-section">
         <div class="container">
             <div class="section-header">
-                <h2>Derniers Articles</h2>
-                <p>Découvrez nos publications les plus récentes</p>
+                <h2 data-i18n="latest_title">Derniers Articles</h2>
+                <p data-i18n="latest_subtitle">Découvrez nos publications les plus récentes</p>
             </div>
 
             <div id="latestArticles" class="articles-preview">
@@ -832,7 +897,7 @@
 
             <div class="view-all-container">
                 <a href="articles.html" class="btn btn-primary btn-lg">
-                    <i class="fas fa-th"></i> Voir tous les articles
+                    <i class="fas fa-th"></i> <span data-i18n="view_all">Voir tous les articles</span>
                 </a>
             </div>
         </div>
@@ -841,12 +906,12 @@
     <!-- CTA Newsletter Section -->
     <section class="cta-section">
         <div class="cta-content">
-            <h2>Restez informé</h2>
-            <p>Abonnez-vous à notre newsletter pour recevoir les dernières actualités et nouveaux cours</p>
+            <h2 data-i18n="cta_title">Restez informé</h2>
+            <p data-i18n="cta_subtitle">Abonnez-vous à notre newsletter pour recevoir les dernières actualités et nouveaux cours</p>
             <form id="newsletterFormHome" class="newsletter-form-inline">
-                <input type="email" id="newsletterEmailHome" placeholder="votre@email.fr" required>
+                <input type="email" id="newsletterEmailHome" placeholder="votre@email.fr" required data-i18n-placeholder="newsletter_placeholder">
                 <button type="submit">
-                    <i class="fas fa-paper-plane"></i> S'abonner
+                    <i class="fas fa-paper-plane"></i> <span data-i18n="newsletter_btn">S'abonner</span>
                 </button>
             </form>
         </div>
@@ -861,8 +926,7 @@
                         <i class="fas fa-bolt"></i> Electroinfo
                     </h3>
                     <p class="footer-description">
-                        Votre portail d'expertise en électricité et électronique.
-                        Nous parlons volt, ampère et watt sans concession.
+                        <span data-i18n="footer_desc">Votre portail d'expertise en électricité et électronique. Nous parlons volt, ampère et watt sans concession.</span>
                     </p>
                     <div class="social-links">
                         <a href="#" aria-label="Facebook"><i class="fab fa-facebook"></i></a>
@@ -873,7 +937,7 @@
                 </div>
 
                 <div class="footer-section">
-                    <h4 class="footer-subtitle">Navigation</h4>
+                    <h4 class="footer-subtitle" data-i18n="footer_nav">Navigation</h4>
                     <ul class="footer-links">
                         <li><a href="index.html">Accueil</a></li>
                         <li><a href="articles.html">Articles</a></li>
@@ -884,7 +948,7 @@
                 </div>
 
                 <div class="footer-section">
-                    <h4 class="footer-subtitle">Ressources</h4>
+                    <h4 class="footer-subtitle" data-i18n="footer_resources">Ressources</h4>
                     <ul class="footer-links">
                         <li><a href="articles.html?category=SÉCURITÉ">Sécurité</a></li>
                         <li><a href="articles.html?category=INNOVATION">Innovations</a></li>
@@ -894,11 +958,11 @@
                 </div>
 
                 <div class="footer-section">
-                    <h4 class="footer-subtitle">Informations Légales</h4>
+                    <h4 class="footer-subtitle" data-i18n="footer_legal">Informations Légales</h4>
                     <ul class="footer-links">
-                        <li><a href="privacy.html">Politique de confidentialité</a></li>
-                        <li><a href="terms.html">Conditions d'utilisation</a></li>
-                        <li><a href="mentions-legales.html">Mentions légales</a></li>
+                        <li><a href="privacy.html" data-i18n="footer_privacy">Politique de confidentialité</a></li>
+                        <li><a href="terms.html" data-i18n="footer_terms">Conditions d'utilisation</a></li>
+                        <li><a href="mentions-legales.html" data-i18n="footer_legal_mentions">Mentions légales</a></li>
                         <li>
                             <a href="#" onclick="window.CookieConsent.show(); return false;" class="footer-consent-link">
                                 <i class="fas fa-cookie-bite"></i> Gestion des cookies
@@ -909,7 +973,7 @@
             </div>
 
             <div class="footer-bottom">
-                <p>&copy; 2025 Electroinfo. Votre portail d'expertise en électricité.
+                <p><span data-i18n="footer_copyright">© 2025 Electroinfo. Tous droits réservés.</span>
                 <p class="footer-credit">
                     Développé avec <i class="fas fa-heart" style="color: #dc2626;"></i> pour la communauté électrique
                 </p>
@@ -926,12 +990,12 @@
             </button>
             <div class="modal-body">
                 <i class="fas fa-envelope modal-icon"></i>
-                <h2>Abonnez-vous à notre Newsletter</h2>
-                <p>Recevez les dernières actualités directement dans votre boîte mail.</p>
+                <h2 data-i18n="modal_newsletter_title">Abonnez-vous à notre Newsletter</h2>
+                <p data-i18n="modal_newsletter_desc">Recevez les dernières actualités directement dans votre boîte mail.</p>
                 <form id="newsletterForm">
-                    <input type="email" id="newsletterEmail" required placeholder="doanyonafrica@gmail.com" class="input">
+                    <input type="email" id="newsletterEmail" required placeholder="votre@email.fr" data-i18n-placeholder="newsletter_placeholder" class="input">
                     <button type="submit" class="btn btn-primary btn-block">
-                        <i class="fas fa-check"></i> S'abonner
+                        <i class="fas fa-check"></i> <span data-i18n="modal_newsletter_btn">S'abonner</span>
                     </button>
                 </form>
             </div>
@@ -968,5 +1032,169 @@
             });
         });
     </script>
+
+    <!-- ===== SYSTÈME DE TRADUCTION MULTILINGUE ===== -->
+    <script>
+    (function() {
+        const T = {
+            ewe: {
+                nav_home:'Ŋɔliƒe',
+                nav_articles:'Nuŋlɔɖiwo',
+                nav_courses:'Nunya Ɖeɖewo',
+                nav_about:'Míaƒe Ŋutinyenye',
+                nav_contact:'Ɖoɖo',
+                nav_login:'Yi ŋu',
+                nav_logout:'Tso ŋu',
+                nav_profile:'Míaƒe Ame Ŋutinyenye',
+                nav_admin:'Dɔwɔƒe Ŋutiŋuti',
+                hero_title:'Woezo ElectroInfo ŋu',
+                hero_subtitle:'Mia ƒe lɔlɔ̃ƒe le industrial electricity dɔwɔwɔ me. Nutiawo, nunya ɖeɖewo kple alɔɖeɖewo ame dɔwɔlawo kple wɔlawo ƒe nyuiwo.',
+                hero_btn_articles:'Kpɔ Nuŋlɔɖiwo',
+                hero_btn_courses:'Kpɔ Nunya Ɖeɖewo',
+                features_title:'Alɔɖeɖe si míe wɔ',
+                features_subtitle:'Nusiwo hã ame le electricity dɔwɔwɔ me',
+                feat_news_title:'Nutiawo',
+                feat_news_desc:'Dɔwɔwɔ yeye kple ƒoƒo lea le industrial electricity me, ŋgɔɖoɖo blibo.',
+                feat_courses_title:'Nunya Ɖeɖe Gãwo',
+                feat_courses_desc:'Ɖeɖewo ƒe BAC PRO, BEP, CAP, BTS kple Licence le electricity kple electrotechnique nunya me.',
+                feat_tuto_title:'Alɔse Ɖeɖewo',
+                feat_tuto_desc:'Alɔse ɖeɖewo kple nyatakaka vovowo ɖe electricity teƒewo wɔwɔ nyui ŋuti.',
+                feat_security_title:'Teƒe Nyui Dɔwɔwɔ',
+                feat_security_desc:'Normes, nyatakakawo kple dɔ wɔwɔ nyui ɖe teƒe nyui me.',
+                feat_newsletter_title:'Nuŋlɔɖi Tso Mí Gbɔ',
+                feat_newsletter_desc:'Ƒu nuŋlɔɖi yeye kple nutiawo siwo yɔu le ne email me.',
+                feat_community_title:'Haɖegbɔgbɔ',
+                feat_community_desc:'Ze ŋu ɖo haɖegbɔgbɔ si le electricity dɔwɔla kple wɔla dome.',
+                latest_title:'Nuŋlɔɖi Yeye Siwo',
+                latest_subtitle:'Kpɔ míaƒe nuŋlɔɖi yeye siwo',
+                view_all:'Kpɔ nuŋlɔɖi katã',
+                cta_title:'Nɔ ŋgɔ eye wòkpɔ nutiawo',
+                cta_subtitle:'Ze ŋu ɖo míaƒe nuŋlɔɖi tso mí gbɔ me ƒu nutiawo yeye kple nunya ɖeɖewo yeye',
+                newsletter_placeholder:'wò@email.com',
+                newsletter_btn:'Ŋu Do',
+                footer_desc:'Míaƒe lɔlɔ̃ƒe le electricity kple electronics dɔwɔwɔ me. Míe gbɔ volt, ampère kple watt nyuie.',
+                footer_nav:'Biabia Ŋutifafa',
+                footer_resources:'Alɔɖeɖewo',
+                footer_legal:'Ameŋutinyenye Nyatakakawo',
+                footer_follow:'Dze míadzi',
+                footer_privacy:'Ame Ŋutinyenye Ƒe Teƒe',
+                footer_terms:'Zãzã Ƒe Nyatakakawo',
+                footer_legal_mentions:'Kɔkɔɛ Nyatakakawo',
+                footer_cookies:'Cookie Ŋutiŋuti',
+                footer_copyright:'© 2025 ElectroInfo. Dɔ katã kpɔe.',
+                modal_newsletter_title:'Ze Ŋu Ɖo Míaƒe Nuŋlɔɖi Tso Mí Gbɔ Me',
+                modal_newsletter_desc:'Ƒu nutiawo yeye le ne email me.',
+                modal_newsletter_btn:'Ŋu Do',
+            },
+            fr: {
+                nav_home:"Accueil", nav_articles:"Articles", nav_courses:"Cours",
+                nav_about:"À propos", nav_contact:"Contact", nav_login:"Connexion",
+                nav_logout:"Déconnexion", nav_profile:"Mon profil", nav_admin:"Administration",
+                hero_title:"Bienvenue sur ElectroInfo",
+                hero_subtitle:"Votre portail d'expertise en électricité industrielle. Actualités, cours complets et ressources pour professionnels et étudiants.",
+                hero_btn_articles:"Découvrir les articles", hero_btn_courses:"Voir les cours",
+                features_title:"Ce que nous proposons",
+                features_subtitle:"Tout ce dont vous avez besoin pour exceller dans le domaine de l'électricité",
+                feat_news_title:"Actualités", feat_news_desc:"Les dernières innovations et tendances en électricité industrielle, mises à jour régulièrement.",
+                feat_courses_title:"Cours Complets", feat_courses_desc:"Formations pour BAC PRO, BEP, CAP, BTS et Licence en électricité et électrotechnique.",
+                feat_tuto_title:"Tutoriels", feat_tuto_desc:"Guides pratiques et tutoriels détaillés pour maîtriser les techniques électriques.",
+                feat_security_title:"Sécurité", feat_security_desc:"Normes, réglementations et bonnes pratiques pour travailler en toute sécurité.",
+                feat_newsletter_title:"Newsletter", feat_newsletter_desc:"Recevez les derniers articles et actualités directement dans votre boîte mail.",
+                feat_community_title:"Communauté", feat_community_desc:"Rejoignez une communauté de passionnés et professionnels de l'électricité.",
+                latest_title:"Derniers Articles", latest_subtitle:"Découvrez nos publications les plus récentes",
+                view_all:"Voir tous les articles",
+                cta_title:"Restez informé",
+                cta_subtitle:"Abonnez-vous à notre newsletter pour recevoir les dernières actualités et nouveaux cours",
+                newsletter_btn:"S'abonner", newsletter_placeholder:"votre@email.fr",
+                footer_nav:"Navigation", footer_resources:"Ressources",
+                footer_legal:"Informations Légales", footer_follow:"Suivez-nous",
+                footer_privacy:"Politique de confidentialité", footer_terms:"Conditions d'utilisation",
+                footer_legal_mentions:"Mentions légales", footer_cookies:"Gestion des cookies",
+                footer_copyright:"© 2025 ElectroInfo. Tous droits réservés.",
+                footer_desc:"Votre portail d'expertise en électricité et électronique. Nous parlons volt, ampère et watt sans concession.",
+                modal_newsletter_title:"Abonnez-vous à notre Newsletter",
+                modal_newsletter_desc:"Recevez les dernières actualités directement dans votre boîte mail.",
+                modal_newsletter_btn:"S'abonner",
+            },
+            en: {
+                nav_home:"Home", nav_articles:"Articles", nav_courses:"Courses",
+                nav_about:"About", nav_contact:"Contact", nav_login:"Login",
+                nav_logout:"Logout", nav_profile:"My Profile", nav_admin:"Administration",
+                hero_title:"Welcome to ElectroInfo",
+                hero_subtitle:"Your industrial electricity expertise portal. News, complete courses and resources for professionals and students.",
+                hero_btn_articles:"Explore Articles", hero_btn_courses:"View Courses",
+                features_title:"What We Offer",
+                features_subtitle:"Everything you need to excel in the field of electricity",
+                feat_news_title:"News", feat_news_desc:"The latest innovations and trends in industrial electricity, updated regularly.",
+                feat_courses_title:"Complete Courses", feat_courses_desc:"Training for BAC PRO, BEP, CAP, BTS and Licence in electricity and electrotechnics.",
+                feat_tuto_title:"Tutorials", feat_tuto_desc:"Practical guides and detailed tutorials to master electrical techniques.",
+                feat_security_title:"Safety", feat_security_desc:"Standards, regulations and best practices for safe working.",
+                feat_newsletter_title:"Newsletter", feat_newsletter_desc:"Receive the latest articles and news directly in your inbox.",
+                feat_community_title:"Community", feat_community_desc:"Join a community of electricity enthusiasts and professionals.",
+                latest_title:"Latest Articles", latest_subtitle:"Discover our most recent publications",
+                view_all:"View all articles",
+                cta_title:"Stay Informed",
+                cta_subtitle:"Subscribe to our newsletter to receive the latest news and new courses",
+                newsletter_btn:"Subscribe", newsletter_placeholder:"your@email.com",
+                footer_nav:"Navigation", footer_resources:"Resources",
+                footer_legal:"Legal Information", footer_follow:"Follow Us",
+                footer_privacy:"Privacy Policy", footer_terms:"Terms of Use",
+                footer_legal_mentions:"Legal Notices", footer_cookies:"Cookie Settings",
+                footer_copyright:"© 2025 ElectroInfo. All rights reserved.",
+                footer_desc:"Your expertise portal in electricity and electronics. We talk volts, amps and watts without compromise.",
+                modal_newsletter_title:"Subscribe to our Newsletter",
+                modal_newsletter_desc:"Receive the latest news directly in your inbox.",
+                modal_newsletter_btn:"Subscribe",
+            }
+        };
+        const LABELS = { ewe:'🌍 Eʋe', fr:'🇫🇷 FR', en:'🇬🇧 EN' };
+        const KEY = 'electroinfo_lang';
+
+        window.setLang = function(lang) {
+            localStorage.setItem(KEY, lang);
+            const d = T[lang]; if (!d) return;
+            // textes
+            document.querySelectorAll('[data-i18n]').forEach(el => {
+                const k = el.getAttribute('data-i18n');
+                if (d[k] !== undefined) el.textContent = d[k];
+            });
+            // placeholders
+            document.querySelectorAll('[data-i18n-placeholder]').forEach(el => {
+                const k = el.getAttribute('data-i18n-placeholder');
+                if (d[k] !== undefined) el.placeholder = d[k];
+            });
+            // bouton actif
+            const btn = document.getElementById('langCurrentBtn');
+            if (btn) btn.textContent = LABELS[lang];
+            document.querySelectorAll('.lang-option').forEach(o => {
+                o.classList.toggle('lang-active', o.dataset.lang === lang);
+            });
+            document.documentElement.lang = lang === 'ewe' ? 'ee' : lang;
+            // fermer dropdown
+            const dd = document.getElementById('langDropdown');
+            if (dd) dd.classList.remove('open');
+        };
+
+        window.toggleLangDropdown = function() {
+            const dd = document.getElementById('langDropdown');
+            if (dd) dd.classList.toggle('open');
+        };
+
+        // Fermer en cliquant ailleurs
+        document.addEventListener('click', function(e) {
+            if (!e.target.closest('#langSwitcher')) {
+                const dd = document.getElementById('langDropdown');
+                if (dd) dd.classList.remove('open');
+            }
+        });
+
+        // Appliquer la langue sauvegardée au chargement
+        document.addEventListener('DOMContentLoaded', function() {
+            const saved = localStorage.getItem(KEY) || 'ewe';
+            setLang(saved);
+        });
+    })();
+    </script>
+
 </body>
 </html>

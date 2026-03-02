@@ -291,6 +291,86 @@
                             </div>
                         </div>
 
+                        <!-- ══════════════════════════════════════════
+                             🌍 SECTION TRADUCTION MULTILINGUE
+                        ══════════════════════════════════════════ -->
+                        <div class="form-row" id="translationSection">
+                            <div class="form-group" style="width:100%">
+                                <label style="display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:.5rem;">
+                                    <span><i class="fas fa-language" style="color:#7c3aed"></i> Contenu Multilingue</span>
+                                    <button type="button" id="autoTranslateBtn" onclick="autoTranslateAll()" 
+                                        class="btn btn-secondary" style="font-size:.85rem;padding:.4rem 1rem;background:linear-gradient(135deg,#7c3aed,#2563eb);color:white;border:none;">
+                                        <i class="fas fa-magic"></i> Traduire 🇫🇷 + 🇬🇧 automatiquement
+                                    </button>
+                                </label>
+
+                                <!-- Tabs langues -->
+                                <div class="lang-tabs-admin" style="display:flex;gap:0;border-bottom:2px solid #e2e8f0;margin-bottom:0;margin-top:.75rem;">
+                                    <button type="button" class="lang-tab-btn active" data-lang="ewe" onclick="switchLangTab('ewe')" style="padding:.6rem 1.25rem;border:none;background:#f8fafc;color:#374151;font-weight:700;cursor:pointer;border-radius:8px 8px 0 0;border-bottom:2px solid #7c3aed;margin-bottom:-2px;font-size:.9rem;">🌍 Eʋegbe</button>
+                                    <button type="button" class="lang-tab-btn" data-lang="fr"  onclick="switchLangTab('fr')"  style="padding:.6rem 1.25rem;border:none;background:#f1f5f9;color:#9ca3af;font-weight:600;cursor:pointer;border-radius:8px 8px 0 0;font-size:.9rem;">🇫🇷 Français</button>
+                                    <button type="button" class="lang-tab-btn" data-lang="en"  onclick="switchLangTab('en')"  style="padding:.6rem 1.25rem;border:none;background:#f1f5f9;color:#9ca3af;font-weight:600;cursor:pointer;border-radius:8px 8px 0 0;font-size:.9rem;">🇬🇧 English</button>
+                                    <div id="translateStatus" style="margin-left:auto;display:flex;align-items:center;padding:0 .75rem;font-size:.8rem;color:#6b7280;"></div>
+                                </div>
+
+                                <!-- Tab Ewe -->
+                                <div id="langTab_ewe" class="lang-tab-content" style="background:#fff;border:1px solid #e2e8f0;border-top:none;padding:1.25rem;border-radius:0 4px 4px 4px;">
+                                    <div style="background:#fef3c7;border:1px solid #fcd34d;border-radius:.5rem;padding:.75rem 1rem;margin-bottom:1rem;font-size:.875rem;color:#92400e;">
+                                        <i class="fas fa-pencil-alt"></i> <strong>Écrivez vous-même en Eʋegbe.</strong> C'est la langue de base de votre site.
+                                    </div>
+                                    <div class="form-group" style="margin-bottom:1rem;">
+                                        <label>Titre en Eʋegbe</label>
+                                        <input type="text" id="title_ewe" class="input" placeholder="Nuŋlɔɖi ƒe ŋkɔ...">
+                                    </div>
+                                    <div class="form-group" style="margin-bottom:1rem;">
+                                        <label>Résumé en Eʋegbe</label>
+                                        <textarea id="summary_ewe" rows="3" class="input" placeholder="Nuŋlɔɖi ƒe ƒoƒoɖoɖo..."></textarea>
+                                    </div>
+                                    <div class="form-group">
+                                        <label>Contenu en Eʋegbe</label>
+                                        <textarea id="content_ewe" rows="8" class="input" placeholder="Ŋlɔ nuŋlɔɖi sia le Eʋegbe me..."></textarea>
+                                    </div>
+                                </div>
+
+                                <!-- Tab Français -->
+                                <div id="langTab_fr" class="lang-tab-content" style="display:none;background:#fff;border:1px solid #e2e8f0;border-top:none;padding:1.25rem;border-radius:0 4px 4px 4px;">
+                                    <div style="background:#eff6ff;border:1px solid #bfdbfe;border-radius:.5rem;padding:.75rem 1rem;margin-bottom:1rem;font-size:.875rem;color:#1e40af;">
+                                        <i class="fas fa-robot"></i> <strong>Traduction automatique depuis le contenu principal.</strong> Vous pouvez corriger après.
+                                    </div>
+                                    <div class="form-group" style="margin-bottom:1rem;">
+                                        <label>Titre en Français</label>
+                                        <input type="text" id="title_fr" class="input" placeholder="Traduction automatique...">
+                                    </div>
+                                    <div class="form-group" style="margin-bottom:1rem;">
+                                        <label>Résumé en Français</label>
+                                        <textarea id="summary_fr" rows="3" class="input" placeholder="Traduction automatique..."></textarea>
+                                    </div>
+                                    <div class="form-group">
+                                        <label>Contenu en Français</label>
+                                        <textarea id="content_fr" rows="8" class="input" placeholder="Traduction automatique..."></textarea>
+                                    </div>
+                                </div>
+
+                                <!-- Tab English -->
+                                <div id="langTab_en" class="lang-tab-content" style="display:none;background:#fff;border:1px solid #e2e8f0;border-top:none;padding:1.25rem;border-radius:0 4px 4px 4px;">
+                                    <div style="background:#f0fdf4;border:1px solid #bbf7d0;border-radius:.5rem;padding:.75rem 1rem;margin-bottom:1rem;font-size:.875rem;color:#166534;">
+                                        <i class="fas fa-robot"></i> <strong>Automatic translation from main content.</strong> You can edit after.
+                                    </div>
+                                    <div class="form-group" style="margin-bottom:1rem;">
+                                        <label>Title in English</label>
+                                        <input type="text" id="title_en" class="input" placeholder="Automatic translation...">
+                                    </div>
+                                    <div class="form-group" style="margin-bottom:1rem;">
+                                        <label>Summary in English</label>
+                                        <textarea id="summary_en" rows="3" class="input" placeholder="Automatic translation..."></textarea>
+                                    </div>
+                                    <div class="form-group">
+                                        <label>Content in English</label>
+                                        <textarea id="content_en" rows="8" class="input" placeholder="Automatic translation..."></textarea>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
                         <div class="form-row"><div class="form-group"><label>Tags (séparés par des virgules)</label><input type="text" id="tags" class="input" placeholder="Ex: électricité, innovation, IoT"></div></div>
                         <div class="form-row"><div class="form-group"><label>Statut de publication</label><select id="publicationStatus" class="input" onchange="toggleScheduleFields()"><option value="published">Publier immédiatement</option><option value="draft">Enregistrer comme brouillon</option><option value="scheduled">Programmer la publication</option></select></div></div>
                         <div id="scheduleFields" class="form-row" style="display:none;">
@@ -886,5 +966,221 @@
 
     <script type="module" src="/admin.js"></script>
     <script type="module" src="/admin-enhancements.js"></script>
+
+<!-- ═══════════════════════════════════════════════════════
+     🌍 SYSTÈME TRADUCTION MULTILINGUE ADMIN — ElectroInfo
+═══════════════════════════════════════════════════════ -->
+<script>
+// ─────────────────────────────────────────────────────────
+// GESTION DES ONGLETS LANGUE
+// ─────────────────────────────────────────────────────────
+window.switchLangTab = function(lang) {
+    // Cacher tous les tabs
+    document.querySelectorAll('.lang-tab-content').forEach(t => t.style.display = 'none');
+    // Réinitialiser les boutons
+    document.querySelectorAll('.lang-tab-btn').forEach(b => {
+        b.style.background = '#f1f5f9';
+        b.style.color = '#9ca3af';
+        b.style.borderBottom = 'none';
+    });
+    // Activer le bon
+    document.getElementById('langTab_' + lang).style.display = 'block';
+    const activeBtn = document.querySelector('.lang-tab-btn[data-lang="' + lang + '"]');
+    activeBtn.style.background = '#f8fafc';
+    activeBtn.style.color = '#374151';
+    activeBtn.style.borderBottom = '2px solid #7c3aed';
+    activeBtn.style.marginBottom = '-2px';
+};
+
+// ─────────────────────────────────────────────────────────
+// TRADUCTION AUTOMATIQUE VIA CLAUDE API
+// ─────────────────────────────────────────────────────────
+window.autoTranslateAll = async function() {
+    const btn = document.getElementById('autoTranslateBtn');
+    const status = document.getElementById('translateStatus');
+
+    // Récupérer le contenu source (titre + résumé depuis le formulaire principal)
+    const titleMain  = document.getElementById('title')?.value?.trim();
+    const summaryMain = document.getElementById('summary')?.value?.trim();
+    const contentMain = document.getElementById('content')?.value?.trim();
+    const titleEwe   = document.getElementById('title_ewe')?.value?.trim();
+    const summaryEwe = document.getElementById('summary_ewe')?.value?.trim();
+    const contentEwe = document.getElementById('content_ewe')?.value?.trim();
+
+    // Déterminer quelle source utiliser pour la traduction
+    const sourceTitle   = titleEwe   || titleMain   || '';
+    const sourceSummary = summaryEwe || summaryMain || '';
+    const sourceContent = contentEwe || contentMain || '';
+
+    if (!sourceTitle && !sourceSummary && !sourceContent) {
+        alert('⚠️ Remplissez d\'abord le titre, le résumé ou le contenu (en Eʋegbe ou dans le formulaire principal).');
+        return;
+    }
+
+    // Désactiver le bouton
+    btn.disabled = true;
+    btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Traduction en cours...';
+    status.innerHTML = '<i class="fas fa-spinner fa-spin"></i> IA en cours...';
+
+    try {
+        // Traduire en Français et Anglais en parallèle
+        const [frResult, enResult] = await Promise.all([
+            translateWithClaude(sourceTitle, sourceSummary, sourceContent, 'français'),
+            translateWithClaude(sourceTitle, sourceSummary, sourceContent, 'anglais'),
+        ]);
+
+        // Remplir Français
+        if (frResult) {
+            document.getElementById('title_fr').value   = frResult.title   || '';
+            document.getElementById('summary_fr').value = frResult.summary || '';
+            document.getElementById('content_fr').value = frResult.content || '';
+        }
+
+        // Remplir Anglais
+        if (enResult) {
+            document.getElementById('title_en').value   = enResult.title   || '';
+            document.getElementById('summary_en').value = enResult.summary || '';
+            document.getElementById('content_en').value = enResult.content || '';
+        }
+
+        status.innerHTML = '<span style="color:#16a34a"><i class="fas fa-check-circle"></i> Traductions terminées !</span>';
+        btn.innerHTML = '<i class="fas fa-check"></i> Traduit avec succès';
+        btn.style.background = 'linear-gradient(135deg,#16a34a,#059669)';
+
+        // Aller voir le résultat Français
+        switchLangTab('fr');
+
+    } catch (err) {
+        console.error('Erreur traduction:', err);
+        status.innerHTML = '<span style="color:#dc2626"><i class="fas fa-times-circle"></i> Erreur : ' + err.message + '</span>';
+        btn.innerHTML = '<i class="fas fa-exclamation-triangle"></i> Réessayer';
+        btn.style.background = 'linear-gradient(135deg,#dc2626,#b91c1c)';
+    } finally {
+        btn.disabled = false;
+    }
+};
+
+// ─────────────────────────────────────────────────────────
+// APPEL API CLAUDE POUR UNE LANGUE CIBLE
+// ─────────────────────────────────────────────────────────
+async function translateWithClaude(title, summary, content, targetLang) {
+    const isEn = targetLang === 'anglais';
+
+    const prompt = `Tu es un traducteur expert. Je vais te donner le contenu d'un article du site web "ElectroInfo" (spécialisé en électricité industrielle au Togo).
+
+Traduis chaque partie en ${targetLang}${isEn ? ' (English)' : ''} de façon précise et professionnelle.
+
+Voici le contenu à traduire :
+
+TITRE : ${title || '(vide)'}
+
+RÉSUMÉ : ${summary || '(vide)'}
+
+CONTENU : ${content || '(vide)'}
+
+Réponds UNIQUEMENT avec un objet JSON valide, sans aucun texte avant ou après, dans ce format exact :
+{
+  "title": "...",
+  "summary": "...",
+  "content": "..."
+}`;
+
+    const response = await fetch('https://api.anthropic.com/v1/messages', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+            model: 'claude-sonnet-4-20250514',
+            max_tokens: 2000,
+            messages: [{ role: 'user', content: prompt }]
+        })
+    });
+
+    if (!response.ok) {
+        const err = await response.json();
+        throw new Error(err?.error?.message || 'Erreur API');
+    }
+
+    const data = await response.json();
+    const rawText = data.content?.[0]?.text || '{}';
+
+    // Parser le JSON retourné
+    try {
+        const clean = rawText.replace(/```json|```/g, '').trim();
+        return JSON.parse(clean);
+    } catch (e) {
+        console.warn('JSON parse error:', rawText);
+        return { title: '', summary: '', content: rawText };
+    }
+}
+
+// ─────────────────────────────────────────────────────────
+// EXTENSION DU FORMULAIRE POUR SAUVEGARDER LES TRADUCTIONS
+// Patch de la soumission du formulaire pour inclure les traductions
+// ─────────────────────────────────────────────────────────
+document.addEventListener('DOMContentLoaded', function() {
+    // On attend que admin.js soit chargé (il gère le submit)
+    // On expose les traductions via window pour que admin.js les récupère
+    const form = document.getElementById('articleForm');
+    if (form) {
+        form.addEventListener('submit', function() {
+            // Stocker les traductions dans des champs cachés lisibles par admin.js
+            window.__translations = {
+                ewe: {
+                    title:   document.getElementById('title_ewe')?.value?.trim()   || '',
+                    summary: document.getElementById('summary_ewe')?.value?.trim() || '',
+                    content: document.getElementById('content_ewe')?.value?.trim() || '',
+                },
+                fr: {
+                    title:   document.getElementById('title_fr')?.value?.trim()   || '',
+                    summary: document.getElementById('summary_fr')?.value?.trim() || '',
+                    content: document.getElementById('content_fr')?.value?.trim() || '',
+                },
+                en: {
+                    title:   document.getElementById('title_en')?.value?.trim()   || '',
+                    summary: document.getElementById('summary_en')?.value?.trim() || '',
+                    content: document.getElementById('content_en')?.value?.trim() || '',
+                }
+            };
+        }, true); // capture phase = avant admin.js
+    }
+
+    // Remplir les champs si on charge un article existant (mode édition)
+    window.fillTranslationFields = function(articleData) {
+        if (!articleData) return;
+        const t = articleData.translations || {};
+        
+        ['ewe','fr','en'].forEach(lang => {
+            if (t[lang]) {
+                const f = t[lang];
+                const ti = document.getElementById('title_'   + lang);
+                const su = document.getElementById('summary_' + lang);
+                const co = document.getElementById('content_' + lang);
+                if (ti) ti.value = f.title   || '';
+                if (su) su.value = f.summary || '';
+                if (co) co.value = f.content || '';
+            }
+        });
+    };
+
+    // Réinitialiser les champs de traduction lors d'un cancelEdit
+    const originalCancel = window.cancelEdit;
+    window.cancelEdit = function() {
+        ['ewe','fr','en'].forEach(lang => {
+            ['title_','summary_','content_'].forEach(prefix => {
+                const el = document.getElementById(prefix + lang);
+                if (el) el.value = '';
+            });
+        });
+        switchLangTab('ewe');
+        document.getElementById('translateStatus').innerHTML = '';
+        const btn = document.getElementById('autoTranslateBtn');
+        if (btn) {
+            btn.innerHTML = '<i class="fas fa-magic"></i> Traduire 🇫🇷 + 🇬🇧 automatiquement';
+            btn.style.background = 'linear-gradient(135deg,#7c3aed,#2563eb)';
+        }
+        if (originalCancel) originalCancel();
+    };
+});
+</script>
 </body>
 </html>

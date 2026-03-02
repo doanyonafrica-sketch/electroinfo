@@ -41,7 +41,7 @@ const isLocalDev = window.location.hostname === 'localhost' ||
 // ============================================
 // CACHE LOCAL DES ARTICLES
 // ============================================
-const CACHE_KEY = 'electroinfo_articles_cache';
+const CACHE_KEY = 'electroinfo_home_articles_v2';
 const CACHE_DURATION = 24 * 60 * 60 * 1000; // 24 heures en ms
 
 function getCachedArticles() {
@@ -187,7 +187,8 @@ async function loadLatestArticles() {
     // 1. Afficher le cache immédiatement s'il existe
     const cachedArticles = getCachedArticles();
     if (cachedArticles && cachedArticles.length > 0) {
-        container.innerHTML = cachedArticles.map(article => createArticleCard(article)).join('');
+        const publishedCache = cachedArticles.filter(a => (a.status || 'published') === 'published');
+        container.innerHTML = publishedCache.map(article => createArticleCard(article)).join('');
         console.log(`📦 ${cachedArticles.length} articles affichés depuis le cache`);
         
         // Ajouter un indicateur discret "mis à jour à..."
@@ -205,7 +206,8 @@ async function loadLatestArticles() {
     // 2. Essayer de charger depuis Firebase (même si on a déjà affiché le cache)
     try {
         const q = query(
-            collection(db, 'articles'), 
+            collection(db, 'articles'),
+            where('status', '==', 'published'),
             orderBy('createdAt', 'desc'), 
             limit(6)
         );
@@ -220,12 +222,10 @@ async function loadLatestArticles() {
         if (!snapshot.empty) {
             const articles = [];
             snapshot.forEach(doc => {
-                // Convertir les timestamps en objets date sérialisables pour le cache
                 const data = doc.data();
                 articles.push({ 
                     id: doc.id, 
                     ...data,
-                    // Stocker la date comme string pour le cache
                     _cachedDate: data.createdAt ? new Date(data.createdAt.toDate()).toISOString() : null
                 });
             });

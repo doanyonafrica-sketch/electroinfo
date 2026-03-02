@@ -41,7 +41,7 @@ let allArticles      = [];
 let filteredArticles = [];
 let currentPage      = 1;
 const ARTICLES_PER_PAGE = 9;
-const CACHE_KEY = 'electroinfo_articles_cache';
+const CACHE_KEY = 'electroinfo_articles_cache_v2';
 const CACHE_TIMESTAMP_KEY = 'electroinfo_cache_timestamp';
 const CACHE_DURATION = 24 * 60 * 60 * 1000; // 24 heures
 
@@ -245,7 +245,7 @@ async function loadArticles() {
     
     // 🆕 ÉTAPE 1: Si on a du cache, l'afficher IMMÉDIATEMENT
     if (cachedData && cachedData.length > 0) {
-        allArticles = cachedData;
+        allArticles = cachedData.filter(a => (a.status || 'published') === 'published');
         filteredArticles = [...allArticles];
         applyUrlFilter();
         displayArticles();
@@ -280,18 +280,15 @@ async function loadArticles() {
 
         const q = query(
             collection(db, 'articles'),
+            where('status', '==', 'published'),
             orderBy('createdAt', 'desc')
         );
         
         const snapshot = await getDocs(q);
 
-        // Filtrer pour ne garder que les articles publiés
+        // Firebase retourne uniquement les publiés (filtre serveur)
         const freshArticles = snapshot.docs
-            .map(doc => ({ id: doc.id, ...doc.data() }))
-            .filter(article => {
-                const status = article.status || 'published';
-                return status === 'published';
-            });
+            .map(doc => ({ id: doc.id, ...doc.data() }));
 
         // 🆕 Sauvegarder dans le cache
         saveArticlesToCache(freshArticles);
@@ -586,16 +583,13 @@ async function loadPopularArticles() {
         }
 
         const snapshot = await getDocs(
-            query(collection(db, 'articles'), orderBy('views', 'desc'), limit(20))
+            query(collection(db, 'articles'),
+                where('status', '==', 'published'),
+                orderBy('views', 'desc'), limit(5))
         );
 
         const published = snapshot.docs
-            .map(doc => ({ id: doc.id, ...doc.data() }))
-            .filter(article => {
-                const status = article.status || 'published';
-                return status === 'published';
-            })
-            .slice(0, 5);
+            .map(doc => ({ id: doc.id, ...doc.data() }));
 
         displayPopularArticles(published);
         

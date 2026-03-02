@@ -735,6 +735,10 @@ articleForm?.addEventListener('submit', async (e) => {
         const slug = await generateUniqueSlug(title, editMode ? currentEditId : null);
         console.log('✅ Slug généré:', slug);
 
+        // Récupérer les traductions multilingues si disponibles
+        const translations = window.__translations || { ewe:{}, fr:{}, en:{} };
+        window.__translations = null; // reset
+
         const articleData = {
             title,
             slug,
@@ -744,6 +748,7 @@ articleForm?.addEventListener('submit', async (e) => {
             content,
             featured,
             tags,
+            translations,           // 🌍 Contenu multilingue
             status: publicationStatus, // 🆕 STATUT
             author: {
                 uid: currentUser.uid,
@@ -1033,6 +1038,8 @@ window.editArticle = async function(articleId) {
         const article = docSnap.data();
 
         document.getElementById('title').value = article.title;
+        // Remplir les champs de traduction multilingue
+        if (window.fillTranslationFields) window.fillTranslationFields(article);
         document.getElementById('category').value = article.category;
         document.getElementById('imageUrl').value = article.imageUrl || '';
         document.getElementById('summary').value = article.summary;
