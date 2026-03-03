@@ -37,13 +37,23 @@ const newsletterList = document.getElementById('newsletterList');
 // 🧹 NETTOYAGE ET OPTIMISATION CONTENU
 // ============================================
 function cleanQuillHTML(html) {
-    // Supprimer les attributs inutiles ajoutés par Quill
     let cleaned = html
-        .replace(/class="ql-[^"]*"/g, '') // Supprimer classes Quill
-        .replace(/\s+/g, ' ') // Réduire espaces multiples
-        .replace(/>\s+</g, '><') // Supprimer espaces entre balises
+        // Supprimer les attributs inutiles ajoutés par Quill
+        .replace(/class="ql-[^"]*"/g, '')
+        // Supprimer les <p> vides avec seulement <br> ou espaces (cause des grands espaces blancs)
+        .replace(/<p>\s*<br\s*\/?>\s*<\/p>/gi, '')
+        .replace(/<p>\s*&nbsp;\s*<\/p>/gi, '')
+        .replace(/<p>\s*<\/p>/gi, '')
+        // Supprimer les <br> en fin de <p> avant fermeture
+        .replace(/<br\s*\/?>\s*<\/p>/gi, '</p>')
+        // Supprimer plusieurs <br> consécutifs (max 1)
+        .replace(/(<br\s*\/?>){2,}/gi, '<br>')
+        // Réduire espaces multiples
+        .replace(/\s+/g, ' ')
+        // Supprimer espaces entre balises
+        .replace(/>\s+</g, '><')
         .trim();
-    
+
     return cleaned;
 }
 
