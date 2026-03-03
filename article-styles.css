@@ -2257,3 +2257,101 @@ body,
         font-size: 1.1rem;
     }
 }
+
+/* ══════════════════════════════════════════════════════
+   CALLOUT BOXES — Boîtes d'information dans les articles
+   ══════════════════════════════════════════════════════ */
+.article-body .callout {
+    padding: 1.1rem 1.4rem;
+    border-radius: 8px;
+    margin: 1.5rem 0;
+    font-size: 1rem;
+    line-height: 1.7;
+    display: block;
+}
+/* Info / Bleu */
+.article-body .callout-info {
+    background: #eff6ff !important;
+    border-left: 5px solid #2563eb !important;
+    color: #1e3a8a !important;
+}
+/* Succes / Vert */
+.article-body .callout-success {
+    background: #f0fdf4 !important;
+    border-left: 5px solid #10b981 !important;
+    color: #064e3b !important;
+}
+/* Avertissement / Jaune */
+.article-body .callout-warning {
+    background: #fffbeb !important;
+    border-left: 5px solid #f59e0b !important;
+    color: #78350f !important;
+}
+/* Danger / Rouge */
+.article-body .callout-danger {
+    background: #fef2f2 !important;
+    border-left: 5px solid #ef4444 !important;
+    color: #7f1d1d !important;
+}
+/* Code sombre */
+.article-body .callout-code {
+    background: #1e293b !important;
+    color: #f1f5f9 !important;
+    border-radius: 8px !important;
+    padding: 1.25rem 1.5rem !important;
+    font-family: 'Fira Code', 'Courier New', monospace !important;
+    font-size: .95rem !important;
+    line-height: 1.8 !important;
+    margin: 1.5rem 0 !important;
+    display: block !important;
+    white-space: pre-wrap !important;
+}
+
+
+/* ══════════════════════════════════════════════════════════
+   RESPECT DES STYLES INLINE — Tout HTML collé dans l'admin
+   s'affiche correctement sans être écrasé par le thème.
+   ══════════════════════════════════════════════════════════ */
+
+/* Assure que les backgrounds/couleurs inline ne sont jamais écrasés */
+.article-body [style*="background"] { background: revert; }
+.article-body [style*="color"]      { color: revert; }
+.article-body [style*="border"]     { border: revert; }
+.article-body [style*="padding"]    { padding: revert; }
+.article-body [style*="margin"]     { margin: revert; }
+.article-body [style*="font"]       { font: revert; }
+.article-body [style*="display"]    { display: revert; }
+.article-body [style*="width"]      { width: revert; }
+.article-body [style*="max-width"]  { max-width: revert; }
+
+/* Les divs avec style inline affichent leur fond réel */
+.article-body div[style],
+.article-body span[style],
+.article-body p[style],
+.article-body section[style] {
+    all: revert;         /* remet tous les styles à zéro */
+    display: block;      /* garde block display */
+    box-sizing: border-box;
+}
+
+/* Sauf les styles Quill natifs qu'on veut garder */
+.article-body div[style] *,
+.article-body span[style] * {
+    /* les enfants héritent normalement */
+}
+
+/* Tableaux inline — ne pas re-override les <th> avec fond inline */
+.article-body table[style],
+.article-body thead[style] tr[style] th[style],
+.article-body tbody[style] tr[style] td[style] {
+    all: revert;
+    box-sizing: border-box;
+}
+
+/* Iframes autorisées (ex: vidéos YouTube) */
+.article-body iframe {
+    max-width: 100%;
+    border-radius: 8px;
+    display: block;
+    margin: 1.5rem auto;
+}

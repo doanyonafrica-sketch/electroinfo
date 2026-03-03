@@ -2466,3 +2466,230 @@ select, textarea {
 .footer-consent-link:hover {
     color: var(--secondary);
 }
+
+/* ============================================
+   AJOUTS OPTIMISATION PERFORMANCE - v2.0
+   ============================================ */
+
+/* ✅ Images avec placeholder shimmer pendant chargement */
+.article-image {
+    width: 100%;
+    height: 240px;
+    object-fit: cover;
+    background: linear-gradient(90deg, #f0f0f0 25%, #e0e0e0 50%, #f0f0f0 75%);
+    background-size: 200% 100%;
+    animation: shimmer 1.5s infinite;
+    transition: opacity 0.3s;
+}
+
+.article-image[loading="lazy"] {
+    animation: none;
+    background: none;
+}
+
+.article-image.loaded {
+    animation: none;
+    background: none;
+}
+
+@keyframes shimmer {
+    0% { background-position: 200% 0; }
+    100% { background-position: -200% 0; }
+}
+
+/* ✅ Réduire les repaints avec contain */
+.article-card {
+    will-change: transform;
+    contain: layout style paint;
+    content-visibility: auto;
+    contain-intrinsic-size: 0 350px;
+}
+
+/* ✅ Bouton charger plus */
+.load-more-btn {
+    grid-column: 1 / -1;
+    margin: 2rem auto;
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    padding: 0.75rem 2rem;
+    font-size: 1rem;
+    min-height: 48px;
+}
+
+.load-more-btn:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 4px 12px rgba(30, 64, 175, 0.3);
+}
+
+.load-more-btn:active {
+    transform: translateY(0);
+}
+
+/* ✅ Indicateur offline amélioré */
+.offline-indicator {
+    position: fixed;
+    top: 64px;
+    left: 0;
+    right: 0;
+    background: #f59e0b;
+    color: white;
+    padding: 0.75rem;
+    text-align: center;
+    font-weight: 600;
+    z-index: 999;
+    transform: translateY(-100%);
+    transition: transform 0.3s ease;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 0.5rem;
+}
+
+.offline-indicator.show {
+    transform: translateY(0);
+}
+
+.offline-indicator i {
+    font-size: 1rem;
+}
+
+/* ✅ Toast réseau */
+.network-toast {
+    position: fixed;
+    top: 80px;
+    right: 1rem;
+    background: white;
+    padding: 0.75rem 1.25rem;
+    border-radius: 0.5rem;
+    box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+    font-weight: 500;
+    z-index: 1000;
+    transform: translateX(150%);
+    transition: transform 0.3s ease;
+    border-left: 4px solid var(--success);
+}
+
+.network-toast.offline {
+    border-left-color: #f59e0b;
+}
+
+.network-toast.show {
+    transform: translateX(0);
+}
+
+.network-toast i {
+    font-size: 1.25rem;
+}
+
+.network-toast.online i {
+    color: var(--success);
+}
+
+.network-toast.offline i {
+    color: #f59e0b;
+}
+
+/* ✅ Badge offline sur articles */
+.article-card__offline-badge {
+    position: absolute;
+    top: 0.5rem;
+    right: 0.5rem;
+    background: rgba(0,0,0,0.7);
+    color: white;
+    padding: 0.25rem 0.5rem;
+    border-radius: 0.25rem;
+    font-size: 0.75rem;
+    display: flex;
+    align-items: center;
+    gap: 0.25rem;
+}
+
+/* ✅ Grille articles subgrid */
+.articles-subgrid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+    gap: 2rem;
+}
+
+@media (max-width: 768px) {
+    .articles-subgrid {
+        grid-template-columns: 1fr;
+    }
+}
+
+@media (min-width: 769px) and (max-width: 1024px) {
+    .articles-subgrid {
+        grid-template-columns: repeat(2, 1fr);
+    }
+}
+
+/* ✅ Animation chargement améliorée */
+.loading {
+    text-align: center;
+    padding: 3rem 0;
+    grid-column: 1 / -1;
+}
+
+.loading i {
+    font-size: 2.5rem;
+    color: var(--primary);
+    margin-bottom: 1rem;
+    animation: spin 1s linear infinite;
+}
+
+@keyframes spin {
+    from { transform: rotate(0deg); }
+    to { transform: rotate(360deg); }
+}
+
+/* ✅ Responsive mobile optimisé */
+@media (max-width: 480px) {
+    .load-more-btn {
+        width: 90%;
+        justify-content: center;
+    }
+
+    .offline-indicator {
+        font-size: 0.875rem;
+        padding: 0.5rem;
+    }
+
+    .network-toast {
+        left: 0.5rem;
+        right: 0.5rem;
+        top: 70px;
+    }
+}
+
+/* ✅ Optimisation scroll */
+@media (prefers-reduced-motion: no-preference) {
+    html {
+        scroll-behavior: smooth;
+    }
+}
+
+/* ✅ Containment pour sections lourdes */
+.sidebar {
+    contain: layout style;
+}
+
+.popular-articles {
+    contain: layout style paint;
+}
+
+/* ✅ Cache info badge */
+.cache-info {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.25rem;
+    background: var(--info);
+    color: white;
+    padding: 0.125rem 0.5rem;
+    border-radius: 0.25rem;
+    font-size: 0.75rem;
+    margin-left: 0.5rem;
+}

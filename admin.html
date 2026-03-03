@@ -143,6 +143,42 @@
         #wyImgToolbar button:hover { background:#334155; color:#f1f5f9; }
         #wyImgToolbar .wy-sep2 { width:1px; height:16px; background:#334155; margin:0 2px; }
         #wyImgToolbar span.wy-img-size { color:#64748b; font-size:.7rem; padding:0 4px; min-width:60px; text-align:center; }
+
+        /* ══════════════════════════════
+           ONGLETS ADMIN PRINCIPAL
+        ══════════════════════════════ */
+        .admin-tabs-nav {
+            display: flex;
+            border-bottom: 3px solid #e2e8f0;
+            margin-bottom: 1.5rem;
+            background: white;
+            border-radius: 12px 12px 0 0;
+            box-shadow: 0 2px 8px rgba(0,0,0,.06);
+            overflow: hidden;
+        }
+        .admin-tab-btn {
+            padding: .85rem 1.5rem;
+            border: none;
+            background: #f8fafc;
+            color: #64748b;
+            font-weight: 600;
+            font-size: .93rem;
+            cursor: pointer;
+            border-bottom: 3px solid transparent;
+            margin-bottom: -3px;
+            transition: all .2s;
+            display: flex;
+            align-items: center;
+            gap: .5rem;
+            flex: 1;
+            justify-content: center;
+        }
+        .admin-tab-btn:hover:not(.active) { background: #f1f5f9; color: #374151; }
+        .admin-tab-btn.active { background: white; color: #7c3aed; border-bottom-color: #7c3aed; }
+        .admin-tab-btn .tab-badge { background: #e0e7ff; color: #4f46e5; font-size: .72rem; padding: .1rem .45rem; border-radius: 99px; font-weight: 700; }
+        .admin-tab-btn.active .tab-badge { background: #7c3aed; color: white; }
+        .admin-tab-page { display: none; }
+        .admin-tab-page.active { display: block; }
     </style>
 </head>
 <body>
@@ -211,12 +247,41 @@
                 </div>
             </div>
 
+            <!-- ══ NAVIGATION ONGLETS ══ -->
+            <div class="admin-tabs-nav">
+                <button class="admin-tab-btn active" onclick="switchAdminTab('dashboard')">
+                    <i class="fas fa-tachometer-alt"></i> Tableau de bord
+                </button>
+                <button class="admin-tab-btn" onclick="switchAdminTab('rediger')">
+                    <i class="fas fa-pen-nib"></i> Rédiger un article
+                </button>
+                <button class="admin-tab-btn" onclick="switchAdminTab('newsletter')">
+                    <i class="fas fa-envelope"></i> Newsletter
+                </button>
+                <button class="admin-tab-btn" onclick="switchAdminTab('admins')" style="color:#dc2626;">
+                    <i class="fas fa-user-shield"></i> Admins
+                </button>
+            </div>
+
+            <!-- ══ ONGLET 1 : TABLEAU DE BORD ══ -->
+            <div id="tab-dashboard" class="admin-tab-page active">
+
+            <div style="display:flex; justify-content:flex-end; margin-bottom:1rem;">
+                <button onclick="switchAdminTab('rediger')" class="btn btn-primary" style="display:flex;align-items:center;gap:.5rem;">
+                    <i class="fas fa-plus-circle"></i> Rédiger un nouvel article
+                </button>
+            </div>
+
             <div class="stats-grid">
                 <div class="stat-card"><div class="stat-icon blue"><i class="fas fa-newspaper"></i></div><div class="stat-content"><p class="stat-label">Total Articles</p><p class="stat-value" id="totalArticles">0</p></div></div>
                 <div class="stat-card"><div class="stat-icon green"><i class="fas fa-check-circle"></i></div><div class="stat-content"><p class="stat-label">Publiés</p><p class="stat-value" id="publishedArticles">0</p></div></div>
                 <div class="stat-card"><div class="stat-icon yellow"><i class="fas fa-clock"></i></div><div class="stat-content"><p class="stat-label">Programmés</p><p class="stat-value" id="scheduledArticles">0</p></div></div>
                 <div class="stat-card"><div class="stat-icon purple"><i class="fas fa-file-alt"></i></div><div class="stat-content"><p class="stat-label">Brouillons</p><p class="stat-value" id="draftArticles">0</p></div></div>
             </div>
+
+            <!-- ══ ONGLET 2 : RÉDIGER (form) ══ -->
+            </div><!-- /#tab-dashboard -->
+            <div id="tab-rediger" class="admin-tab-page">
 
             <div class="card">
                 <div class="card-header"><h2><i class="fas fa-plus-circle"></i> <span id="formTitle">Nouvel Article</span></h2></div>
@@ -387,7 +452,12 @@
                         </div>
                     </form>
                 </div>
-            </div>
+            </div><!-- /.card article form -->
+
+            </div><!-- /#tab-rediger -->
+
+            <!-- tab-dashboard continues with article lists -->
+            <div id="tab-dashboard-lists" class="admin-tab-page active">
 
             <div class="search-articles-section">
                 <div class="search-bar-admin">
@@ -410,13 +480,74 @@
                 <div class="card-header accordion-header" onclick="toggleAccordion('drafts')"><div class="accordion-title"><i class="fas fa-chevron-down accordion-icon" id="draftsIcon"></i><h2><i class="fas fa-file-alt"></i> Brouillons</h2><span class="count-badge" id="draftsCount">0</span></div></div>
                 <div class="card-body accordion-body" id="draftsAccordion"><div id="draftsArticlesList"><div class="empty-state"><i class="fas fa-file-alt"></i><p>Aucun brouillon</p></div></div><div id="draftsPagination" class="admin-pagination hidden"></div></div>
             </div>
+            </div><!-- /#tab-dashboard-lists -->
+
+            <!-- ══ ONGLET 3 : NEWSLETTER ══ -->
+            <div id="tab-newsletter" class="admin-tab-page">
+
             <div class="card">
                 <div class="card-header"><h2><i class="fas fa-envelope"></i> Abonnés Newsletter</h2></div>
                 <div class="card-body">
                     <div class="newsletter-actions"><button onclick="exportNewsletterCSV()" class="btn btn-primary"><i class="fas fa-download"></i> Exporter CSV</button></div>
                     <div id="newsletterList"><div class="loading"><i class="fas fa-spinner fa-spin"></i><p>Chargement...</p></div></div>
                 </div>
+            </div><!-- /.card newsletter -->
+
+            </div><!-- /#tab-newsletter -->
+
+            <!-- ══ ONGLET 4 : ADMINS ══ -->
+            <div id="tab-admins" class="admin-tab-page">
+
+            <div class="card" style="max-width:520px; margin:0 auto;">
+                <div class="card-header" style="background:linear-gradient(135deg,#dc2626,#b91c1c);">
+                    <h2 style="color:white;"><i class="fas fa-user-shield"></i> Créer un compte Admin</h2>
+                </div>
+                <div class="card-body">
+                    <div style="background:#fef2f2;border:1px solid #fecaca;border-radius:.5rem;padding:.85rem 1rem;margin-bottom:1.25rem;font-size:.875rem;color:#991b1b;display:flex;align-items:flex-start;gap:.6rem;">
+                        <i class="fas fa-exclamation-triangle" style="margin-top:.1rem;flex-shrink:0;"></i>
+                        <span><strong>Attention :</strong> Un compte admin a accès à toute l'administration du site. N'accordez cet accès qu'à des personnes de confiance.</span>
+                    </div>
+
+                    <div class="form-group" style="margin-bottom:1rem;">
+                        <label style="font-weight:600;font-size:.9rem;color:#374151;display:block;margin-bottom:.4rem;">
+                            <i class="fas fa-user" style="color:#dc2626;margin-right:.3rem;"></i> Nom complet
+                        </label>
+                        <input type="text" id="newAdminName" class="input" placeholder="Ex: Jean Dupont" style="width:100%;">
+                    </div>
+
+                    <div class="form-group" style="margin-bottom:1rem;">
+                        <label style="font-weight:600;font-size:.9rem;color:#374151;display:block;margin-bottom:.4rem;">
+                            <i class="fas fa-envelope" style="color:#dc2626;margin-right:.3rem;"></i> Adresse email
+                        </label>
+                        <input type="email" id="newAdminEmail" class="input" placeholder="admin@exemple.com" style="width:100%;">
+                    </div>
+
+                    <div class="form-group" style="margin-bottom:1rem;">
+                        <label style="font-weight:600;font-size:.9rem;color:#374151;display:block;margin-bottom:.4rem;">
+                            <i class="fas fa-lock" style="color:#dc2626;margin-right:.3rem;"></i> Mot de passe temporaire
+                        </label>
+                        <div style="position:relative;">
+                            <input type="password" id="newAdminPassword" class="input" placeholder="Minimum 8 caractères" style="width:100%;padding-right:2.5rem;">
+                            <button type="button" onclick="toggleAdminPwd()" style="position:absolute;right:.6rem;top:50%;transform:translateY(-50%);background:none;border:none;color:#9ca3af;cursor:pointer;font-size:.9rem;">
+                                <i class="fas fa-eye" id="adminPwdIcon"></i>
+                            </button>
+                        </div>
+                        <div style="margin-top:.4rem;">
+                            <div id="adminPwdStrengthBar" style="height:4px;border-radius:2px;background:#e5e7eb;transition:all .3s;width:0%;"></div>
+                            <span id="adminPwdStrengthText" style="font-size:.75rem;color:#9ca3af;"></span>
+                        </div>
+                    </div>
+
+                    <div id="createAdminStatus" style="min-height:1.5rem;font-size:.875rem;margin-bottom:1rem;"></div>
+
+                    <button id="createAdminBtn" onclick="createAdminAccount()" class="btn btn-danger" style="width:100%;justify-content:center;display:flex;align-items:center;gap:.5rem;padding:.75rem;font-size:1rem;">
+                        <i class="fas fa-user-plus"></i> Créer le compte Admin
+                    </button>
+                </div>
             </div>
+
+            </div><!-- /#tab-admins -->
+
         </div>
     </main>
 
@@ -967,6 +1098,119 @@
     <script type="module" src="/admin.js"></script>
     <script type="module" src="/admin-enhancements.js"></script>
 
+    <!-- ══════════════════════════════════════════════════════
+         PATCH QUILL — Accepter tout type de HTML
+         (styles inline, div colorés, tableaux, iframes, etc.)
+    ══════════════════════════════════════════════════════ -->
+    <script>
+    (function patchQuillForFullHTML() {
+
+        // ── 1. Enregistrer des formats Quill pour les attributs style, class, id ──
+        function registerCustomFormats() {
+            const Quill = window.Quill;
+            if (!Quill) return false;
+
+            // Autoriser style, class, id sur tous les blocs/inline
+            const Block  = Quill.import('blots/block');
+            const Inline = Quill.import('blots/inline');
+            const Embed  = Quill.import('blots/embed');
+
+            // Format générique qui conserve l'attribut style sur un span
+            class StyleInline extends Inline {
+                static create(value) {
+                    const node = super.create();
+                    if (value) node.setAttribute('style', value);
+                    return node;
+                }
+                static formats(node) { return node.getAttribute('style') || undefined; }
+                format(name, value) {
+                    if (name === 'customStyle') {
+                        if (value) this.domNode.setAttribute('style', value);
+                        else this.domNode.removeAttribute('style');
+                    } else super.format(name, value);
+                }
+            }
+            StyleInline.blotName = 'customStyle';
+            StyleInline.tagName  = 'span';
+            try { Quill.register(StyleInline, true); } catch(e) {}
+
+            return true;
+        }
+
+        // ── 2. Patch du clipboard pour ne PAS filtrer les styles ──
+        function patchClipboard(quill) {
+            const clipboard = quill.getModule('clipboard');
+            if (!clipboard) return;
+
+            // Intercepter TOUS les noeuds et préserver leurs styles inline
+            clipboard.addMatcher(Node.ELEMENT_NODE, function(node, delta) {
+                // Réappliquer les attributs style/class perdus lors de la conversion
+                delta.ops = delta.ops.map(op => {
+                    if (op.insert && typeof op.insert === 'string') {
+                        const attrs = op.attributes || {};
+                        // Récupérer le style du noeud parent si applicable
+                        if (node.style && node.style.cssText) {
+                            attrs['customStyle'] = node.style.cssText;
+                            op.attributes = attrs;
+                        }
+                    }
+                    return op;
+                });
+                return delta;
+            });
+
+            // ── Coller du HTML brut sans filtrage ──
+            // Surcharger onPaste pour injecter directement le HTML dans le DOM
+            const originalOnPaste = clipboard.onPaste.bind(clipboard);
+            clipboard.onPaste = function(e) {
+                const html = e.clipboardData && e.clipboardData.getData('text/html');
+                if (html && html.trim()) {
+                    e.preventDefault();
+                    e.stopPropagation();
+
+                    // Injecter directement dans le root de Quill sans sanitisation
+                    const range = quill.getSelection(true);
+                    const index = range ? range.index : quill.getLength();
+
+                    // Utiliser dangerouslyPasteHTML si dispo, sinon injecter dans innerHTML
+                    if (quill.clipboard.dangerouslyPasteHTML) {
+                        quill.clipboard.dangerouslyPasteHTML(index, html);
+                    } else {
+                        // Fallback : injecter dans le root directement
+                        quill.root.insertAdjacentHTML('beforeend', html);
+                        quill.update();
+                    }
+                    return;
+                }
+                originalOnPaste(e);
+            };
+        }
+
+        // ── 3. Attendre que admin.js initialise Quill (_quillEditorRef) ──
+        let attempts = 0;
+        const interval = setInterval(function() {
+            attempts++;
+            const Quill = window.Quill;
+            const quill = window._quillEditorRef;
+
+            if (Quill && !window._quillFormatsRegistered) {
+                registerCustomFormats();
+                window._quillFormatsRegistered = true;
+            }
+
+            if (quill && !quill._fullyPatched) {
+                patchClipboard(quill);
+                quill._fullyPatched = true;
+                console.log('[ElectroInfo] Quill patché — HTML complet autorisé ✅');
+                clearInterval(interval);
+            }
+
+            if (attempts > 100) clearInterval(interval); // timeout après 10s
+        }, 100);
+
+    })();
+    </script>
+
 <!-- ═══════════════════════════════════════════════════════
      🌍 SYSTÈME TRADUCTION MULTILINGUE ADMIN — ElectroInfo
 ═══════════════════════════════════════════════════════ -->
@@ -1181,6 +1425,190 @@ document.addEventListener('DOMContentLoaded', function() {
         if (originalCancel) originalCancel();
     };
 });
+</script>
+
+<script>
+// ══════════════════════════════════════
+//  ONGLETS ADMIN PRINCIPAL
+// ══════════════════════════════════════
+window.switchAdminTab = function(tabName) {
+    // Cacher tous les onglets
+    const allPages = document.querySelectorAll('.admin-tab-page');
+    allPages.forEach(p => p.classList.remove('active'));
+
+    // Désactiver tous les boutons
+    document.querySelectorAll('.admin-tab-btn').forEach(b => b.classList.remove('active'));
+
+    // Activer l'onglet sélectionné
+    if (tabName === 'dashboard') {
+        document.getElementById('tab-dashboard').classList.add('active');
+        document.getElementById('tab-dashboard-lists').classList.add('active');
+        document.querySelectorAll('.admin-tab-btn')[0].classList.add('active');
+    } else if (tabName === 'rediger') {
+        document.getElementById('tab-rediger').classList.add('active');
+        document.querySelectorAll('.admin-tab-btn')[1].classList.add('active');
+        window.scrollTo({ top: 0, behavior: 'smooth' });
+    } else if (tabName === 'newsletter') {
+        document.getElementById('tab-newsletter').classList.add('active');
+        document.querySelectorAll('.admin-tab-btn')[2].classList.add('active');
+    } else if (tabName === 'admins') {
+        document.getElementById('tab-admins').classList.add('active');
+        document.querySelectorAll('.admin-tab-btn')[3].classList.add('active');
+    }
+};
+
+// Exposer pour admin.js : quand on clique "Modifier" un article → aller sur l'onglet Rédiger
+window.goToArticleForm = function() {
+    switchAdminTab('rediger');
+};
+
+// Intercepter editArticle de admin.js pour switcher automatiquement sur l'onglet rédiger
+document.addEventListener('DOMContentLoaded', function() {
+    // On attend que admin.js charge sa fonction editArticle puis on la surcharge
+    setTimeout(function() {
+        const _origEdit = window.editArticle;
+        if (_origEdit) {
+            window.editArticle = function(id) {
+                switchAdminTab('rediger');
+                return _origEdit(id);
+            };
+        }
+        // Aussi intercepter cancelEdit pour revenir au dashboard
+        const _origCancel = window.cancelEdit;
+        if (_origCancel) {
+            window.cancelEdit = function() {
+                const r = _origCancel();
+                switchAdminTab('dashboard');
+                return r;
+            };
+        }
+    }, 800);
+});
+</script>
+<script>
+// ══════════════════════════════════════
+//  CRÉATION D'UN ADMIN
+// ══════════════════════════════════════
+
+// Afficher/masquer mot de passe
+window.toggleAdminPwd = function() {
+    const inp = document.getElementById('newAdminPassword');
+    const ico = document.getElementById('adminPwdIcon');
+    if (inp.type === 'password') {
+        inp.type = 'text';
+        ico.classList.replace('fa-eye', 'fa-eye-slash');
+    } else {
+        inp.type = 'password';
+        ico.classList.replace('fa-eye-slash', 'fa-eye');
+    }
+};
+
+// Indicateur force du mot de passe
+document.addEventListener('DOMContentLoaded', function() {
+    const inp = document.getElementById('newAdminPassword');
+    if (!inp) return;
+    inp.addEventListener('input', function() {
+        const v = inp.value;
+        const bar = document.getElementById('adminPwdStrengthBar');
+        const txt = document.getElementById('adminPwdStrengthText');
+        let score = 0;
+        if (v.length >= 8) score++;
+        if (/[A-Z]/.test(v)) score++;
+        if (/[0-9]/.test(v)) score++;
+        if (/[^A-Za-z0-9]/.test(v)) score++;
+        const levels = [
+            { w:'0%',   c:'#e5e7eb', t:'' },
+            { w:'25%',  c:'#ef4444', t:'Faible' },
+            { w:'50%',  c:'#f97316', t:'Moyen' },
+            { w:'75%',  c:'#eab308', t:'Bon' },
+            { w:'100%', c:'#22c55e', t:'Excellent' },
+        ];
+        const l = levels[score] || levels[0];
+        bar.style.width = l.w;
+        bar.style.background = l.c;
+        txt.textContent = l.t;
+        txt.style.color = l.c;
+    });
+});
+
+// Créer le compte admin via Firebase
+window.createAdminAccount = async function() {
+    const name     = document.getElementById('newAdminName').value.trim();
+    const email    = document.getElementById('newAdminEmail').value.trim();
+    const password = document.getElementById('newAdminPassword').value;
+    const status   = document.getElementById('createAdminStatus');
+    const btn      = document.getElementById('createAdminBtn');
+
+    // Validation
+    if (!name) {
+        status.innerHTML = '<span style="color:#dc2626"><i class="fas fa-times-circle"></i> Veuillez entrer un nom complet.</span>';
+        return;
+    }
+    if (!email || !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) {
+        status.innerHTML = '<span style="color:#dc2626"><i class="fas fa-times-circle"></i> Adresse email invalide.</span>';
+        return;
+    }
+    if (password.length < 8) {
+        status.innerHTML = '<span style="color:#dc2626"><i class="fas fa-times-circle"></i> Mot de passe trop court (8 caractères minimum).</span>';
+        return;
+    }
+
+    btn.disabled = true;
+    btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Création en cours...';
+    status.innerHTML = '';
+
+    try {
+        // Sauvegarder la session courante
+        const currentUser = firebase.auth().currentUser;
+
+        // Créer le nouveau compte via Firebase Auth
+        const cred = await firebase.auth().createUserWithEmailAndPassword(email, password);
+        const newUser = cred.user;
+
+        // Mettre à jour le profil (displayName)
+        await newUser.updateProfile({ displayName: name });
+
+        // Enregistrer dans Firestore comme admin
+        await firebase.firestore().collection('admins').doc(newUser.uid).set({
+            uid:       newUser.uid,
+            name:      name,
+            email:     email,
+            role:      'admin',
+            createdAt: firebase.firestore.FieldValue.serverTimestamp(),
+            createdBy: currentUser ? currentUser.email : 'inconnu'
+        });
+
+        // Reconnecter l'admin actuel (createUser déconnecte la session)
+        // Note : si tu utilises Firebase Admin SDK côté serveur, cette étape n'est pas nécessaire
+        status.innerHTML = `<span style="color:#16a34a"><i class="fas fa-check-circle"></i> Compte admin créé pour <strong>${name}</strong> (${email}) !</span>`;
+        btn.innerHTML    = '<i class="fas fa-check"></i> Compte créé !';
+        btn.style.background = 'linear-gradient(135deg,#16a34a,#059669)';
+
+        // Vider le formulaire
+        document.getElementById('newAdminName').value     = '';
+        document.getElementById('newAdminEmail').value    = '';
+        document.getElementById('newAdminPassword').value = '';
+        document.getElementById('adminPwdStrengthBar').style.width = '0%';
+        document.getElementById('adminPwdStrengthText').textContent = '';
+
+        // Reset le bouton après 3 sec
+        setTimeout(() => {
+            btn.disabled = false;
+            btn.innerHTML = '<i class="fas fa-user-plus"></i> Créer le compte Admin';
+            btn.style.background = '';
+        }, 3000);
+
+    } catch (err) {
+        console.error('Erreur création admin:', err);
+        let msg = err.message;
+        if (err.code === 'auth/email-already-in-use') msg = 'Cette adresse email est déjà utilisée.';
+        if (err.code === 'auth/weak-password')        msg = 'Mot de passe trop faible.';
+        if (err.code === 'auth/invalid-email')        msg = 'Adresse email invalide.';
+        status.innerHTML = `<span style="color:#dc2626"><i class="fas fa-times-circle"></i> Erreur : ${msg}</span>`;
+        btn.disabled = false;
+        btn.innerHTML = '<i class="fas fa-user-plus"></i> Réessayer';
+    }
+};
 </script>
 </body>
 </html>

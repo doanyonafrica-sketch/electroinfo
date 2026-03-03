@@ -1,11 +1,17 @@
-// app.js - Script principal pour Electroinfo.online AVEC SLUGS
+// articles.js - Page liste des articles OPTIMISE
+// Version: 2.1 - Corrections erreurs
+
 import { initializeApp } from 'https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js';
-import { getFirestore, collection, getDocs, doc, getDoc, query, orderBy, limit, where, addDoc, updateDoc, serverTimestamp } from 'https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js';
-import { getAuth, onAuthStateChanged, signOut } from 'https://www.gstatic.com/firebasejs/10.7.1/firebase-auth.js';
+import {
+    getFirestore, collection, getDocs, query, doc, getDoc,
+    orderBy, limit, where, addDoc, enableIndexedDbPersistence,
+    startAfter, CACHE_SIZE_UNLIMITED
+} from 'https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js';
+import {
+    getAuth, onAuthStateChanged, signOut
+} from 'https://www.gstatic.com/firebasejs/10.7.1/firebase-auth.js';
 
-// Configuration Firebase
-
-  const firebaseConfig = {
+const firebaseConfig = {
   apiKey: "AIzaSyCuFgzytJXD6jt4HUW9LVSD_VpGuFfcEAk",
   authDomain: "electroino-app.firebaseapp.com",
   projectId: "electroino-app",
@@ -14,24 +20,69 @@ import { getAuth, onAuthStateChanged, signOut } from 'https://www.gstatic.com/fi
   appId: "1:864058526638:web:17b821633c7cc99be1563f"
 };
 
-// Initialisation
 const app = initializeApp(firebaseConfig);
 const db = getFirestore(app);
 const auth = getAuth(app);
 
-// Variables globales
+enableIndexedDbPersistence(db, {
+    cacheSizeBytes: CACHE_SIZE_UNLIMITED
+}).catch((err) => {
+    if (err.code == 'failed-precondition') {
+        console.log('Persistance: plusieurs onglets ouverts');
+    } else if (err.code == 'unimplemented') {
+        console.log('Navigateur ne supporte pas IndexedDB');
+    }
+});
+
 let allArticles = [];
 let filteredArticles = [];
-let currentPage = 1;
-const articlesPerPage = 6;
-let currentUser = null;
+let lastVisible = null;
+let hasMoreArticles = true;
+let isLoading = false;
+const ARTICLES_PER_PAGE = 9;
 
-// 🆕 AJOUT : Détection environnement local/production
-const isLocalDev = window.location.hostname === 'localhost' || 
-                   window.location.hostname === '127.0.0.1' ||
-                   window.location.port === '5500';
+const CACHE_KEY = 'electroinfo_articles_cache_v3';
+const CACHE_DURATION = 24 * 60 * 60 * 1000;
+const POPULAR_CACHE_KEY = 'electroinfo_popular_cache_v3';
 
-// Éléments DOM
+// ============================================
+// GESTION DES LANGUES
+// ============================================
+// La langue est gérée par le sélecteur dans le HTML (clé: electroinfo_lang)
+// Valeurs possibles : 'ewe', 'fr', 'en'
+
+function getCurrentLang() {
+    return localStorage.getItem('electroinfo_lang') || 'ewe';
+}
+
+// Retourne le champ traduit d'un article selon la langue courante
+// Mapping: 'ewe' dans le HTML → clé 'ee' dans Firestore translations
+function getTranslated(article, field) {
+    const lang = getCurrentLang();
+    if (lang === 'fr') return article[field] || '';
+    // 'ewe' dans le sélecteur HTML = clé 'ee' dans Firestore
+    const firestoreKey = lang === 'ewe' ? 'ee' : lang;
+    return article?.translations?.[firestoreKey]?.[field] || article[field] || '';
+}
+
+// Réécoute les changements de langue et re-affiche les articles
+window.addEventListener('storage', (e) => {
+    if (e.key === 'electroinfo_lang') {
+        displayArticles(true);
+        displayPopularArticles(_lastPopularArticles);
+    }
+});
+
+// Patch setLang pour re-rendre après changement de langue (même onglet)
+const _origSetLang = window.setLang;
+window.setLang = function(lang) {
+    if (_origSetLang) _origSetLang(lang);
+    displayArticles(true);
+    displayPopularArticles(_lastPopularArticles);
+};
+
+let _lastPopularArticles = [];
+
 const articlesGrid = document.getElementById('articlesGrid');
 const searchInput = document.getElementById('searchInput');
 const sortSelect = document.getElementById('sortSelect');
@@ -39,491 +90,439 @@ const filterBtns = document.querySelectorAll('.filter-btn');
 const pagination = document.getElementById('pagination');
 const popularArticles = document.getElementById('popularArticles');
 
-// ============================================
-// GESTION AUTHENTIFICATION
-// ============================================
+function saveArticlesToCache(articles, isComplete = false) {
+    try {
+        const data = {
+            articles: articles,
+            timestamp: Date.now(),
+            version: '2.0',
+            isComplete: isComplete
+        };
+        localStorage.setItem(CACHE_KEY, JSON.stringify(data));
+        console.log(`${articles.length} articles sauvegardes en cache`);
+    } catch (e) {
+        console.error('Erreur sauvegarde cache:', e);
+    }
+}
+
+function getArticlesFromCache() {
+    try {
+        const data = localStorage.getItem(CACHE_KEY);
+        if (!data) return null;
+        const parsed = JSON.parse(data);
+        const age = Date.now() - parsed.timestamp;
+        if (age > CACHE_DURATION) {
+            localStorage.removeItem(CACHE_KEY);
+            return null;
+        }
+        return parsed;
+    } catch (e) {
+        return null;
+    }
+}
+
+function isOnline() {
+    return navigator.onLine;
+}
+
+function showOfflineIndicator() {
+    hideOfflineIndicator();
+    const indicator = document.createElement('div');
+    indicator.id = 'offline-indicator';
+    indicator.className = 'offline-indicator';
+    indicator.innerHTML = '<i class="fas fa-wifi-slash"></i><span>Mode hors ligne</span>';
+    document.body.prepend(indicator);
+    document.body.style.paddingTop = '44px';
+    requestAnimationFrame(() => indicator.classList.add('show'));
+}
+
+function hideOfflineIndicator() {
+    const indicator = document.getElementById('offline-indicator');
+    if (indicator) {
+        indicator.classList.remove('show');
+        setTimeout(() => {
+            indicator.remove();
+            document.body.style.paddingTop = '';
+        }, 300);
+    }
+}
+
+const ADMIN_CACHE_KEY = 'electroinfo_admin_cache_articles';
+const ADMIN_CACHE_DURATION = 30 * 60 * 1000;
+
+async function checkIsAdmin(user) {
+    if (!user) return false;
+    try {
+        const cached = localStorage.getItem(ADMIN_CACHE_KEY);
+        if (cached) {
+            const { uid, isAdmin, timestamp } = JSON.parse(cached);
+            if (uid === user.uid && Date.now() - timestamp < ADMIN_CACHE_DURATION) {
+                return isAdmin;
+            }
+        }
+    } catch (e) {}
+
+    try {
+        const userDoc = await getDoc(doc(db, 'users', user.uid));
+        const isAdmin = userDoc.exists() && userDoc.data().role === 'admin';
+        localStorage.setItem(ADMIN_CACHE_KEY, JSON.stringify({
+            uid: user.uid, isAdmin, timestamp: Date.now()
+        }));
+        return isAdmin;
+    } catch (error) {
+        return false;
+    }
+}
+
 onAuthStateChanged(auth, async (user) => {
-    currentUser = user;
     const loginBtn = document.getElementById('loginBtn');
     const userMenu = document.getElementById('userMenu');
     const adminLink = document.getElementById('adminLink');
     const adminDivider = document.getElementById('adminDivider');
 
     if (user) {
-        // Utilisateur connecté
         loginBtn.classList.add('hidden');
         userMenu.classList.remove('hidden');
-
-        // Afficher nom et avatar
         const displayName = user.displayName || user.email.split('@')[0];
         document.getElementById('userName').textContent = displayName;
         document.getElementById('userNameDropdown').textContent = displayName;
         document.getElementById('userEmailDropdown').textContent = user.email;
-
         const avatarUrl = user.photoURL || `https://ui-avatars.com/api/?name=${encodeURIComponent(displayName)}&background=1e40af&color=fff`;
         document.getElementById('userAvatar').src = avatarUrl;
         document.getElementById('userAvatarDropdown').src = avatarUrl;
 
-        // Vérifier si admin
-        try {
-            // ✅ FIX : getDoc sur le document direct — compatible avec les règles Firestore
-            const userDoc = await getDoc(doc(db, 'users', user.uid));
-            if (userDoc.exists()) {
-                const role = userDoc.data().role;
-                // ✅ FIX : vérifier aussi 'superadmin'
-                if (role === 'admin' || role === 'superadmin') {
-                    adminLink.classList.remove('hidden');
-                    adminDivider.classList.remove('hidden');
-                }
-            }
-        } catch (error) {
-            console.error('Erreur vérification admin:', error);
+        const isUserAdmin = await checkIsAdmin(user);
+        if (isUserAdmin) {
+            adminLink?.classList.remove('hidden');
+            adminDivider?.classList.remove('hidden');
         }
     } else {
-        // Non connecté
         loginBtn.classList.remove('hidden');
         userMenu.classList.add('hidden');
-        adminLink.classList.add('hidden');
-        adminDivider.classList.add('hidden');
+        adminLink?.classList.add('hidden');
+        adminDivider?.classList.add('hidden');
+        localStorage.removeItem(ADMIN_CACHE_KEY);
     }
 });
 
-// Toggle menu utilisateur
 document.getElementById('userMenuToggle')?.addEventListener('click', (e) => {
     e.stopPropagation();
     document.getElementById('userDropdown').classList.toggle('hidden');
 });
 
-// Fermer dropdown en cliquant ailleurs
 document.addEventListener('click', (e) => {
     const dropdown = document.getElementById('userDropdown');
-    const userMenuToggle = document.getElementById('userMenuToggle');
-    if (dropdown && !dropdown.contains(e.target) && e.target !== userMenuToggle) {
+    const toggle = document.getElementById('userMenuToggle');
+    if (dropdown && !dropdown.contains(e.target) && e.target !== toggle) {
         dropdown.classList.add('hidden');
     }
 });
 
-// Déconnexion
 document.getElementById('logoutBtn')?.addEventListener('click', async () => {
     try {
         await signOut(auth);
-        showNotification('Déconnexion réussie', 'success');
+        localStorage.removeItem(ADMIN_CACHE_KEY);
+        showNotification('Deconnexion reussie', 'success');
         window.location.reload();
-    } catch (error) {
-        showNotification('Erreur lors de la déconnexion', 'error');
+    } catch {
+        showNotification('Erreur lors de la deconnexion', 'error');
     }
 });
 
-// ============================================
-// PUBLICATION AUTOMATIQUE DES ARTICLES PROGRAMMÉS
-// ============================================
-async function checkAndPublishScheduledArticles() {
-    try {
-        const now = new Date();
-        const q = query(collection(db, 'articles'), where('status', '==', 'scheduled'));
-        const snapshot = await getDocs(q);
+async function loadArticles(firstLoad = true) {
+    if (isLoading) return;
+    isLoading = true;
 
-        let published = 0;
-        for (const docSnap of snapshot.docs) {
-            const article = docSnap.data();
-            if (article.scheduledFor) {
-                const scheduledDate = article.scheduledFor.toDate();
-                if (scheduledDate <= now) {
-                    await updateDoc(doc(db, 'articles', docSnap.id), {
-                        status: 'published',
-                        publishedAt: serverTimestamp(),
-                        scheduledFor: null
-                    });
-                    published++;
-                    console.log('✅ Article publié automatiquement :', article.title);
-                }
+    try {
+        const cachedData = getArticlesFromCache();
+        let usedCache = false;
+
+        if (firstLoad && cachedData && cachedData.articles.length > 0) {
+            allArticles = cachedData.articles.filter(a => (a.status || 'published') === 'published');
+            filteredArticles = [...allArticles];
+            displayArticles(true);
+            usedCache = true;
+
+            if (!isOnline()) {
+                showOfflineIndicator();
+                isLoading = false;
+                return;
             }
         }
-        if (published > 0) {
-            console.log('🚀 ' + published + ' article(s) publié(s) automatiquement');
+
+        if (!isOnline()) throw new Error('OFFLINE');
+
+        if (!usedCache) {
+            articlesGrid.innerHTML = '<div class="loading"><i class="fas fa-spinner fa-spin"></i><p>Chargement...</p></div>';
         }
-    } catch (error) {
-        console.error('Erreur vérification publications programmées:', error);
-    }
-}
 
-// ============================================
-// CHARGEMENT DES ARTICLES
-// ============================================
-async function loadArticles() {
-    try {
-        articlesGrid.innerHTML = '<div class="loading"><i class="fas fa-spinner fa-spin"></i><p>Chargement...</p></div>';
+        let q = query(
+            collection(db, 'articles'),
+            where('status', '==', 'published'),
+            orderBy('createdAt', 'desc'),
+            limit(ARTICLES_PER_PAGE)
+        );
 
-        // ✅ Publier automatiquement les articles dont la date est passée
-        await checkAndPublishScheduledArticles();
+        if (!firstLoad && lastVisible) {
+            q = query(
+                collection(db, 'articles'),
+                where('status', '==', 'published'),
+                orderBy('createdAt', 'desc'),
+                startAfter(lastVisible),
+                limit(ARTICLES_PER_PAGE)
+            );
+        }
 
-        const q = query(collection(db, 'articles'), orderBy('createdAt', 'desc'));
         const snapshot = await getDocs(q);
+        hasMoreArticles = snapshot.docs.length === ARTICLES_PER_PAGE;
+        if (snapshot.docs.length > 0) {
+            lastVisible = snapshot.docs[snapshot.docs.length - 1];
+        }
 
-        allArticles = [];
-        snapshot.forEach(docSnap => {
-            const article = docSnap.data();
-            const status = article.status || 'published';
-            // ✅ Afficher UNIQUEMENT les articles publiés (exclure brouillons et programmés)
-            if (status === 'published') {
-                allArticles.push({ id: docSnap.id, ...article });
-            }
-        });
+        const freshArticles = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
+
+        if (firstLoad) {
+            allArticles = freshArticles;
+            saveArticlesToCache(freshArticles, !hasMoreArticles);
+        } else {
+            allArticles = [...allArticles, ...freshArticles];
+        }
 
         filteredArticles = [...allArticles];
-        displayArticles();
-        displayPopularArticles();
+        displayArticles(true);
+
+        if (firstLoad) loadPopularArticles();
+        hideOfflineIndicator();
+
     } catch (error) {
-        console.error('Erreur chargement articles:', error);
-        articlesGrid.innerHTML = '<div class="empty-state"><i class="fas fa-exclamation-triangle"></i><p>Erreur de chargement</p></div>';
+        console.error('Erreur chargement:', error);
+        if (firstLoad && allArticles.length === 0) {
+            articlesGrid.innerHTML = '<div class="empty-state"><i class="fas fa-wifi-slash"></i><p>Erreur de connexion</p></div>';
+            showOfflineIndicator();
+        }
+    } finally {
+        isLoading = false;
     }
 }
 
-function displayArticles() {
-    const start = (currentPage - 1) * articlesPerPage;
-    const end = start + articlesPerPage;
-    const articlesToShow = filteredArticles.slice(start, end);
-
-    if (articlesToShow.length === 0) {
-        articlesGrid.innerHTML = '<div class="empty-state"><i class="fas fa-search"></i><p>Aucun article trouvé</p></div>';
+function displayArticles(clearGrid = true) {
+    if (clearGrid) articlesGrid.innerHTML = '';
+    if (filteredArticles.length === 0) {
+        articlesGrid.innerHTML = '<div class="empty-state"><i class="fas fa-search"></i><p>Aucun article trouve</p></div>';
         return;
     }
 
-    articlesGrid.innerHTML = articlesToShow.map(article => createArticleCard(article)).join('');
-    displayPagination();
+    const [featured, ...rest] = filteredArticles;
+    articlesGrid.innerHTML = createFeaturedCard(featured) +
+        (rest.length ? `<div class="articles-subgrid">${rest.map(createArticleCard).join('')}</div>` : '');
+
+    updateLoadMoreButton();
+}
+
+function updateLoadMoreButton() {
+    const oldBtn = document.getElementById('loadMoreBtn');
+    if (oldBtn) oldBtn.remove();
+    if (hasMoreArticles) {
+        const btn = document.createElement('button');
+        btn.id = 'loadMoreBtn';
+        btn.className = 'btn btn-primary load-more-btn';
+        btn.innerHTML = 'Charger plus <i class="fas fa-chevron-down"></i>';
+        btn.style.cssText = 'margin:2rem auto;display:block;padding:0.75rem 2rem';
+        btn.onclick = () => loadArticles(false);
+        articlesGrid.parentNode.insertBefore(btn, articlesGrid.nextSibling);
+    }
+}
+
+function getArticleUrl(article) {
+    return article.slug ? `/article/${article.slug}` : `/article-detail.html?id=${article.id}`;
+}
+
+function getArticleDate(article) {
+    const localeMap = { fr: 'fr-FR', en: 'en-GB', ewe: 'fr-FR' };
+    const locale = localeMap[getCurrentLang()] || 'fr-FR';
+    const opts = { day: 'numeric', month: 'long', year: 'numeric' };
+    if (!article.createdAt) return 'Non daté';
+    if (article.createdAt.toDate) return article.createdAt.toDate().toLocaleDateString(locale, opts);
+    if (article.createdAt.seconds) return new Date(article.createdAt.seconds * 1000).toLocaleDateString(locale, opts);
+    return new Date(article.createdAt).toLocaleDateString(locale, opts);
+}
+
+function createFeaturedCard(article) {
+    const date = getArticleDate(article);
+    const imgUrl = article.imageUrl || 'https://images.unsplash.com/photo-1518770660439-4636190af475?w=1200';
+    const categoryClass = getCategoryClass(article.category);
+    const articleUrl = getArticleUrl(article);
+    const isOffline = !isOnline();
+
+    // 🌍 Champs traduits
+    const title = getTranslated(article, 'title');
+    const summary = getTranslated(article, 'summary');
+    const category = getTranslated(article, 'category') || article.category;
+    const readLabel = { fr: 'Lire', en: 'Read', ewe: 'Xlee' }[getCurrentLang()] || 'Lire';
+    const viewsLabel = { fr: 'vues', en: 'views', ewe: 'kpɔkpɔwo' }[getCurrentLang()] || 'vues';
+    const featuredLabel = { fr: 'À la une', en: 'Featured', ewe: 'Ŋgɔ la' }[getCurrentLang()] || 'À la une';
+    const hasTranslation = article.translations && Object.keys(article.translations).length > 0;
+
+    return `<article class="article-card article-card--featured" onclick="window.location.href='${articleUrl}'">
+        <div class="article-card__image-wrap">
+            <img src="${imgUrl}" alt="${escapeHtml(title)}" class="article-image" loading="lazy" onerror="this.src='https://images.unsplash.com/photo-1518770660439-4636190af475?w=1200'">
+            <span class="article-card__featured-label"><i class="fas fa-star"></i> ${featuredLabel}</span>
+            ${isOffline ? '<span class="article-card__offline-badge"><i class="fas fa-database"></i> Cache</span>' : ''}
+            ${hasTranslation ? '<span style="position:absolute;top:8px;right:8px;background:rgba(30,64,175,0.85);color:white;border-radius:6px;padding:3px 8px;font-size:11px;">🌍</span>' : ''}
+        </div>
+        <div class="article-content">
+            <div class="article-meta">
+                <span class="badge badge-${categoryClass}">${escapeHtml(category)}</span>
+                <span class="article-date"><i class="fas fa-calendar-alt"></i> ${date}</span>
+            </div>
+            <h2 class="article-title">${escapeHtml(title)}</h2>
+            <p class="article-summary">${escapeHtml(summary || '')}</p>
+            <div class="article-footer">
+                <div class="article-stats">
+                    <span><i class="fas fa-eye"></i> ${article.views || 0} ${viewsLabel}</span>
+                    <span><i class="fas fa-comment"></i> ${article.commentsCount || 0}</span>
+                </div>
+                <button class="btn-read-more">${readLabel} <i class="fas fa-arrow-right"></i></button>
+            </div>
+        </div>
+    </article>`;
 }
 
 function createArticleCard(article) {
-    const date = article.createdAt ? new Date(article.createdAt.toDate()).toLocaleDateString('fr-FR', {
-        day: 'numeric',
-        month: 'long',
-        year: 'numeric'
-    }) : 'Non daté';
-
-    const imgUrl = article.imageUrl || 'https://images.unsplash.com/photo-1518770660439-4636190af475?w=800';
+    const date = getArticleDate(article);
+    const imgUrl = article.imageUrl || 'https://images.unsplash.com/photo-1518770660439-4636190af475?w=600';
     const categoryClass = getCategoryClass(article.category);
+    const articleUrl = getArticleUrl(article);
+    const isOffline = !isOnline();
 
-    // 🔧 MODIFIÉ : URLs adaptées selon l'environnement
-    const articleUrl = isLocalDev 
-        ? `article.html?id=${article.id}`
-        : (article.slug ? `article/${article.slug}` : `article.html?id=${article.id}`);
+    // 🌍 Champs traduits
+    const title = getTranslated(article, 'title');
+    const summary = getTranslated(article, 'summary');
+    const category = getTranslated(article, 'category') || article.category;
+    const readLabel = { fr: 'Lire', en: 'Read', ewe: 'Xlee' }[getCurrentLang()] || 'Lire';
+    const hasTranslation = article.translations && Object.keys(article.translations).length > 0;
 
-    return `
-        <article class="article-card" onclick="window.location.href='${articleUrl}'">
-            <img src="${imgUrl}" alt="${escapeHtml(article.title)}" class="article-image" loading="lazy"
-                 onerror="this.src='https://images.unsplash.com/photo-1518770660439-4636190af475?w=800'">
-            <div class="article-content">
-                <div class="article-meta">
-                    <span class="badge badge-${categoryClass}">${escapeHtml(article.category)}</span>
-                    <span class="article-date">${date}</span>
-                </div>
-                <h3 class="article-title">${escapeHtml(article.title)}</h3>
-                <p class="article-summary">${escapeHtml(article.summary || '')}</p>
-                <div class="article-footer">
-                    <div class="article-stats">
-                        <span><i class="fas fa-eye"></i> ${article.views || 0}</span>
-                        <span><i class="fas fa-comment"></i> ${article.commentsCount || 0}</span>
-                    </div>
-                    <button class="btn-read-more">
-                        Lire la suite <i class="fas fa-arrow-right"></i>
-                    </button>
-                </div>
+    return `<article class="article-card" onclick="window.location.href='${articleUrl}'">
+        <div class="article-card__image-wrap">
+            <img src="${imgUrl}" alt="${escapeHtml(title)}" class="article-image" loading="lazy" onerror="this.src='https://images.unsplash.com/photo-1518770660439-4636190af475?w=600'">
+            ${isOffline ? '<span class="article-card__offline-badge"><i class="fas fa-database"></i> Cache</span>' : ''}
+            ${hasTranslation ? '<span style="position:absolute;top:6px;right:6px;background:rgba(30,64,175,0.85);color:white;border-radius:5px;padding:2px 6px;font-size:10px;">🌍</span>' : ''}
+        </div>
+        <div class="article-content">
+            <div class="article-meta">
+                <span class="badge badge-${categoryClass}">${escapeHtml(category)}</span>
+                <span class="article-date"><i class="fas fa-calendar-alt"></i> ${date}</span>
             </div>
-        </article>
-    `;
+            <h3 class="article-title">${escapeHtml(title)}</h3>
+            <p class="article-summary">${escapeHtml(summary || '')}</p>
+            <div class="article-footer">
+                <div class="article-stats">
+                    <span><i class="fas fa-eye"></i> ${article.views || 0}</span>
+                    <span><i class="fas fa-comment"></i> ${article.commentsCount || 0}</span>
+                </div>
+                <span class="read-more-link">${readLabel} <i class="fas fa-arrow-right"></i></span>
+            </div>
+        </div>
+    </article>`;
 }
 
-// ============================================
-// PAGINATION
-// ============================================
-function displayPagination() {
-    const totalPages = Math.ceil(filteredArticles.length / articlesPerPage);
+async function loadPopularArticles() {
+    try {
+        if (!isOnline()) { loadPopularArticlesFromCache(); return; }
+        const snapshot = await getDocs(query(collection(db,'articles'),where('status','==','published'),orderBy('views','desc'),limit(5)));
+        const published = snapshot.docs.map(doc=>({id:doc.id,...doc.data()}));
+        displayPopularArticles(published);
+        localStorage.setItem(POPULAR_CACHE_KEY, JSON.stringify({articles:published,timestamp:Date.now()}));
+    } catch (error) {
+        loadPopularArticlesFromCache();
+    }
+}
 
-    if (totalPages <= 1) {
-        pagination.classList.add('hidden');
+function loadPopularArticlesFromCache() {
+    try {
+        const data = localStorage.getItem(POPULAR_CACHE_KEY);
+        if (data) {
+            const parsed = JSON.parse(data);
+            // Cache de 7 jours max
+            if (Date.now() - parsed.timestamp < 7*24*60*60*1000) {
+                displayPopularArticles(parsed.articles);
+                return;
+            }
+        }
+        const generalCache = getArticlesFromCache();
+        if (generalCache) {
+            const sorted = [...generalCache.articles].sort((a,b)=>(b.views||0)-(a.views||0)).slice(0,5);
+            displayPopularArticles(sorted);
+        }
+    } catch (e) {
+        popularArticles.innerHTML = '<p class="empty-text">Aucun article populaire</p>';
+    }
+}
+
+function displayPopularArticles(articles) {
+    _lastPopularArticles = articles || [];
+    if (!articles || articles.length === 0) {
+        popularArticles.innerHTML = '<p class="empty-text">Aucun article</p>';
         return;
     }
-
-    pagination.classList.remove('hidden');
-    pagination.innerHTML = '';
-
-    // Bouton Précédent
-    const prevBtn = document.createElement('button');
-    prevBtn.className = 'pagination-btn';
-    prevBtn.innerHTML = '<i class="fas fa-chevron-left"></i>';
-    prevBtn.disabled = currentPage === 1;
-    prevBtn.onclick = () => changePage(currentPage - 1);
-    pagination.appendChild(prevBtn);
-
-    // Numéros de page
-    for (let i = 1; i <= totalPages; i++) {
-        if (i === 1 || i === totalPages || (i >= currentPage - 1 && i <= currentPage + 1)) {
-            const pageBtn = document.createElement('button');
-            pageBtn.className = `pagination-btn ${i === currentPage ? 'active' : ''}`;
-            pageBtn.textContent = i;
-            pageBtn.onclick = () => changePage(i);
-            pagination.appendChild(pageBtn);
-        } else if (i === currentPage - 2 || i === currentPage + 2) {
-            const dots = document.createElement('span');
-            dots.textContent = '...';
-            dots.className = 'pagination-dots';
-            pagination.appendChild(dots);
-        }
-    }
-
-    // Bouton Suivant
-    const nextBtn = document.createElement('button');
-    nextBtn.className = 'pagination-btn';
-    nextBtn.innerHTML = '<i class="fas fa-chevron-right"></i>';
-    nextBtn.disabled = currentPage === totalPages;
-    nextBtn.onclick = () => changePage(currentPage + 1);
-    pagination.appendChild(nextBtn);
+    const viewsLabel = { fr: 'vues', en: 'views', ewe: 'kpɔkpɔwo' }[getCurrentLang()] || 'vues';
+    popularArticles.innerHTML = articles.map(article => {
+        const imgUrl = article.imageUrl || 'https://images.unsplash.com/photo-1518770660439-4636190af475?w=400';
+        const articleUrl = article.slug ? `/article/${article.slug}` : `/article-detail.html?id=${article.id}`;
+        const title = getTranslated(article, 'title');
+        return `<div class="popular-article" onclick="window.location.href='${articleUrl}'">
+            <img src="${imgUrl}" alt="${escapeHtml(title)}" onerror="this.src='https://images.unsplash.com/photo-1518770660439-4636190af475?w=400'">
+            <div class="popular-content">
+                <h4 class="popular-title">${escapeHtml(title)}</h4>
+                <p class="popular-views"><i class="fas fa-eye"></i> ${article.views || 0} ${viewsLabel}</p>
+            </div>
+        </div>`;
+    }).join('');
 }
 
-function changePage(page) {
-    const totalPages = Math.ceil(filteredArticles.length / articlesPerPage);
-    if (page < 1 || page > totalPages) return;
-    currentPage = page;
-    displayArticles();
-    window.scrollTo({ top: 0, behavior: 'smooth' });
-}
+function debounce(fn,delay=300){let timer;return(...args)=>{clearTimeout(timer);timer=setTimeout(()=>fn(...args),delay)}};
 
-// ============================================
-// ARTICLES POPULAIRES
-// ============================================
-async function displayPopularArticles() {
-    try {
-        const popular = [...allArticles]
-            .sort((a, b) => (b.views || 0) - (a.views || 0))
-            .slice(0, 5);
-
-        if (popular.length === 0) {
-            popularArticles.innerHTML = '<p class="empty-text">Aucun article</p>';
-            return;
-        }
-
-        popularArticles.innerHTML = popular.map((article, index) => {
-            // 🔧 MODIFIÉ : URLs adaptées selon l'environnement
-            const articleUrl = isLocalDev 
-                ? `article.html?id=${article.id}`
-                : (article.slug ? `article/${article.slug}` : `article.html?id=${article.id}`);
-            
-            return `
-                <div class="popular-item" onclick="window.location.href='${articleUrl}'">
-                    <span class="popular-rank">${index + 1}</span>
-                    <div class="popular-content">
-                        <h4 class="popular-title">${escapeHtml(article.title)}</h4>
-                        <p class="popular-views"><i class="fas fa-eye"></i> ${article.views || 0} vues</p>
-                    </div>
-                </div>
-            `;
-        }).join('');
-    } catch (error) {
-        console.error('Erreur articles populaires:', error);
-    }
-}
-
-// ============================================
-// RECHERCHE & FILTRES
-// ============================================
-
-// Debounce : évite de relancer la recherche à chaque frappe (utile sur mobile)
-function debounce(fn, delay = 300) {
-    let timer;
-    return (...args) => {
-        clearTimeout(timer);
-        timer = setTimeout(() => fn(...args), delay);
-    };
-}
-
-searchInput?.addEventListener('input', debounce((e) => {
-    const query = e.target.value.toLowerCase().trim();
-
-    if (!query) {
-        filteredArticles = [...allArticles];
-    } else {
-        filteredArticles = allArticles.filter(article =>
-            article.title.toLowerCase().includes(query) ||
-            article.summary?.toLowerCase().includes(query) ||
-            article.category.toLowerCase().includes(query)
-        );
-    }
-
-    currentPage = 1;
-    displayArticles();
+searchInput?.addEventListener('input', debounce((e)=>{
+    const q=e.target.value.toLowerCase().trim();
+    if(q.length===1)return;
+    filteredArticles=q?allArticles.filter(a=>a.title.toLowerCase().includes(q)||a.summary?.toLowerCase().includes(q)||a.category.toLowerCase().includes(q)).slice(0,20):[...allArticles];
+    lastVisible=null;hasMoreArticles=false;displayArticles(true);
 }));
 
-filterBtns.forEach(btn => {
-    btn.addEventListener('click', (e) => {
-        filterBtns.forEach(b => b.classList.remove('active'));
-        e.target.classList.add('active');
+filterBtns.forEach(btn=>{btn.addEventListener('click',()=>{filterBtns.forEach(b=>b.classList.remove('active'));btn.classList.add('active');const category=btn.dataset.category;filteredArticles=category==='all'?[...allArticles]:allArticles.filter(a=>a.category===category);displayArticles(true);const url=new URL(window.location);category==='all'?url.searchParams.delete('category'):url.searchParams.set('category',category);window.history.pushState({},'',url);});});
 
-        const category = e.target.dataset.category;
+sortSelect?.addEventListener('change',(e)=>{switch(e.target.value){case'date-desc':filteredArticles.sort((a,b)=>toDate(b)-toDate(a));break;case'date-asc':filteredArticles.sort((a,b)=>toDate(a)-toDate(b));break;case'popular':filteredArticles.sort((a,b)=>(b.views||0)-(a.views||0));break;case'title':filteredArticles.sort((a,b)=>a.title.localeCompare(b.title));break;}displayArticles(true);});
 
-        if (category === 'all') {
-            filteredArticles = [...allArticles];
-        } else {
-            filteredArticles = allArticles.filter(a => a.category === category);
-        }
+function toDate(article){if(!article.createdAt)return new Date(0);if(article.createdAt.toDate)return article.createdAt.toDate();if(article.createdAt.seconds)return new Date(article.createdAt.seconds*1000);return new Date(article.createdAt);}
 
-        currentPage = 1;
-        displayArticles();
-    });
-});
+window.openNewsletterModal=()=>document.getElementById('newsletterModal').classList.remove('hidden');
+window.closeNewsletterModal=()=>{document.getElementById('newsletterModal').classList.add('hidden');document.getElementById('newsletterForm').reset();};
 
-sortSelect?.addEventListener('change', (e) => {
-    const sortType = e.target.value;
-
-    switch (sortType) {
-        case 'date-desc':
-            filteredArticles.sort((a, b) => {
-                const dateA = a.createdAt ? a.createdAt.toDate() : new Date(0);
-                const dateB = b.createdAt ? b.createdAt.toDate() : new Date(0);
-                return dateB - dateA;
-            });
-            break;
-        case 'date-asc':
-            filteredArticles.sort((a, b) => {
-                const dateA = a.createdAt ? a.createdAt.toDate() : new Date(0);
-                const dateB = b.createdAt ? b.createdAt.toDate() : new Date(0);
-                return dateA - dateB;
-            });
-            break;
-        case 'popular':
-            filteredArticles.sort((a, b) => (b.views || 0) - (a.views || 0));
-            break;
-        case 'title':
-            filteredArticles.sort((a, b) => a.title.localeCompare(b.title));
-            break;
-    }
-
-    displayArticles();
-});
-
-// ============================================
-// NEWSLETTER
-// ============================================
-window.openNewsletterModal = function() {
-    document.getElementById('newsletterModal').classList.remove('hidden');
-};
-
-window.closeNewsletterModal = function() {
-    document.getElementById('newsletterModal').classList.add('hidden');
-    document.getElementById('newsletterForm').reset();
-};
-
-// ✅ Le bouton #newsletterBtn n'a pas de onclick dans le HTML : on ajoute le listener ici
-document.getElementById('newsletterBtn')?.addEventListener('click', openNewsletterModal);
-
-document.getElementById('newsletterForm')?.addEventListener('submit', async (e) => {
+document.getElementById('newsletterForm')?.addEventListener('submit',async(e)=>{
     e.preventDefault();
-    const email = document.getElementById('newsletterEmail').value.trim();
-
-    try {
-        const emailDoc = await getDocs(query(collection(db, 'newsletter'), where('email', '==', email)));
-
-        if (!emailDoc.empty) {
-            showNotification('Vous êtes déjà inscrit !', 'info');
-            closeNewsletterModal();
-            return;
-        }
-
-        await addDoc(collection(db, 'newsletter'), {
-            email: email,
-            subscribedAt: new Date()
-        });
-
-        showNotification('Merci pour votre inscription ! 🎉', 'success');
-        closeNewsletterModal();
-    } catch (error) {
-        console.error('Erreur inscription newsletter:', error);
-        showNotification('Erreur lors de l\'inscription', 'error');
-    }
+    if(!isOnline()){showNotification('Connexion requise','error');return;}
+    const email=document.getElementById('newsletterEmail').value.trim().toLowerCase();
+    try{
+        const existing=await getDocs(query(collection(db,'newsletter'),where('email','==',email)));
+        if(!existing.empty){showNotification('Vous etes deja inscrit','info');window.closeNewsletterModal();return;}
+        await addDoc(collection(db,'newsletter'),{email,subscribedAt:new Date()});
+        showNotification('Merci pour votre inscription','success');
+        window.closeNewsletterModal();
+    }catch{showNotification("Erreur lors de l inscription",'error');}
 });
 
-// ============================================
-// UTILITAIRES
-// ============================================
-function getCategoryClass(category) {
-    const map = {
-        'INNOVATION': 'blue',
-        'SÉCURITÉ': 'red',
-        'NOUVEAUTÉ': 'green',
-        'TUTO': 'orange',
-        'DOMOTIQUE': 'purple'
-    };
-    return map[category] || 'blue';
-}
+const mobileToggle=document.getElementById('mobileToggle');
+const navMenu=document.getElementById('mobileMenu');
+function closeMobileMenu(){navMenu?.classList.remove('active');const icon=mobileToggle?.querySelector('i');if(icon)icon.className='fas fa-bars';}
+mobileToggle?.addEventListener('click',(e)=>{e.stopPropagation();const isOpen=navMenu.classList.toggle('active');mobileToggle.querySelector('i').className=isOpen?'fas fa-times':'fas fa-bars';});
+document.querySelectorAll('.nav-link').forEach(link=>link.addEventListener('click',closeMobileMenu));
+document.addEventListener('click',(e)=>{if(navMenu&&mobileToggle&&!navMenu.contains(e.target)&&!mobileToggle.contains(e.target))closeMobileMenu();});
 
-function escapeHtml(text) {
-    const div = document.createElement('div');
-    div.textContent = text;
-    return div.innerHTML;
-}
+window.addEventListener('online',()=>{hideOfflineIndicator();if(allArticles.length>0&&hasMoreArticles)loadArticles(false);});
+window.addEventListener('offline',()=>showOfflineIndicator());
 
-function showNotification(message, type = 'info') {
-    const notification = document.createElement('div');
-    notification.className = `notification ${type}`;
-    notification.innerHTML = `
-        <i class="fas fa-${type === 'success' ? 'check-circle' : type === 'error' ? 'exclamation-circle' : 'info-circle'}"></i>
-        <span>${escapeHtml(message)}</span>
-    `;
+function getCategoryClass(category){return{INNOVATION:'blue','SECURITE':'red','NOUVEAUTE':'green',TUTO:'orange',DOMOTIQUE:'purple'}[category]||'blue';}
+function escapeHtml(text){if(!text)return'';const d=document.createElement('div');d.textContent=text;return d.innerHTML;}
+function showNotification(message,type='info'){const icons={success:'check-circle',error:'exclamation-circle',info:'info-circle'};const el=document.createElement('div');el.className=`notification ${type}`;el.innerHTML=`<i class="fas fa-${icons[type]}"></i><span>${escapeHtml(message)}</span>`;document.body.appendChild(el);requestAnimationFrame(()=>el.classList.add('show'));setTimeout(()=>{el.classList.remove('show');setTimeout(()=>el.remove(),300);},3000);}
 
-    document.body.appendChild(notification);
-
-    setTimeout(() => {
-        notification.classList.add('show');
-    }, 10);
-
-    setTimeout(() => {
-        notification.classList.remove('show');
-        setTimeout(() => notification.remove(), 300);
-    }, 3000);
-}
-
-// ============================================
-// MENU MOBILE
-// ============================================
-const mobileToggle = document.getElementById('mobileToggle');
-const navMenu = document.getElementById('mobileMenu'); // ✅ Corrigé : mobileMenu (correspond au HTML)
-
-function closeMobileMenu() {
-    if (!navMenu) return;
-    navMenu.classList.remove('active');
-    const icon = mobileToggle?.querySelector('i');
-    if (icon) {
-        icon.classList.remove('fa-times');
-        icon.classList.add('fa-bars');
-    }
-}
-
-mobileToggle?.addEventListener('click', (e) => {
-    e.stopPropagation();
-    navMenu.classList.toggle('active');
-    const icon = mobileToggle.querySelector('i');
-    if (navMenu.classList.contains('active')) {
-        icon.classList.remove('fa-bars');
-        icon.classList.add('fa-times');
-    } else {
-        icon.classList.remove('fa-times');
-        icon.classList.add('fa-bars');
-    }
-});
-
-// Fermer le menu mobile quand on clique sur un lien
-document.querySelectorAll('.nav-link').forEach(link => {
-    link.addEventListener('click', () => closeMobileMenu());
-});
-
-// Fermer le menu mobile quand on clique en dehors
-document.addEventListener('click', (e) => {
-    if (navMenu && mobileToggle && !navMenu.contains(e.target) && !mobileToggle.contains(e.target)) {
-        closeMobileMenu();
-    }
-});
-
-// 🆕 AJOUT : Message de debug
-console.log('🔧 Mode:', isLocalDev ? 'DÉVELOPPEMENT LOCAL (utilise ?id=xxx)' : 'PRODUCTION (utilise /article/slug)');
-
-// Initialisation
-document.addEventListener('DOMContentLoaded', loadArticles);
+document.addEventListener('DOMContentLoaded',()=>{loadArticles(true);if(!isOnline())showOfflineIndicator();});
