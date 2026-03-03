@@ -30,17 +30,18 @@ const loadingSection = document.getElementById('loadingSection');
 const accessDenied = document.getElementById('accessDenied');
 const adminDashboard = document.getElementById('adminDashboard');
 const articleForm = document.getElementById('articleForm');
-const articlesList = document.getElementById('articlesList');
+const articlesList = document.getElementById('articlesList');       // ✅ conservé de l'original
 const newsletterList = document.getElementById('newsletterList');
 
 // ============================================
-// 🧹 NETTOYAGE ET OPTIMISATION CONTENU
+// 🧹 NETTOYAGE — QUILL UNIQUEMENT
+// ⚠️  Ne jamais appeler sur du HTML brut CodeMirror
 // ============================================
 function cleanQuillHTML(html) {
     let cleaned = html
         // Supprimer les attributs inutiles ajoutés par Quill
         .replace(/class="ql-[^"]*"/g, '')
-        // Supprimer les <p> vides avec seulement <br> ou espaces (cause des grands espaces blancs)
+        // Supprimer les <p> vides avec seulement <br> ou espaces
         .replace(/<p>\s*<br\s*\/?>\s*<\/p>/gi, '')
         .replace(/<p>\s*&nbsp;\s*<\/p>/gi, '')
         .replace(/<p>\s*<\/p>/gi, '')
@@ -62,27 +63,25 @@ function getContentSize(content) {
     return encoder.encode(content).length;
 }
 
-function truncateContent(html, maxBytes = 950000) { // 950KB pour garder marge de sécurité
+function truncateContent(html, maxBytes = 950000) {
     const encoder = new TextEncoder();
     let encoded = encoder.encode(html);
-    
+
     if (encoded.length <= maxBytes) {
         return html;
     }
-    
+
     console.warn(`⚠️ Contenu trop long: ${encoded.length} bytes. Troncature à ${maxBytes} bytes.`);
-    
-    // Tronquer en gardant les balises HTML valides
+
     let truncated = html.substring(0, Math.floor(html.length * maxBytes / encoded.length));
-    
-    // S'assurer qu'on ne coupe pas au milieu d'une balise
+
     const lastTag = truncated.lastIndexOf('<');
     const lastClose = truncated.lastIndexOf('>');
-    
+
     if (lastTag > lastClose) {
         truncated = truncated.substring(0, lastTag);
     }
-    
+
     return truncated + '\n<p><em style="color: #e74c3c;">[⚠️ Contenu tronqué automatiquement - article trop long. Taille max: 950KB]</em></p>';
 }
 
@@ -93,41 +92,38 @@ function generateSlug(title) {
     return title
         .toLowerCase()
         .normalize('NFD')
-        .replace(/[\u0300-\u036f]/g, '') // Enlever les accents
-        .replace(/[^a-z0-9\s-]/g, '') // Garder uniquement lettres, chiffres, espaces et tirets
+        .replace(/[\u0300-\u036f]/g, '')
+        .replace(/[^a-z0-9\s-]/g, '')
         .trim()
-        .replace(/\s+/g, '-') // Remplacer espaces par tirets
-        .replace(/-+/g, '-') // Enlever tirets multiples
-        .substring(0, 100); // Limiter à 100 caractères
+        .replace(/\s+/g, '-')
+        .replace(/-+/g, '-')
+        .substring(0, 100);
 }
 
-// Vérifier si un slug existe déjà
 async function isSlugUnique(slug, excludeId = null) {
     const q = query(collection(db, 'articles'), where('slug', '==', slug));
     const snapshot = await getDocs(q);
-    
+
     if (snapshot.empty) return true;
-    
-    // Si on modifie un article, vérifier que ce n'est pas le même
+
     if (excludeId) {
         const existingDoc = snapshot.docs[0];
         return existingDoc.id === excludeId;
     }
-    
+
     return false;
 }
 
-// Générer un slug unique en ajoutant un numéro si nécessaire
 async function generateUniqueSlug(title, excludeId = null) {
     let baseSlug = generateSlug(title);
     let slug = baseSlug;
     let counter = 1;
-    
+
     while (!(await isSlugUnique(slug, excludeId))) {
         slug = `${baseSlug}-${counter}`;
         counter++;
     }
-    
+
     return slug;
 }
 
@@ -209,12 +205,10 @@ async function compressImage(file, maxWidth = 1200, quality = 0.85) {
         reader.onload = (e) => {
             const img = new Image();
             img.onload = () => {
-                // Créer un canvas pour redimensionner
                 const canvas = document.createElement('canvas');
                 let width = img.width;
                 let height = img.height;
 
-                // Redimensionner si nécessaire
                 if (width > maxWidth) {
                     height = (height * maxWidth) / width;
                     width = maxWidth;
@@ -226,13 +220,11 @@ async function compressImage(file, maxWidth = 1200, quality = 0.85) {
                 const ctx = canvas.getContext('2d');
                 ctx.drawImage(img, 0, 0, width, height);
 
-                // Convertir en base64 avec compression
                 const compressedDataUrl = canvas.toDataURL('image/jpeg', quality);
-                
-                // Calculer la taille
+
                 const sizeKB = Math.round((compressedDataUrl.length * 3) / 4 / 1024);
                 console.log(`📸 Image compressée: ${width}x${height}, ${sizeKB} KB`);
-                
+
                 resolve(compressedDataUrl);
             };
             img.src = e.target.result;
@@ -246,68 +238,60 @@ function customImageHandler() {
     const input = document.createElement('input');
     input.setAttribute('type', 'file');
     input.setAttribute('accept', 'image/*');
-    
+
     input.onchange = async () => {
         const file = input.files[0];
-        
+
         if (!file) return;
-        
-        // Vérifier la taille du fichier
+
         const fileSizeMB = file.size / (1024 * 1024);
         console.log(`📁 Fichier original: ${fileSizeMB.toFixed(2)} MB`);
-        
-        // Demander la qualité de compression
+
         const quality = await showImageQualityDialog(fileSizeMB);
-        
-        if (quality === null) return; // Annulé
-        
-        // Afficher un loader
+
+        if (quality === null) return;
+
         showNotification('🔄 Compression de l\'image...', 'info');
-        
+
         try {
-            // Compresser l'image
             const compressedImage = await compressImage(file, quality.maxWidth, quality.quality);
-            
-            // Insérer dans l'éditeur
+
             const range = quillEditor.getSelection(true);
             quillEditor.insertEmbed(range.index, 'image', compressedImage);
             quillEditor.setSelection(range.index + 1);
-            
-            // Rendre l'image redimensionnable
+
             setTimeout(() => {
                 makeImagesResizable();
             }, 100);
-            
+
             showNotification('✅ Image ajoutée avec succès !', 'success');
-            
+
         } catch (error) {
             console.error('Erreur compression:', error);
             showNotification('❌ Erreur lors de l\'ajout de l\'image', 'error');
         }
     };
-    
+
     input.click();
 }
 
 // 📐 RENDRE LES IMAGES REDIMENSIONNABLES
 function makeImagesResizable() {
     const images = quillEditor.root.querySelectorAll('img');
-    
+
     images.forEach(img => {
-        if (img.classList.contains('resizable')) return; // Déjà configuré
-        
+        if (img.classList.contains('resizable')) return;
+
         img.classList.add('resizable');
         img.style.cursor = 'nwse-resize';
         img.style.maxWidth = '100%';
         img.style.height = 'auto';
-        
-        // Double-clic pour redimensionner
+
         img.addEventListener('dblclick', function(e) {
             e.preventDefault();
             showResizeDialog(img);
         });
-        
-        // Clic droit pour options
+
         img.addEventListener('contextmenu', function(e) {
             e.preventDefault();
             showImageOptions(img);
@@ -328,7 +312,7 @@ async function showImageQualityDialog(originalSizeMB) {
                 </div>
                 <div class="modal-body">
                     <p>Taille originale: <strong>${originalSizeMB.toFixed(2)} MB</strong></p>
-                    
+
                     <div class="form-group">
                         <label>Qualité de l'image</label>
                         <select id="imageQuality" class="input">
@@ -338,7 +322,7 @@ async function showImageQualityDialog(originalSizeMB) {
                             <option value="custom">Personnalisée...</option>
                         </select>
                     </div>
-                    
+
                     <div id="customSettings" style="display: none;">
                         <div class="form-group">
                             <label>Largeur maximale (px)</label>
@@ -350,7 +334,7 @@ async function showImageQualityDialog(originalSizeMB) {
                             <span id="qualityValue">75%</span>
                         </div>
                     </div>
-                    
+
                     <div class="alert alert-info" style="margin-top: 1rem;">
                         <i class="fas fa-info-circle"></i>
                         <strong>Conseil:</strong> Utilisez "Moyenne" pour un bon équilibre qualité/taille
@@ -364,32 +348,32 @@ async function showImageQualityDialog(originalSizeMB) {
                 </div>
             </div>
         `;
-        
+
         document.body.appendChild(modal);
         modal.classList.remove('hidden');
-        
+
         const qualitySelect = modal.querySelector('#imageQuality');
         const customSettings = modal.querySelector('#customSettings');
         const customQuality = modal.querySelector('#customQuality');
         const qualityValue = modal.querySelector('#qualityValue');
-        
+
         qualitySelect.addEventListener('change', () => {
             customSettings.style.display = qualitySelect.value === 'custom' ? 'block' : 'none';
         });
-        
+
         customQuality.addEventListener('input', () => {
             qualityValue.textContent = customQuality.value + '%';
         });
-        
+
         modal.querySelector('#cancelImageBtn').onclick = () => {
             modal.remove();
             resolve(null);
         };
-        
+
         modal.querySelector('#confirmImageBtn').onclick = () => {
             const selected = qualitySelect.value;
             let config;
-            
+
             if (selected === 'custom') {
                 config = {
                     maxWidth: parseInt(modal.querySelector('#customWidth').value),
@@ -403,7 +387,7 @@ async function showImageQualityDialog(originalSizeMB) {
                 };
                 config = presets[selected];
             }
-            
+
             modal.remove();
             resolve(config);
         };
@@ -413,7 +397,7 @@ async function showImageQualityDialog(originalSizeMB) {
 // 📏 DIALOGUE DE REDIMENSIONNEMENT
 function showResizeDialog(img) {
     const currentWidth = img.style.width ? parseInt(img.style.width) : img.naturalWidth;
-    
+
     const modal = document.createElement('div');
     modal.className = 'modal';
     modal.innerHTML = `
@@ -447,10 +431,10 @@ function showResizeDialog(img) {
             </div>
         </div>
     `;
-    
+
     document.body.appendChild(modal);
     modal.classList.remove('hidden');
-    
+
     modal.querySelector('#cancelResize').onclick = () => modal.remove();
     modal.querySelector('#confirmResize').onclick = () => {
         const width = modal.querySelector('#imageWidth').value.trim();
@@ -493,38 +477,38 @@ function showImageOptions(img) {
             </div>
         </div>
     `;
-    
+
     document.body.appendChild(modal);
     modal.classList.remove('hidden');
-    
+
     modal.querySelector('#closeOptions').onclick = () => modal.remove();
-    
+
     modal.addEventListener('resize', () => {
         modal.remove();
         showResizeDialog(img);
     });
-    
+
     modal.addEventListener('align-left', () => {
         img.style.display = 'block';
         img.style.marginLeft = '0';
         img.style.marginRight = 'auto';
         modal.remove();
     });
-    
+
     modal.addEventListener('align-center', () => {
         img.style.display = 'block';
         img.style.marginLeft = 'auto';
         img.style.marginRight = 'auto';
         modal.remove();
     });
-    
+
     modal.addEventListener('align-right', () => {
         img.style.display = 'block';
         img.style.marginLeft = 'auto';
         img.style.marginRight = '0';
         modal.remove();
     });
-    
+
     modal.addEventListener('delete', () => {
         if (confirm('Supprimer cette image ?')) {
             img.remove();
@@ -550,21 +534,18 @@ function initQuillEditor() {
                     ],
                     handlers: {
                         'video': insertYouTubeVideo,
-                        'image': customImageHandler  // 🆕 HANDLER PERSONNALISÉ
+                        'image': customImageHandler
                     }
                 }
             },
             placeholder: 'Rédigez votre article ici...'
         });
-        
-        // 🆕 RENDRE LES IMAGES REDIMENSIONNABLES AU CHARGEMENT
+
         quillEditor.on('text-change', () => {
             makeImagesResizable();
         });
 
-        // Exposer pour le sélecteur de mode HTML
         window._quillEditorRef = quillEditor;
-
     }
 }
 
@@ -574,15 +555,14 @@ function initQuillEditor() {
 function insertYouTubeVideo() {
     const url = prompt('Entrez l\'URL de la vidéo YouTube:');
     if (!url) return;
-    
+
     let videoId = extractYouTubeID(url);
-    
+
     if (!videoId) {
         showNotification('URL YouTube invalide. Utilisez un lien youtube.com ou youtu.be', 'error');
         return;
     }
-    
-    // Créer l'HTML de l'iframe YouTube
+
     const embedHTML = `
         <div class="video-wrapper" style="position: relative; padding-bottom: 56.25%; height: 0; margin: 2rem 0;">
             <iframe 
@@ -594,39 +574,37 @@ function insertYouTubeVideo() {
             </iframe>
         </div>
     `;
-    
-    // Insérer dans Quill
+
     const range = quillEditor.getSelection(true);
     quillEditor.clipboard.dangerouslyPasteHTML(range.index, embedHTML);
     quillEditor.setSelection(range.index + 1);
-    
+
     showNotification('Vidéo YouTube ajoutée avec succès !', 'success');
 }
 
-// Extraire l'ID de la vidéo YouTube depuis différents formats d'URL
 function extractYouTubeID(url) {
-    // Format: https://www.youtube.com/watch?v=VIDEO_ID
     let match = url.match(/[?&]v=([^&]+)/);
     if (match) return match[1];
-    
-    // Format: https://youtu.be/VIDEO_ID
+
     match = url.match(/youtu\.be\/([^?]+)/);
     if (match) return match[1];
-    
-    // Format: https://www.youtube.com/embed/VIDEO_ID
+
     match = url.match(/youtube\.com\/embed\/([^?]+)/);
     if (match) return match[1];
-    
-    // Si c'est juste l'ID
+
     if (url.length === 11 && /^[a-zA-Z0-9_-]+$/.test(url)) {
         return url;
     }
-    
+
     return null;
 }
 
 // ============================================
-// PUBLICATION / MODIFICATION ARTICLE (MODIFIÉ)
+// PUBLICATION / MODIFICATION ARTICLE
+// ✅ CORRECTIONS PRINCIPALES :
+//    - HTML brut : pas de cleanQuillHTML()
+//    - HTML brut : sync temps réel vers #content
+//    - Mode wy (WYSIWYG) géré proprement
 // ============================================
 articleForm?.addEventListener('submit', async (e) => {
     e.preventDefault();
@@ -634,40 +612,61 @@ articleForm?.addEventListener('submit', async (e) => {
     console.log('📝 Début de soumission du formulaire...');
 
     try {
-        // Récupérer le contenu selon le mode actif
         let content;
         const editorMode = window.articleEditorMode || 'quill';
 
+        // ─────────────────────────────────────────
+        // MODE HTML BRUT (CodeMirror)
+        // ✅ Lecture directe — AUCUN nettoyage
+        // ─────────────────────────────────────────
         if (editorMode === 'html') {
-            // Mode HTML CodeMirror
-            content = window.articleCmInstance ? window.articleCmInstance.getValue() : '';
-            
-            // ✅ CORRECTION: Supprimer les balises HTML avant de mesurer la longueur réelle du texte
+            content = window.articleCmInstance
+                ? window.articleCmInstance.getValue()
+                : document.getElementById('content').value;
+
             const htmlTextContent = content.replace(/<[^>]*>/g, '').replace(/&nbsp;/g, ' ').trim();
             console.log('📏 Longueur du contenu HTML (texte seul):', htmlTextContent.length);
-            
-            if (!htmlTextContent || htmlTextContent.length < 10) {
-                showNotification('⚠️ Le contenu de l\'article est trop court (minimum 10 caractères)', 'error');
+
+            if (!htmlTextContent) {
+                showNotification('⚠️ Le contenu de l\'article est vide', 'error');
                 return;
             }
+
+            // ✅ Synchroniser le champ caché
+            document.getElementById('content').value = content;
+
+        // ─────────────────────────────────────────
+        // MODE WYSIWYG (Éditeur Word)
+        // ─────────────────────────────────────────
+        } else if (editorMode === 'wy') {
+            const wyBody = document.getElementById('wyBody');
+            content = wyBody ? wyBody.innerHTML : '';
+
+            const wyText = wyBody ? wyBody.textContent.trim() : '';
+            if (!wyText) {
+                showNotification('⚠️ Le contenu de l\'article est vide', 'error');
+                return;
+            }
+
+            document.getElementById('content').value = content;
+
+        // ─────────────────────────────────────────
+        // MODE QUILL
+        // ✅ Nettoyage et troncature uniquement ici
+        // ─────────────────────────────────────────
         } else {
-            // Mode Quill (comportement d'origine)
-            // Vérifier que Quill est initialisé
             if (!quillEditor) {
                 console.error('❌ L\'éditeur Quill n\'est pas initialisé');
                 showNotification('❌ Erreur: éditeur non initialisé. Rechargez la page.', 'error');
                 return;
             }
 
-            // Récupérer le contenu brut de Quill
             content = quillEditor.root.innerHTML;
             console.log('📄 Taille initiale du contenu:', getContentSize(content), 'bytes');
 
-            // 🧹 NETTOYER le HTML pour réduire la taille
             content = cleanQuillHTML(content);
             console.log('🧹 Taille après nettoyage:', getContentSize(content), 'bytes');
 
-            // ✂️ TRONQUER si nécessaire (limite Firestore: 1MB)
             const contentSize = getContentSize(content);
             if (contentSize > 950000) {
                 const confirmTruncate = confirm(
@@ -678,27 +677,26 @@ articleForm?.addEventListener('submit', async (e) => {
                     `- Annuler: Réduire manuellement le contenu\n\n` +
                     `Que souhaitez-vous faire ?`
                 );
-                
+
                 if (!confirmTruncate) {
                     showNotification('⚠️ Publication annulée. Réduisez le contenu de votre article.', 'warning');
                     return;
                 }
-                
+
                 content = truncateContent(content);
                 console.log('✂️ Taille après troncature:', getContentSize(content), 'bytes');
             }
 
-            // ✅ CORRECTION: Mesurer le texte réel (sans balises) pour la validation
             const textContent = quillEditor.getText().trim();
             console.log('📏 Longueur du contenu texte:', textContent.length);
-            
-            if (!textContent || textContent.length < 10) {
-                showNotification('⚠️ Le contenu de l\'article est trop court (minimum 10 caractères)', 'error');
+
+            if (!textContent) {
+                showNotification('⚠️ Le contenu de l\'article est vide', 'error');
                 return;
             }
-        }
 
-        document.getElementById('content').value = content;
+            document.getElementById('content').value = content;
+        }
 
         const title = document.getElementById('title').value.trim();
         const category = document.getElementById('category').value;
@@ -707,34 +705,30 @@ articleForm?.addEventListener('submit', async (e) => {
         const featured = document.getElementById('featured').checked;
         const tags = document.getElementById('tags').value.split(',').map(t => t.trim()).filter(t => t);
 
-        // 🆕 RÉCUPÉRER LE STATUT DE PUBLICATION
         const publicationStatus = document.getElementById('publicationStatus').value;
         let scheduledDate = null;
-        
-        // Si programmé, récupérer la date
+
         if (publicationStatus === 'scheduled') {
             const dateValue = document.getElementById('scheduleDate').value;
             const timeValue = document.getElementById('scheduleTime').value;
-            
+
             if (!dateValue || !timeValue) {
                 showNotification('⚠️ Veuillez définir une date et heure de publication', 'error');
                 return;
             }
-            
+
             scheduledDate = new Date(dateValue + 'T' + timeValue);
-            
-            // Vérifier que la date est dans le futur
+
             if (scheduledDate <= new Date()) {
                 showNotification('⚠️ La date de publication doit être dans le futur', 'error');
                 return;
             }
-            
+
             console.log('⏰ Publication programmée pour:', scheduledDate);
         }
 
         console.log('📋 Données formulaire:', { title, category, summary, featured, tagsCount: tags.length, status: publicationStatus });
 
-        // Validation basique
         if (!title) {
             showNotification('⚠️ Le titre est obligatoire', 'error');
             return;
@@ -745,14 +739,10 @@ articleForm?.addEventListener('submit', async (e) => {
             return;
         }
 
-        // 🆕 GÉNÉRER LE SLUG
-        console.log('🔄 Génération du slug...');
         const slug = await generateUniqueSlug(title, editMode ? currentEditId : null);
-        console.log('✅ Slug généré:', slug);
 
-        // Récupérer les traductions multilingues si disponibles
-        const translations = window.__translations || { ewe:{}, fr:{}, en:{} };
-        window.__translations = null; // reset
+        // 🌍 Traductions multilingues
+        const translations = window.__translations || (window.getTranslationsData ? window.getTranslationsData() : {});
 
         const articleData = {
             title,
@@ -763,8 +753,9 @@ articleForm?.addEventListener('submit', async (e) => {
             content,
             featured,
             tags,
-            translations,           // 🌍 Contenu multilingue
-            status: publicationStatus, // 🆕 STATUT
+            translations,
+            contentType: editorMode,       // ✅ FIX 1 — type d'éditeur sauvegardé
+            status: publicationStatus,
             author: {
                 uid: currentUser.uid,
                 name: currentUser.displayName || currentUser.email,
@@ -772,23 +763,20 @@ articleForm?.addEventListener('submit', async (e) => {
             }
         };
 
-        // 🆕 AJOUTER LA DATE PROGRAMMÉE SI NÉCESSAIRE
         if (publicationStatus === 'scheduled' && scheduledDate) {
             articleData.scheduledFor = scheduledDate;
-            articleData.publishedAt = null; // Pas encore publié
+            articleData.publishedAt = null;
         } else if (publicationStatus === 'published') {
             articleData.publishedAt = serverTimestamp();
             articleData.scheduledFor = null;
         } else {
-            // Brouillon
             articleData.publishedAt = null;
             articleData.scheduledFor = null;
         }
 
-        // Vérification finale de la taille totale de l'objet
         const totalSize = getContentSize(JSON.stringify(articleData));
         console.log('📦 Taille totale de l\'article:', totalSize, 'bytes');
-        
+
         if (totalSize > 1000000) {
             showNotification('❌ Erreur: L\'article est toujours trop volumineux même après optimisation', 'error');
             alert('Votre article est trop long. Veuillez:\n\n' +
@@ -805,7 +793,7 @@ articleForm?.addEventListener('submit', async (e) => {
                 updatedAt: serverTimestamp()
             });
 
-            const statusText = publicationStatus === 'draft' ? 'brouillon enregistré' : 
+            const statusText = publicationStatus === 'draft' ? 'brouillon enregistré' :
                              publicationStatus === 'scheduled' ? 'publication programmée' : 'modifié';
             showNotification(`✅ Article ${statusText} avec succès !`, 'success');
             cancelEdit();
@@ -820,15 +808,19 @@ articleForm?.addEventListener('submit', async (e) => {
             });
 
             console.log('✅ Article créé avec l\'ID:', docRef.id);
-            
-            const statusText = publicationStatus === 'draft' ? 'Brouillon enregistré' : 
+
+            const statusText = publicationStatus === 'draft' ? 'Brouillon enregistré' :
                              publicationStatus === 'scheduled' ? 'Publication programmée' : 'Article publié';
             showNotification(`✅ ${statusText} avec succès !`, 'success');
-            
+
             articleForm.reset();
-            quillEditor.setText('');
+            if (quillEditor) quillEditor.setText('');
+            if (window.articleCmInstance) window.articleCmInstance.setValue('');
+            const wyBody = document.getElementById('wyBody');
+            if (wyBody) wyBody.innerHTML = '';
+            document.getElementById('content').value = '';
             document.getElementById('publicationStatus').value = 'published';
-            toggleScheduleFields();
+            if (typeof toggleScheduleFields === 'function') toggleScheduleFields();
         }
 
         loadArticles();
@@ -838,13 +830,12 @@ articleForm?.addEventListener('submit', async (e) => {
         console.error('❌ Erreur publication complète:', error);
         console.error('Détails:', error.message);
         console.error('Code:', error.code);
-        
-        // Message d'erreur plus informatif
+
         let errorMessage = 'Erreur lors de la publication';
         if (error.code === 'invalid-argument' && error.message.includes('longer than')) {
             errorMessage = 'Article trop volumineux. Réduisez le contenu ou les images.';
         }
-        
+
         showNotification(`❌ ${errorMessage}: ${error.message}`, 'error');
     }
 });
@@ -854,7 +845,6 @@ articleForm?.addEventListener('submit', async (e) => {
 // ============================================
 async function loadArticles() {
     try {
-        // Afficher les loaders dans les 3 sections
         document.getElementById('publishedArticlesList').innerHTML = '<div class="loading"><i class="fas fa-spinner fa-spin"></i><p>Chargement...</p></div>';
         document.getElementById('scheduledArticlesList').innerHTML = '<div class="loading"><i class="fas fa-spinner fa-spin"></i><p>Chargement...</p></div>';
         document.getElementById('draftsArticlesList').innerHTML = '<div class="loading"><i class="fas fa-spinner fa-spin"></i><p>Chargement...</p></div>';
@@ -862,7 +852,6 @@ async function loadArticles() {
         const q = query(collection(db, 'articles'), orderBy('createdAt', 'desc'));
         const snapshot = await getDocs(q);
 
-        // Séparer les articles par statut
         const publishedArticles = [];
         const scheduledArticles = [];
         const draftArticles = [];
@@ -871,7 +860,7 @@ async function loadArticles() {
             const article = doc.data();
             const status = article.status || 'published';
             const item = { id: doc.id, data: article };
-            
+
             if (status === 'published') {
                 publishedArticles.push(item);
             } else if (status === 'scheduled') {
@@ -881,22 +870,18 @@ async function loadArticles() {
             }
         });
 
-        // Mettre à jour les compteurs dans les headers
         document.getElementById('publishedCount').textContent = publishedArticles.length;
         document.getElementById('scheduledCount').textContent = scheduledArticles.length;
         document.getElementById('draftsCount').textContent = draftArticles.length;
 
-        // ✅ Utiliser le système de pagination amélioré si disponible
         if (typeof window.loadArticlesEnhanced === 'function') {
             await window.loadArticlesEnhanced(snapshot);
             return;
         }
 
-        // Sinon, stocker et émettre un événement (admin-enhancements.js chargera après)
         window.__pendingSnapshot = snapshot;
         window.dispatchEvent(new CustomEvent('articlesLoaded', { detail: snapshot }));
 
-        // Fallback sans pagination (au cas où admin-enhancements.js ne se charge pas)
         displayArticlesInSection('publishedArticlesList', publishedArticles, 'publié');
         displayArticlesInSection('scheduledArticlesList', scheduledArticles, 'programmé');
         displayArticlesInSection('draftsArticlesList', draftArticles, 'brouillon');
@@ -909,24 +894,12 @@ async function loadArticles() {
 
 function displayArticlesInSection(sectionId, articles, type) {
     const container = document.getElementById(sectionId);
-    
+
     if (articles.length === 0) {
-        const icons = {
-            'publié': 'check-circle',
-            'programmé': 'clock',
-            'brouillon': 'file-alt'
-        };
-        const messages = {
-            'publié': 'Aucun article publié',
-            'programmé': 'Aucun article programmé',
-            'brouillon': 'Aucun brouillon'
-        };
-        const hints = {
-            'publié': 'Publiez votre premier article !',
-            'programmé': 'Programmez une publication future',
-            'brouillon': 'Enregistrez vos articles en brouillon'
-        };
-        
+        const icons    = { 'publié': 'check-circle', 'programmé': 'clock', 'brouillon': 'file-alt' };
+        const messages = { 'publié': 'Aucun article publié', 'programmé': 'Aucun article programmé', 'brouillon': 'Aucun brouillon' };
+        const hints    = { 'publié': 'Publiez votre premier article !', 'programmé': 'Programmez une publication future', 'brouillon': 'Enregistrez vos articles en brouillon' };
+
         container.innerHTML = `
             <div class="empty-state">
                 <i class="fas fa-${icons[type]}"></i>
@@ -936,7 +909,7 @@ function displayArticlesInSection(sectionId, articles, type) {
         `;
         return;
     }
-    
+
     container.innerHTML = '';
     articles.forEach(item => {
         const articleElement = createArticleItem(item.id, item.data);
@@ -955,11 +928,10 @@ export function createArticleItem(id, article) {
     }) : 'Non daté';
 
     const featuredBadge = article.featured ? '<span class="badge badge-yellow"><i class="fas fa-star"></i> Vedette</span>' : '';
-    
-    // 🆕 BADGE DE STATUT
+
     const status = article.status || 'published';
     let statusBadge = '';
-    
+
     if (status === 'draft') {
         statusBadge = '<span class="badge badge-gray"><i class="fas fa-file-alt"></i> Brouillon</span>';
     } else if (status === 'scheduled') {
@@ -974,11 +946,9 @@ export function createArticleItem(id, article) {
     } else {
         statusBadge = '<span class="badge badge-green"><i class="fas fa-check-circle"></i> Publié</span>';
     }
-    
-    // 🆕 AFFICHER LE SLUG
+
     const slugInfo = article.slug ? `<br><small style="color: #6b7280;"><i class="fas fa-link"></i> /article/${article.slug}</small>` : '';
 
-    // 🆕 BOUTON DE PUBLICATION IMMÉDIATE (pour brouillons et programmés)
     let publishNowBtn = '';
     if (status !== 'published') {
         publishNowBtn = `
@@ -1021,17 +991,17 @@ window.publishNow = async function(articleId) {
     try {
         const confirmed = confirm('Publier cet article immédiatement ?');
         if (!confirmed) return;
-        
+
         await updateDoc(doc(db, 'articles', articleId), {
             status: 'published',
             publishedAt: serverTimestamp(),
             scheduledFor: null
         });
-        
+
         showNotification('✅ Article publié avec succès !', 'success');
         loadArticles();
         loadStatistics();
-        
+
     } catch (error) {
         console.error('Erreur publication:', error);
         showNotification('❌ Erreur lors de la publication', 'error');
@@ -1040,11 +1010,13 @@ window.publishNow = async function(articleId) {
 
 // ============================================
 // MODIFIER ARTICLE
+// ✅ FIX 2 — Charge dans le bon éditeur selon contentType
+// ✅ FIX — Sync #content pour le mode html
 // ============================================
 window.editArticle = async function(articleId) {
     try {
         const docSnap = await getDoc(doc(db, 'articles', articleId));
-        
+
         if (!docSnap.exists()) {
             showNotification('Article introuvable', 'error');
             return;
@@ -1053,39 +1025,52 @@ window.editArticle = async function(articleId) {
         const article = docSnap.data();
 
         document.getElementById('title').value = article.title;
-        // Remplir les champs de traduction multilingue
         if (window.fillTranslationFields) window.fillTranslationFields(article);
         document.getElementById('category').value = article.category;
         document.getElementById('imageUrl').value = article.imageUrl || '';
         document.getElementById('summary').value = article.summary;
         document.getElementById('featured').checked = article.featured || false;
         document.getElementById('tags').value = (article.tags || []).join(', ');
-        
-        // 🆕 CHARGER LE STATUT ET LA DATE PROGRAMMÉE
+
         const status = article.status || 'published';
         document.getElementById('publicationStatus').value = status;
-        
+
         if (status === 'scheduled' && article.scheduledFor) {
             const scheduledDate = new Date(article.scheduledFor.toDate());
             const dateStr = scheduledDate.toISOString().split('T')[0];
             const timeStr = scheduledDate.toTimeString().slice(0, 5);
-            
             document.getElementById('scheduleDate').value = dateStr;
             document.getElementById('scheduleTime').value = timeStr;
         }
-        
-        toggleScheduleFields();
-        
-        // Charger dans l'éditeur actif
-        const editorMode = window.articleEditorMode || 'quill';
-        if (editorMode === 'html') {
-            if (window.articleCmInstance) {
-                window.articleCmInstance.setValue(article.content || '');
-                window.articleCmInstance.refresh();
-            }
-        } else {
-            quillEditor.root.innerHTML = article.content;
+
+        if (typeof toggleScheduleFields === 'function') toggleScheduleFields();
+
+        // ✅ FIX 2 — Détecter le bon éditeur depuis article.contentType
+        const savedContentType = article.contentType || 'quill';
+        console.log(`🔍 Type d'éditeur détecté: ${savedContentType}`);
+
+        if (typeof switchArticleEditorMode === 'function') {
+            switchArticleEditorMode(savedContentType);
         }
+
+        setTimeout(() => {
+            if (savedContentType === 'html') {
+                if (window.articleCmInstance) {
+                    window.articleCmInstance.setValue(article.content || '');
+                    window.articleCmInstance.refresh();
+                    // ✅ Synchroniser le champ caché
+                    document.getElementById('content').value = article.content || '';
+                }
+            } else if (savedContentType === 'wy') {
+                const wyBody = document.getElementById('wyBody');
+                if (wyBody) {
+                    wyBody.innerHTML = article.content || '';
+                    document.getElementById('content').value = article.content || '';
+                }
+            } else {
+                if (quillEditor) quillEditor.root.innerHTML = article.content || '';
+            }
+        }, 150);
 
         editMode = true;
         currentEditId = articleId;
@@ -1106,10 +1091,13 @@ window.cancelEdit = function() {
     document.getElementById('formTitle').textContent = 'Nouvel Article';
     document.getElementById('submitBtnText').textContent = 'Publier';
     document.getElementById('publicationStatus').value = 'published';
-    toggleScheduleFields();
+    if (typeof toggleScheduleFields === 'function') toggleScheduleFields();
     articleForm.reset();
-    quillEditor.setText('');
+    if (quillEditor) quillEditor.setText('');
     if (window.articleCmInstance) window.articleCmInstance.setValue('');
+    const wyBody = document.getElementById('wyBody');
+    if (wyBody) wyBody.innerHTML = '';
+    document.getElementById('content').value = '';
 };
 
 // ============================================
@@ -1156,7 +1144,7 @@ async function loadStatistics() {
         articlesSnapshot.forEach(doc => {
             const article = doc.data();
             const status = article.status || 'published';
-            
+
             if (status === 'published') {
                 publishedCount++;
             } else if (status === 'scheduled') {
@@ -1191,11 +1179,11 @@ async function loadNewsletterSubscribers() {
         }
 
         newsletterList.innerHTML = '';
-        
+
         snapshot.forEach(doc => {
             const sub = doc.data();
             const date = sub.subscribedAt ? new Date(sub.subscribedAt.toDate()).toLocaleDateString('fr-FR') : 'N/A';
-            
+
             const div = document.createElement('div');
             div.className = 'newsletter-item';
             div.innerHTML = `
@@ -1214,14 +1202,14 @@ async function loadNewsletterSubscribers() {
 window.exportNewsletterCSV = async function() {
     try {
         const snapshot = await getDocs(collection(db, 'newsletter'));
-        
+
         if (snapshot.empty) {
             showNotification('Aucun abonné à exporter', 'info');
             return;
         }
 
         let csv = 'Email,Date d\'inscription\n';
-        
+
         snapshot.forEach(doc => {
             const sub = doc.data();
             const date = sub.subscribedAt ? new Date(sub.subscribedAt.toDate()).toLocaleDateString('fr-FR') : 'N/A';
@@ -1250,22 +1238,21 @@ window.exportNewsletterCSV = async function() {
 window.generateSharePage = async function(articleId) {
     try {
         showNotification('🔄 Génération de la page de partage...', 'info');
-        
+
         const articleDoc = await getDoc(doc(db, 'articles', articleId));
-        
+
         if (!articleDoc.exists()) {
             showNotification('❌ Article introuvable', 'error');
             return;
         }
-        
+
         const article = articleDoc.data();
         const slug = article.slug || articleId;
         const title = escapeHtml(article.title || 'Article');
         const description = escapeHtml(article.summary || 'Découvrez cet article sur Électro-Actu');
         const imageUrl = escapeHtml(article.imageUrl || 'https://electroinfo.online/images/logo.png');
         const shareUrl = `https://electroinfo.online/share/${slug}.html`;
-        
-        // Générer le HTML de la page de partage
+
         const html = `<!DOCTYPE html>
 <html lang="fr">
 <head>
@@ -1296,7 +1283,7 @@ window.generateSharePage = async function(articleId) {
     
     <!-- Redirection -->
     <meta http-equiv="refresh" content="0;url=/article/${slug}">
-    <script>window.location.href="/article/${slug}";</script>
+    <script>window.location.href="/article/${slug}";<\/script>
     
     <style>
         body{font-family:sans-serif;display:flex;align-items:center;justify-content:center;min-height:100vh;background:linear-gradient(135deg,#667eea,#764ba2);color:white;text-align:center;padding:2rem}
@@ -1309,8 +1296,7 @@ window.generateSharePage = async function(articleId) {
     <div><div class="spinner"></div><h1>${title}</h1><p>Chargement...</p></div>
 </body>
 </html>`;
-        
-        // Télécharger le fichier
+
         const blob = new Blob([html], { type: 'text/html;charset=utf-8' });
         const url = URL.createObjectURL(blob);
         const a = document.createElement('a');
@@ -1320,8 +1306,7 @@ window.generateSharePage = async function(articleId) {
         a.click();
         document.body.removeChild(a);
         URL.revokeObjectURL(url);
-        
-        // Instructions
+
         const instructions = `✅ PAGE DE PARTAGE GÉNÉRÉE !
 
 📁 Fichier téléchargé : ${slug}.html
@@ -1335,15 +1320,14 @@ window.generateSharePage = async function(articleId) {
 ${shareUrl}
 
 💡 Cette URL affichera l'image de couverture sur WhatsApp/Facebook !`;
-        
-        // Copier l'URL
+
         if (navigator.clipboard) {
             navigator.clipboard.writeText(shareUrl).catch(() => {});
         }
-        
+
         showNotification('✅ Fichier téléchargé !', 'success');
         alert(instructions);
-        
+
     } catch (error) {
         console.error('Erreur:', error);
         showNotification('❌ Erreur lors de la génération', 'error');
@@ -1353,23 +1337,20 @@ ${shareUrl}
 // ============================================
 // MIGRATION DES ANCIENS ARTICLES
 // ============================================
-
-// Migrer les anciens articles qui n'ont pas de slug
 window.migrateOldArticles = async function() {
     try {
         const confirmed = confirm('⚠️ Cette opération va ajouter des slugs à tous les articles qui n\'en ont pas encore.\n\nContinuer ?');
         if (!confirmed) return;
-        
+
         showNotification('🔄 Migration en cours...', 'info');
-        
+
         const snapshot = await getDocs(collection(db, 'articles'));
         let migrated = 0;
         let errors = 0;
-        
+
         for (const docSnapshot of snapshot.docs) {
             const article = docSnapshot.data();
-            
-            // Si l'article n'a pas de slug
+
             if (!article.slug) {
                 try {
                     const slug = await generateUniqueSlug(article.title, docSnapshot.id);
@@ -1382,10 +1363,10 @@ window.migrateOldArticles = async function() {
                 }
             }
         }
-        
+
         showNotification(`✅ Migration terminée ! ${migrated} articles mis à jour${errors > 0 ? `, ${errors} erreurs` : ''}`, 'success');
-        loadArticles(); // Recharger la liste
-        
+        loadArticles();
+
     } catch (error) {
         console.error('Erreur migration:', error);
         showNotification('❌ Erreur lors de la migration', 'error');
@@ -1422,3 +1403,10 @@ function showNotification(message, type = 'info') {
         notification.classList.add('hidden');
     }, 3000);
 }
+
+// ============================================
+// EXPOSITION POUR COMPATIBILITÉ
+// ============================================
+window.getTranslationsData = function() {
+    return window.__translations || {};
+};

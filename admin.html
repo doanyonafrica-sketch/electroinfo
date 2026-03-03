@@ -41,51 +41,23 @@
         .sub-tab-btn.active { background:#282a36; color:#f8f8f2; }
         .sub-tab-btn:hover:not(.active) { background:#282a36; color:#bd93f9; }
 
-        /* ══════════════════════════════════════════
-           WYSIWYG WORD-LIKE EDITOR
-        ══════════════════════════════════════════ */
+        /* ══ WYSIWYG ══ */
         .wy-wrap { border:2px solid #e2e8f0; border-radius:10px; overflow:visible; background:#fff; position:relative; }
-
-        /* Toolbar sticky */
-        .wy-toolbar {
-            display:flex; flex-wrap:wrap; align-items:center; gap:2px;
-            padding:5px 8px; background:#1e293b;
-            border-radius:8px 8px 0 0;
-            position:sticky; top:58px; z-index:200;
-            border-bottom:2px solid #334155;
-            box-shadow:0 2px 8px rgba(0,0,0,.25);
-        }
+        .wy-toolbar { display:flex; flex-wrap:wrap; align-items:center; gap:2px; padding:5px 8px; background:#1e293b; border-radius:8px 8px 0 0; position:sticky; top:58px; z-index:200; border-bottom:2px solid #334155; box-shadow:0 2px 8px rgba(0,0,0,.25); }
         .wy-tb-group { display:flex; align-items:center; gap:1px; }
         .wy-tb-sep { width:1px; height:22px; background:#334155; margin:0 3px; flex-shrink:0; }
-        .wy-tb-btn {
-            background:transparent; border:none; color:#94a3b8;
-            width:28px; height:26px; border-radius:4px; cursor:pointer;
-            font-size:.8rem; display:flex; align-items:center; justify-content:center;
-            transition:background .12s,color .12s; padding:0; flex-shrink:0;
-        }
+        .wy-tb-btn { background:transparent; border:none; color:#94a3b8; width:28px; height:26px; border-radius:4px; cursor:pointer; font-size:.8rem; display:flex; align-items:center; justify-content:center; transition:background .12s,color .12s; padding:0; flex-shrink:0; }
         .wy-tb-btn:hover  { background:#334155; color:#f1f5f9; }
         .wy-tb-btn.active { background:#2563eb; color:white; }
         .wy-tb-btn-wide { width:auto !important; padding:0 8px !important; font-size:.72rem; font-weight:700; gap:3px; }
-        .wy-tb-select {
-            background:#334155; color:#f1f5f9; border:none; border-radius:4px;
-            padding:2px 5px; font-size:.75rem; cursor:pointer; height:26px; max-width:110px;
-        }
+        .wy-tb-select { background:#334155; color:#f1f5f9; border:none; border-radius:4px; padding:2px 5px; font-size:.75rem; cursor:pointer; height:26px; max-width:110px; }
         .wy-tb-select:focus { outline:1px solid #2563eb; }
-
-        /* Couleur texte / fond */
         .wy-color-wrap { position:relative; width:28px; height:26px; display:flex; flex-direction:column; align-items:center; justify-content:center; cursor:pointer; border-radius:4px; transition:background .12s; }
         .wy-color-wrap:hover { background:#334155; }
         .wy-color-wrap i { color:#94a3b8; font-size:.75rem; pointer-events:none; }
         .wy-color-wrap input[type=color] { position:absolute; opacity:0; width:100%; height:100%; cursor:pointer; border:none; padding:0; }
         .wy-color-bar { width:18px; height:3px; border-radius:2px; margin-top:1px; pointer-events:none; }
-
-        /* Corps éditeur */
-        .wy-body {
-            min-height:380px; max-height:620px; overflow-y:auto;
-            padding:1.75rem 2.25rem; background:white; outline:none;
-            font-size:1rem; line-height:1.85; color:#1f2937;
-            border-radius:0 0 8px 8px; cursor:text;
-        }
+        .wy-body { min-height:380px; max-height:620px; overflow-y:auto; padding:1.75rem 2.25rem; background:white; outline:none; font-size:1rem; line-height:1.85; color:#1f2937; border-radius:0 0 8px 8px; cursor:text; }
         .wy-body:empty::before { content:attr(data-ph); color:#9ca3af; pointer-events:none; font-style:italic; }
         .wy-body h1 { font-size:2rem; font-weight:800; color:#111827; margin:1.5rem 0 .5rem; }
         .wy-body h2 { font-size:1.5rem; font-weight:700; color:#1e40af; margin:1.25rem 0 .5rem; border-left:4px solid #2563eb; padding-left:.75rem; }
@@ -102,22 +74,13 @@
         .wy-body a  { color:#2563eb; text-decoration:underline; }
         .wy-body img { max-width:100%; cursor:pointer; border-radius:6px; }
         .wy-body hr  { border:none; border-top:2px solid #e2e8f0; margin:1.5rem 0; }
-
-        /* Drop overlay */
         .wy-drop { display:none; position:absolute; inset:0; background:rgba(37,99,235,.08); border:3px dashed #2563eb; border-radius:10px; z-index:20; flex-direction:column; align-items:center; justify-content:center; gap:1rem; color:#1e40af; font-weight:700; font-size:1.1rem; pointer-events:none; }
         .wy-drop i { font-size:2.5rem; }
         .wy-drop.show { display:flex; }
 
         /* ── Image resize overlay ── */
-        #wyImgBox {
-            display:none; position:fixed; z-index:9999; pointer-events:none;
-            border:2px solid #2563eb; border-radius:3px; box-sizing:border-box;
-        }
-        .wy-rh {
-            position:absolute; width:9px; height:9px;
-            background:#2563eb; border:1.5px solid white; border-radius:2px;
-            pointer-events:all; z-index:10000;
-        }
+        #wyImgBox { display:none; position:fixed; z-index:9999; pointer-events:none; border:2px solid #2563eb; border-radius:3px; box-sizing:border-box; }
+        .wy-rh { position:absolute; width:9px; height:9px; background:#2563eb; border:1.5px solid white; border-radius:2px; pointer-events:all; z-index:10000; }
         .wy-rh.nw { top:-5px; left:-5px; cursor:nw-resize; }
         .wy-rh.ne { top:-5px; right:-5px; cursor:ne-resize; }
         .wy-rh.sw { bottom:-5px; left:-5px; cursor:sw-resize; }
@@ -126,62 +89,23 @@
         .wy-rh.s  { bottom:-5px; left:50%; transform:translateX(-50%); cursor:s-resize; }
         .wy-rh.e  { right:-5px; top:50%; transform:translateY(-50%); cursor:e-resize; }
         .wy-rh.w  { left:-5px; top:50%; transform:translateY(-50%); cursor:w-resize; }
-
-        /* Floating image toolbar */
-        #wyImgToolbar {
-            display:none; position:fixed; z-index:10001;
-            background:#1e293b; border-radius:7px; padding:4px 6px;
-            box-shadow:0 4px 16px rgba(0,0,0,.35); gap:2px;
-            flex-wrap:nowrap; align-items:center;
-        }
-        #wyImgToolbar button {
-            background:transparent; border:none; color:#94a3b8;
-            width:26px; height:24px; border-radius:4px; cursor:pointer;
-            font-size:.75rem; display:flex; align-items:center; justify-content:center;
-            transition:background .12s; white-space:nowrap;
-        }
+        #wyImgToolbar { display:none; position:fixed; z-index:10001; background:#1e293b; border-radius:7px; padding:4px 6px; box-shadow:0 4px 16px rgba(0,0,0,.35); gap:2px; flex-wrap:nowrap; align-items:center; }
+        #wyImgToolbar button { background:transparent; border:none; color:#94a3b8; width:26px; height:24px; border-radius:4px; cursor:pointer; font-size:.75rem; display:flex; align-items:center; justify-content:center; transition:background .12s; white-space:nowrap; }
         #wyImgToolbar button:hover { background:#334155; color:#f1f5f9; }
         #wyImgToolbar .wy-sep2 { width:1px; height:16px; background:#334155; margin:0 2px; }
         #wyImgToolbar span.wy-img-size { color:#64748b; font-size:.7rem; padding:0 4px; min-width:60px; text-align:center; }
 
-        /* ══════════════════════════════
-           ONGLETS ADMIN PRINCIPAL
-        ══════════════════════════════ */
-        .admin-tabs-nav {
-            display: flex;
-            border-bottom: 3px solid #e2e8f0;
-            margin-bottom: 1.5rem;
-            background: white;
-            border-radius: 12px 12px 0 0;
-            box-shadow: 0 2px 8px rgba(0,0,0,.06);
-            overflow: hidden;
-        }
-        .admin-tab-btn {
-            padding: .85rem 1.5rem;
-            border: none;
-            background: #f8fafc;
-            color: #64748b;
-            font-weight: 600;
-            font-size: .93rem;
-            cursor: pointer;
-            border-bottom: 3px solid transparent;
-            margin-bottom: -3px;
-            transition: all .2s;
-            display: flex;
-            align-items: center;
-            gap: .5rem;
-            flex: 1;
-            justify-content: center;
-        }
-        .admin-tab-btn:hover:not(.active) { background: #f1f5f9; color: #374151; }
-        .admin-tab-btn.active { background: white; color: #7c3aed; border-bottom-color: #7c3aed; }
-        .admin-tab-btn .tab-badge { background: #e0e7ff; color: #4f46e5; font-size: .72rem; padding: .1rem .45rem; border-radius: 99px; font-weight: 700; }
-        .admin-tab-btn.active .tab-badge { background: #7c3aed; color: white; }
-        .admin-tab-page { display: none; }
-        .admin-tab-page.active { display: block; }
+        /* ══ ONGLETS ADMIN ══ */
+        .admin-tabs-nav { display:flex; border-bottom:3px solid #e2e8f0; margin-bottom:1.5rem; background:white; border-radius:12px 12px 0 0; box-shadow:0 2px 8px rgba(0,0,0,.06); overflow:hidden; }
+        .admin-tab-btn { padding:.85rem 1.5rem; border:none; background:#f8fafc; color:#64748b; font-weight:600; font-size:.93rem; cursor:pointer; border-bottom:3px solid transparent; margin-bottom:-3px; transition:all .2s; display:flex; align-items:center; gap:.5rem; flex:1; justify-content:center; }
+        .admin-tab-btn:hover:not(.active) { background:#f1f5f9; color:#374151; }
+        .admin-tab-btn.active { background:white; color:#7c3aed; border-bottom-color:#7c3aed; }
+        .admin-tab-page { display:none; }
+        .admin-tab-page.active { display:block; }
     </style>
 </head>
 <body>
+
     <!-- Image resize box (global) -->
     <div id="wyImgBox">
         <div class="wy-rh nw" data-d="nw"></div>
@@ -263,294 +187,263 @@
                 </button>
             </div>
 
-            <!-- ══ ONGLET 1 : TABLEAU DE BORD ══ -->
+            <!-- ══════════════════════════════════
+                 ONGLET 1 : TABLEAU DE BORD
+            ══════════════════════════════════ -->
             <div id="tab-dashboard" class="admin-tab-page active">
 
-            <div style="display:flex; justify-content:flex-end; margin-bottom:1rem;">
-                <button onclick="switchAdminTab('rediger')" class="btn btn-primary" style="display:flex;align-items:center;gap:.5rem;">
-                    <i class="fas fa-plus-circle"></i> Rédiger un nouvel article
-                </button>
-            </div>
+                <div style="display:flex; justify-content:flex-end; margin-bottom:1rem;">
+                    <button onclick="switchAdminTab('rediger')" class="btn btn-primary" style="display:flex;align-items:center;gap:.5rem;">
+                        <i class="fas fa-plus-circle"></i> Rédiger un nouvel article
+                    </button>
+                </div>
 
-            <div class="stats-grid">
-                <div class="stat-card"><div class="stat-icon blue"><i class="fas fa-newspaper"></i></div><div class="stat-content"><p class="stat-label">Total Articles</p><p class="stat-value" id="totalArticles">0</p></div></div>
-                <div class="stat-card"><div class="stat-icon green"><i class="fas fa-check-circle"></i></div><div class="stat-content"><p class="stat-label">Publiés</p><p class="stat-value" id="publishedArticles">0</p></div></div>
-                <div class="stat-card"><div class="stat-icon yellow"><i class="fas fa-clock"></i></div><div class="stat-content"><p class="stat-label">Programmés</p><p class="stat-value" id="scheduledArticles">0</p></div></div>
-                <div class="stat-card"><div class="stat-icon purple"><i class="fas fa-file-alt"></i></div><div class="stat-content"><p class="stat-label">Brouillons</p><p class="stat-value" id="draftArticles">0</p></div></div>
-            </div>
+                <div class="stats-grid">
+                    <div class="stat-card"><div class="stat-icon blue"><i class="fas fa-newspaper"></i></div><div class="stat-content"><p class="stat-label">Total Articles</p><p class="stat-value" id="totalArticles">0</p></div></div>
+                    <div class="stat-card"><div class="stat-icon green"><i class="fas fa-check-circle"></i></div><div class="stat-content"><p class="stat-label">Publiés</p><p class="stat-value" id="publishedArticles">0</p></div></div>
+                    <div class="stat-card"><div class="stat-icon yellow"><i class="fas fa-clock"></i></div><div class="stat-content"><p class="stat-label">Programmés</p><p class="stat-value" id="scheduledArticles">0</p></div></div>
+                    <div class="stat-card"><div class="stat-icon purple"><i class="fas fa-file-alt"></i></div><div class="stat-content"><p class="stat-label">Brouillons</p><p class="stat-value" id="draftArticles">0</p></div></div>
+                </div>
 
-            <!-- ══ ONGLET 2 : RÉDIGER (form) ══ -->
+                <!-- Recherche + listes d'articles -->
+                <div class="search-articles-section">
+                    <div class="search-bar-admin">
+                        <i class="fas fa-search"></i>
+                        <input type="text" id="adminSearchInput" placeholder="Rechercher un article par titre, catégorie ou tag..." class="search-input-admin">
+                        <button id="clearSearch" class="btn-clear-search hidden" onclick="clearAdminSearch()"><i class="fas fa-times"></i></button>
+                    </div>
+                    <div id="searchResultsCount" class="search-results-count hidden"></div>
+                </div>
+
+                <div class="card accordion-card">
+                    <div class="card-header accordion-header" onclick="toggleAccordion('published')"><div class="accordion-title"><i class="fas fa-chevron-down accordion-icon" id="publishedIcon"></i><h2><i class="fas fa-check-circle"></i> Articles Publiés</h2><span class="count-badge" id="publishedCount">0</span></div></div>
+                    <div class="card-body accordion-body" id="publishedAccordion"><div id="publishedArticlesList"><div class="loading"><i class="fas fa-spinner fa-spin"></i><p>Chargement...</p></div></div><div id="publishedPagination" class="admin-pagination hidden"></div></div>
+                </div>
+                <div class="card accordion-card">
+                    <div class="card-header accordion-header" onclick="toggleAccordion('scheduled')"><div class="accordion-title"><i class="fas fa-chevron-down accordion-icon" id="scheduledIcon"></i><h2><i class="fas fa-clock"></i> Articles Programmés</h2><span class="count-badge" id="scheduledCount">0</span></div></div>
+                    <div class="card-body accordion-body" id="scheduledAccordion"><div id="scheduledArticlesList"><div class="empty-state"><i class="fas fa-clock"></i><p>Aucun article programmé</p></div></div><div id="scheduledPagination" class="admin-pagination hidden"></div></div>
+                </div>
+                <div class="card accordion-card">
+                    <div class="card-header accordion-header" onclick="toggleAccordion('drafts')"><div class="accordion-title"><i class="fas fa-chevron-down accordion-icon" id="draftsIcon"></i><h2><i class="fas fa-file-alt"></i> Brouillons</h2><span class="count-badge" id="draftsCount">0</span></div></div>
+                    <div class="card-body accordion-body" id="draftsAccordion"><div id="draftsArticlesList"><div class="empty-state"><i class="fas fa-file-alt"></i><p>Aucun brouillon</p></div></div><div id="draftsPagination" class="admin-pagination hidden"></div></div>
+                </div>
+
             </div><!-- /#tab-dashboard -->
+
+            <!-- ══════════════════════════════════
+                 ONGLET 2 : RÉDIGER UN ARTICLE
+            ══════════════════════════════════ -->
             <div id="tab-rediger" class="admin-tab-page">
 
-            <div class="card">
-                <div class="card-header"><h2><i class="fas fa-plus-circle"></i> <span id="formTitle">Nouvel Article</span></h2></div>
-                <div class="card-body">
-                    <form id="articleForm">
-                        <input type="hidden" id="editArticleId">
-                        <div class="form-row"><div class="form-group"><label>Titre *</label><input type="text" id="title" required class="input" placeholder="Ex: La révolution des batteries solides"></div></div>
-                        <div class="form-row">
-                            <div class="form-group"><label>Catégorie *</label><select id="category" class="input"><option>INNOVATION</option><option>SÉCURITÉ</option><option>NOUVEAUTÉ</option><option>TUTO</option><option>DOMOTIQUE</option></select></div>
-                            <div class="form-group"><label class="checkbox"><input type="checkbox" id="featured"><span>Article en vedette</span></label></div>
-                        </div>
-                        <div class="form-row"><div class="form-group"><label>URL de l'image</label><input type="url" id="imageUrl" class="input" placeholder="https://example.com/image.jpg"></div></div>
-                        <div class="form-row"><div class="form-group"><label>Résumé *</label><textarea id="summary" required rows="3" class="input" placeholder="Un court résumé de l'article..."></textarea></div></div>
+                <div class="card">
+                    <div class="card-header"><h2><i class="fas fa-plus-circle"></i> <span id="formTitle">Nouvel Article</span></h2></div>
+                    <div class="card-body">
+                        <form id="articleForm">
+                            <input type="hidden" id="editArticleId">
+                            <div class="form-row"><div class="form-group"><label>Titre *</label><input type="text" id="title" required class="input" placeholder="Ex: La révolution des batteries solides"></div></div>
+                            <div class="form-row">
+                                <div class="form-group"><label>Catégorie *</label><select id="category" class="input"><option>INNOVATION</option><option>SÉCURITÉ</option><option>NOUVEAUTÉ</option><option>TUTO</option><option>DOMOTIQUE</option></select></div>
+                                <div class="form-group"><label class="checkbox"><input type="checkbox" id="featured"><span>Article en vedette</span></label></div>
+                            </div>
+                            <div class="form-row"><div class="form-group"><label>URL de l'image</label><input type="url" id="imageUrl" class="input" placeholder="https://example.com/image.jpg"></div></div>
+                            <div class="form-row"><div class="form-group"><label>Résumé *</label><textarea id="summary" required rows="3" class="input" placeholder="Un court résumé de l'article..."></textarea></div></div>
 
-                        <div class="form-row">
-                            <div class="form-group">
-                                <label>Contenu *</label>
-                                <div class="editor-mode-selector">
-                                    <button type="button" class="mode-btn active" id="modeQuillBtn" onclick="switchArticleEditorMode('quill')"><i class="fas fa-align-left"></i> Éditeur Simple</button>
-                                    <button type="button" class="mode-btn" id="modeHtmlBtn" onclick="switchArticleEditorMode('html')"><i class="fas fa-code"></i> HTML Brut</button>
-                                    <button type="button" class="mode-btn" id="modeWyBtn" onclick="switchArticleEditorMode('wy')"><i class="fas fa-edit"></i> Éditeur Word</button>
-                                </div>
-
-                                <!-- MODE QUILL -->
-                                <div id="quillEditorSection">
-                                    <div id="editor" style="min-height:300px; background:white;"></div>
-                                </div>
-
-                                <!-- MODE HTML CODEMIRROR -->
-                                <div id="htmlEditorSection" style="display:none;">
-                                    <div class="html-sub-tabs">
-                                        <span style="color:#6272a4; font-size:.8rem; padding:.5rem .75rem; display:flex; align-items:center; gap:.4rem;"><i class="fas fa-code"></i> Code HTML brut</span>
-                                        <div style="flex:1"></div>
+                            <!-- ── Éditeur de contenu ── -->
+                            <div class="form-row">
+                                <div class="form-group">
+                                    <label>Contenu *</label>
+                                    <div class="editor-mode-selector">
+                                        <button type="button" class="mode-btn active" id="modeQuillBtn" onclick="switchArticleEditorMode('quill')"><i class="fas fa-align-left"></i> Éditeur Simple</button>
+                                        <button type="button" class="mode-btn" id="modeHtmlBtn"  onclick="switchArticleEditorMode('html')"><i class="fas fa-code"></i> HTML Brut</button>
+                                        <button type="button" class="mode-btn" id="modeWyBtn"    onclick="switchArticleEditorMode('wy')"><i class="fas fa-edit"></i> Éditeur Word</button>
                                     </div>
-                                    <div class="editor-toolbar">
-                                        <span class="editor-label"><i class="fas fa-code"></i> HTML de l'article</span>
-                                        <div class="editor-actions">
-                                            <button type="button" class="editor-btn" onclick="articleInsertSnippet('heading')" title="H2">H2</button>
-                                            <button type="button" class="editor-btn" onclick="articleInsertSnippet('paragraph')" title="§"><i class="fas fa-paragraph"></i></button>
-                                            <button type="button" class="editor-btn" onclick="articleInsertSnippet('table')" title="Tableau"><i class="fas fa-table"></i></button>
-                                            <button type="button" class="editor-btn" onclick="articleInsertSnippet('image')" title="Image"><i class="fas fa-image"></i></button>
-                                            <button type="button" class="editor-btn" onclick="articleInsertSnippet('list')" title="Liste"><i class="fas fa-list"></i></button>
-                                            <button type="button" class="editor-btn" onclick="articleInsertSnippet('alert')" title="Alerte"><i class="fas fa-exclamation-circle"></i></button>
-                                            <button type="button" class="editor-btn" onclick="articleInsertSnippet('grid')" title="Grille"><i class="fas fa-th"></i></button>
-                                            <button type="button" class="editor-btn btn-format" onclick="articleFormatCode()" title="Formater"><i class="fas fa-magic"></i></button>
+
+                                    <!-- MODE QUILL -->
+                                    <div id="quillEditorSection">
+                                        <div id="editor" style="min-height:300px; background:white;"></div>
+                                    </div>
+
+                                    <!-- MODE HTML CODEMIRROR -->
+                                    <div id="htmlEditorSection" style="display:none;">
+                                        <div class="html-sub-tabs">
+                                            <span style="color:#6272a4; font-size:.8rem; padding:.5rem .75rem; display:flex; align-items:center; gap:.4rem;"><i class="fas fa-code"></i> Code HTML brut</span>
+                                            <div style="flex:1"></div>
+                                        </div>
+                                        <div class="editor-toolbar">
+                                            <span class="editor-label"><i class="fas fa-code"></i> HTML de l'article</span>
+                                            <div class="editor-actions">
+                                                <button type="button" class="editor-btn" onclick="articleInsertSnippet('heading')" title="H2">H2</button>
+                                                <button type="button" class="editor-btn" onclick="articleInsertSnippet('paragraph')" title="§"><i class="fas fa-paragraph"></i></button>
+                                                <button type="button" class="editor-btn" onclick="articleInsertSnippet('table')" title="Tableau"><i class="fas fa-table"></i></button>
+                                                <button type="button" class="editor-btn" onclick="articleInsertSnippet('image')" title="Image"><i class="fas fa-image"></i></button>
+                                                <button type="button" class="editor-btn" onclick="articleInsertSnippet('list')" title="Liste"><i class="fas fa-list"></i></button>
+                                                <button type="button" class="editor-btn" onclick="articleInsertSnippet('alert')" title="Alerte"><i class="fas fa-exclamation-circle"></i></button>
+                                                <button type="button" class="editor-btn" onclick="articleInsertSnippet('grid')" title="Grille"><i class="fas fa-th"></i></button>
+                                                <button type="button" class="editor-btn btn-format" onclick="articleFormatCode()" title="Formater"><i class="fas fa-magic"></i></button>
+                                            </div>
+                                        </div>
+                                        <div class="editor-container"><div id="articleCmEditor" class="codemirror-wrapper"></div></div>
+                                        <div class="editor-footer">
+                                            <span class="char-count" id="articleCmCount">0 caractères</span>
+                                            <span class="editor-hint">💡 HTML complet — tables, flex, grid, images, styles inline</span>
                                         </div>
                                     </div>
-                                    <div class="editor-container"><div id="articleCmEditor" class="codemirror-wrapper"></div></div>
-                                    <div class="editor-footer">
-                                        <span class="char-count" id="articleCmCount">0 caractères</span>
-                                        <span class="editor-hint">💡 HTML complet — tables, flex, grid, images, styles inline</span>
-                                    </div>
-                                </div>
 
-                                <!-- MODE WYSIWYG WORD -->
-                                <div id="wyEditorSection" style="display:none;">
-                                    <div class="wy-wrap" id="wyWrap">
-                                        <!-- Toolbar générée par JS -->
-                                        <div class="wy-toolbar" id="wyToolbar"></div>
-                                        <!-- Corps éditeur -->
-                                        <div class="wy-body" id="wyBody" contenteditable="true" spellcheck="false" data-ph="Commencez à écrire ici..."></div>
-                                        <!-- Drop overlay -->
-                                        <div class="wy-drop" id="wyDrop"><i class="fas fa-image"></i><span>Dépose l'image ici</span></div>
+                                    <!-- MODE WYSIWYG WORD -->
+                                    <div id="wyEditorSection" style="display:none;">
+                                        <div class="wy-wrap" id="wyWrap">
+                                            <div class="wy-toolbar" id="wyToolbar"></div>
+                                            <div class="wy-body" id="wyBody" contenteditable="true" spellcheck="false" data-ph="Commencez à écrire ici..."></div>
+                                            <div class="wy-drop" id="wyDrop"><i class="fas fa-image"></i><span>Dépose l'image ici</span></div>
+                                        </div>
+                                        <div style="display:flex; justify-content:space-between; padding:.4rem .5rem; background:#f8fafc; border:1px solid #e2e8f0; border-top:none; border-radius:0 0 6px 6px; font-size:.78rem; color:#9ca3af;">
+                                            <span>💡 Toolbar sticky — défile et les outils restent visibles</span>
+                                            <span id="wyCharCount">0 car.</span>
+                                        </div>
                                     </div>
-                                    <div style="display:flex; justify-content:space-between; padding:.4rem .5rem; background:#f8fafc; border:1px solid #e2e8f0; border-top:none; border-radius:0 0 6px 6px; font-size:.78rem; color:#9ca3af;">
-                                        <span>💡 Toolbar sticky — défile et les outils restent visibles</span>
-                                        <span id="wyCharCount">0 car.</span>
-                                    </div>
-                                </div>
 
-                                <textarea id="content" style="display:none;"></textarea>
+                                    <textarea id="content" style="display:none;"></textarea>
+                                </div>
                             </div>
-                        </div>
 
-                        <!-- ══════════════════════════════════════════
-                             🌍 SECTION TRADUCTION MULTILINGUE
-                        ══════════════════════════════════════════ -->
-                        <div class="form-row" id="translationSection">
-                            <div class="form-group" style="width:100%">
-                                <label style="display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:.5rem;">
-                                    <span><i class="fas fa-language" style="color:#7c3aed"></i> Contenu Multilingue</span>
-                                    <button type="button" id="autoTranslateBtn" onclick="autoTranslateAll()" 
-                                        class="btn btn-secondary" style="font-size:.85rem;padding:.4rem 1rem;background:linear-gradient(135deg,#7c3aed,#2563eb);color:white;border:none;">
-                                        <i class="fas fa-magic"></i> Traduire 🇫🇷 + 🇬🇧 automatiquement
-                                    </button>
-                                </label>
+                            <!-- ── Traduction multilingue ── -->
+                            <div class="form-row" id="translationSection">
+                                <div class="form-group" style="width:100%">
+                                    <label style="display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:.5rem;">
+                                        <span><i class="fas fa-language" style="color:#7c3aed"></i> Contenu Multilingue</span>
+                                        <button type="button" id="autoTranslateBtn" onclick="autoTranslateAll()"
+                                            class="btn btn-secondary" style="font-size:.85rem;padding:.4rem 1rem;background:linear-gradient(135deg,#7c3aed,#2563eb);color:white;border:none;">
+                                            <i class="fas fa-magic"></i> Traduire 🇫🇷 + 🇬🇧 automatiquement
+                                        </button>
+                                    </label>
 
-                                <!-- Tabs langues -->
-                                <div class="lang-tabs-admin" style="display:flex;gap:0;border-bottom:2px solid #e2e8f0;margin-bottom:0;margin-top:.75rem;">
-                                    <button type="button" class="lang-tab-btn active" data-lang="ewe" onclick="switchLangTab('ewe')" style="padding:.6rem 1.25rem;border:none;background:#f8fafc;color:#374151;font-weight:700;cursor:pointer;border-radius:8px 8px 0 0;border-bottom:2px solid #7c3aed;margin-bottom:-2px;font-size:.9rem;">🌍 Eʋegbe</button>
-                                    <button type="button" class="lang-tab-btn" data-lang="fr"  onclick="switchLangTab('fr')"  style="padding:.6rem 1.25rem;border:none;background:#f1f5f9;color:#9ca3af;font-weight:600;cursor:pointer;border-radius:8px 8px 0 0;font-size:.9rem;">🇫🇷 Français</button>
-                                    <button type="button" class="lang-tab-btn" data-lang="en"  onclick="switchLangTab('en')"  style="padding:.6rem 1.25rem;border:none;background:#f1f5f9;color:#9ca3af;font-weight:600;cursor:pointer;border-radius:8px 8px 0 0;font-size:.9rem;">🇬🇧 English</button>
-                                    <div id="translateStatus" style="margin-left:auto;display:flex;align-items:center;padding:0 .75rem;font-size:.8rem;color:#6b7280;"></div>
-                                </div>
+                                    <div class="lang-tabs-admin" style="display:flex;gap:0;border-bottom:2px solid #e2e8f0;margin-bottom:0;margin-top:.75rem;">
+                                        <button type="button" class="lang-tab-btn active" data-lang="ewe" onclick="switchLangTab('ewe')" style="padding:.6rem 1.25rem;border:none;background:#f8fafc;color:#374151;font-weight:700;cursor:pointer;border-radius:8px 8px 0 0;border-bottom:2px solid #7c3aed;margin-bottom:-2px;font-size:.9rem;">🌍 Eʋegbe</button>
+                                        <button type="button" class="lang-tab-btn" data-lang="fr"  onclick="switchLangTab('fr')"  style="padding:.6rem 1.25rem;border:none;background:#f1f5f9;color:#9ca3af;font-weight:600;cursor:pointer;border-radius:8px 8px 0 0;font-size:.9rem;">🇫🇷 Français</button>
+                                        <button type="button" class="lang-tab-btn" data-lang="en"  onclick="switchLangTab('en')"  style="padding:.6rem 1.25rem;border:none;background:#f1f5f9;color:#9ca3af;font-weight:600;cursor:pointer;border-radius:8px 8px 0 0;font-size:.9rem;">🇬🇧 English</button>
+                                        <div id="translateStatus" style="margin-left:auto;display:flex;align-items:center;padding:0 .75rem;font-size:.8rem;color:#6b7280;"></div>
+                                    </div>
 
-                                <!-- Tab Ewe -->
-                                <div id="langTab_ewe" class="lang-tab-content" style="background:#fff;border:1px solid #e2e8f0;border-top:none;padding:1.25rem;border-radius:0 4px 4px 4px;">
-                                    <div style="background:#fef3c7;border:1px solid #fcd34d;border-radius:.5rem;padding:.75rem 1rem;margin-bottom:1rem;font-size:.875rem;color:#92400e;">
-                                        <i class="fas fa-pencil-alt"></i> <strong>Écrivez vous-même en Eʋegbe.</strong> C'est la langue de base de votre site.
+                                    <!-- Tab Ewe -->
+                                    <div id="langTab_ewe" class="lang-tab-content" style="background:#fff;border:1px solid #e2e8f0;border-top:none;padding:1.25rem;border-radius:0 4px 4px 4px;">
+                                        <div style="background:#fef3c7;border:1px solid #fcd34d;border-radius:.5rem;padding:.75rem 1rem;margin-bottom:1rem;font-size:.875rem;color:#92400e;">
+                                            <i class="fas fa-pencil-alt"></i> <strong>Écrivez vous-même en Eʋegbe.</strong> C'est la langue de base de votre site.
+                                        </div>
+                                        <div class="form-group" style="margin-bottom:1rem;"><label>Titre en Eʋegbe</label><input type="text" id="title_ewe" class="input" placeholder="Nuŋlɔɖi ƒe ŋkɔ..."></div>
+                                        <div class="form-group" style="margin-bottom:1rem;"><label>Résumé en Eʋegbe</label><textarea id="summary_ewe" rows="3" class="input" placeholder="Nuŋlɔɖi ƒe ƒoƒoɖoɖo..."></textarea></div>
+                                        <div class="form-group"><label>Contenu en Eʋegbe</label><textarea id="content_ewe" rows="8" class="input" placeholder="Ŋlɔ nuŋlɔɖi sia le Eʋegbe me..."></textarea></div>
                                     </div>
-                                    <div class="form-group" style="margin-bottom:1rem;">
-                                        <label>Titre en Eʋegbe</label>
-                                        <input type="text" id="title_ewe" class="input" placeholder="Nuŋlɔɖi ƒe ŋkɔ...">
-                                    </div>
-                                    <div class="form-group" style="margin-bottom:1rem;">
-                                        <label>Résumé en Eʋegbe</label>
-                                        <textarea id="summary_ewe" rows="3" class="input" placeholder="Nuŋlɔɖi ƒe ƒoƒoɖoɖo..."></textarea>
-                                    </div>
-                                    <div class="form-group">
-                                        <label>Contenu en Eʋegbe</label>
-                                        <textarea id="content_ewe" rows="8" class="input" placeholder="Ŋlɔ nuŋlɔɖi sia le Eʋegbe me..."></textarea>
-                                    </div>
-                                </div>
 
-                                <!-- Tab Français -->
-                                <div id="langTab_fr" class="lang-tab-content" style="display:none;background:#fff;border:1px solid #e2e8f0;border-top:none;padding:1.25rem;border-radius:0 4px 4px 4px;">
-                                    <div style="background:#eff6ff;border:1px solid #bfdbfe;border-radius:.5rem;padding:.75rem 1rem;margin-bottom:1rem;font-size:.875rem;color:#1e40af;">
-                                        <i class="fas fa-robot"></i> <strong>Traduction automatique depuis le contenu principal.</strong> Vous pouvez corriger après.
+                                    <!-- Tab Français -->
+                                    <div id="langTab_fr" class="lang-tab-content" style="display:none;background:#fff;border:1px solid #e2e8f0;border-top:none;padding:1.25rem;border-radius:0 4px 4px 4px;">
+                                        <div style="background:#eff6ff;border:1px solid #bfdbfe;border-radius:.5rem;padding:.75rem 1rem;margin-bottom:1rem;font-size:.875rem;color:#1e40af;">
+                                            <i class="fas fa-robot"></i> <strong>Traduction automatique depuis le contenu principal.</strong> Vous pouvez corriger après.
+                                        </div>
+                                        <div class="form-group" style="margin-bottom:1rem;"><label>Titre en Français</label><input type="text" id="title_fr" class="input" placeholder="Traduction automatique..."></div>
+                                        <div class="form-group" style="margin-bottom:1rem;"><label>Résumé en Français</label><textarea id="summary_fr" rows="3" class="input" placeholder="Traduction automatique..."></textarea></div>
+                                        <div class="form-group"><label>Contenu en Français</label><textarea id="content_fr" rows="8" class="input" placeholder="Traduction automatique..."></textarea></div>
                                     </div>
-                                    <div class="form-group" style="margin-bottom:1rem;">
-                                        <label>Titre en Français</label>
-                                        <input type="text" id="title_fr" class="input" placeholder="Traduction automatique...">
-                                    </div>
-                                    <div class="form-group" style="margin-bottom:1rem;">
-                                        <label>Résumé en Français</label>
-                                        <textarea id="summary_fr" rows="3" class="input" placeholder="Traduction automatique..."></textarea>
-                                    </div>
-                                    <div class="form-group">
-                                        <label>Contenu en Français</label>
-                                        <textarea id="content_fr" rows="8" class="input" placeholder="Traduction automatique..."></textarea>
-                                    </div>
-                                </div>
 
-                                <!-- Tab English -->
-                                <div id="langTab_en" class="lang-tab-content" style="display:none;background:#fff;border:1px solid #e2e8f0;border-top:none;padding:1.25rem;border-radius:0 4px 4px 4px;">
-                                    <div style="background:#f0fdf4;border:1px solid #bbf7d0;border-radius:.5rem;padding:.75rem 1rem;margin-bottom:1rem;font-size:.875rem;color:#166534;">
-                                        <i class="fas fa-robot"></i> <strong>Automatic translation from main content.</strong> You can edit after.
-                                    </div>
-                                    <div class="form-group" style="margin-bottom:1rem;">
-                                        <label>Title in English</label>
-                                        <input type="text" id="title_en" class="input" placeholder="Automatic translation...">
-                                    </div>
-                                    <div class="form-group" style="margin-bottom:1rem;">
-                                        <label>Summary in English</label>
-                                        <textarea id="summary_en" rows="3" class="input" placeholder="Automatic translation..."></textarea>
-                                    </div>
-                                    <div class="form-group">
-                                        <label>Content in English</label>
-                                        <textarea id="content_en" rows="8" class="input" placeholder="Automatic translation..."></textarea>
+                                    <!-- Tab English -->
+                                    <div id="langTab_en" class="lang-tab-content" style="display:none;background:#fff;border:1px solid #e2e8f0;border-top:none;padding:1.25rem;border-radius:0 4px 4px 4px;">
+                                        <div style="background:#f0fdf4;border:1px solid #bbf7d0;border-radius:.5rem;padding:.75rem 1rem;margin-bottom:1rem;font-size:.875rem;color:#166534;">
+                                            <i class="fas fa-robot"></i> <strong>Automatic translation from main content.</strong> You can edit after.
+                                        </div>
+                                        <div class="form-group" style="margin-bottom:1rem;"><label>Title in English</label><input type="text" id="title_en" class="input" placeholder="Automatic translation..."></div>
+                                        <div class="form-group" style="margin-bottom:1rem;"><label>Summary in English</label><textarea id="summary_en" rows="3" class="input" placeholder="Automatic translation..."></textarea></div>
+                                        <div class="form-group"><label>Content in English</label><textarea id="content_en" rows="8" class="input" placeholder="Automatic translation..."></textarea></div>
                                     </div>
                                 </div>
                             </div>
-                        </div>
 
-                        <div class="form-row"><div class="form-group"><label>Tags (séparés par des virgules)</label><input type="text" id="tags" class="input" placeholder="Ex: électricité, innovation, IoT"></div></div>
-                        <div class="form-row"><div class="form-group"><label>Statut de publication</label><select id="publicationStatus" class="input" onchange="toggleScheduleFields()"><option value="published">Publier immédiatement</option><option value="draft">Enregistrer comme brouillon</option><option value="scheduled">Programmer la publication</option></select></div></div>
-                        <div id="scheduleFields" class="form-row" style="display:none;">
-                            <div class="form-group"><label>Date de publication</label><input type="date" id="scheduleDate" class="input"></div>
-                            <div class="form-group"><label>Heure de publication</label><input type="time" id="scheduleTime" class="input"></div>
-                        </div>
-                        <div id="scheduleInfo" class="alert alert-info" style="display:none; margin-top:1rem;">
-                            <i class="fas fa-info-circle"></i>
-                            <div><strong>Publication programmée</strong><p id="schedulePreview" style="margin:.5rem 0 0;"></p></div>
-                        </div>
-                        <div class="form-actions">
-                            <button type="submit" class="btn btn-primary"><i class="fas fa-paper-plane"></i> <span id="submitBtnText">Publier</span></button>
-                            <button type="button" class="btn btn-secondary" onclick="cancelEdit()"><i class="fas fa-redo"></i> Annuler</button>
-                        </div>
-                    </form>
+                            <div class="form-row"><div class="form-group"><label>Tags (séparés par des virgules)</label><input type="text" id="tags" class="input" placeholder="Ex: électricité, innovation, IoT"></div></div>
+                            <div class="form-row">
+                                <div class="form-group">
+                                    <label>Statut de publication</label>
+                                    <select id="publicationStatus" class="input" onchange="toggleScheduleFields()">
+                                        <option value="published">Publier immédiatement</option>
+                                        <option value="draft">Enregistrer comme brouillon</option>
+                                        <option value="scheduled">Programmer la publication</option>
+                                    </select>
+                                </div>
+                            </div>
+                            <div id="scheduleFields" class="form-row" style="display:none;">
+                                <div class="form-group"><label>Date de publication</label><input type="date" id="scheduleDate" class="input"></div>
+                                <div class="form-group"><label>Heure de publication</label><input type="time" id="scheduleTime" class="input"></div>
+                            </div>
+                            <div id="scheduleInfo" class="alert alert-info" style="display:none; margin-top:1rem;">
+                                <i class="fas fa-info-circle"></i>
+                                <div><strong>Publication programmée</strong><p id="schedulePreview" style="margin:.5rem 0 0;"></p></div>
+                            </div>
+                            <div class="form-actions">
+                                <button type="submit" class="btn btn-primary"><i class="fas fa-paper-plane"></i> <span id="submitBtnText">Publier</span></button>
+                                <button type="button" class="btn btn-secondary" onclick="cancelEdit()"><i class="fas fa-redo"></i> Annuler</button>
+                            </div>
+                        </form>
+                    </div>
                 </div>
-            </div><!-- /.card article form -->
 
             </div><!-- /#tab-rediger -->
 
-            <!-- tab-dashboard continues with article lists -->
-            <div id="tab-dashboard-lists" class="admin-tab-page active">
-
-            <div class="search-articles-section">
-                <div class="search-bar-admin">
-                    <i class="fas fa-search"></i>
-                    <input type="text" id="adminSearchInput" placeholder="Rechercher un article par titre, catégorie ou tag..." class="search-input-admin">
-                    <button id="clearSearch" class="btn-clear-search hidden" onclick="clearAdminSearch()"><i class="fas fa-times"></i></button>
-                </div>
-                <div id="searchResultsCount" class="search-results-count hidden"></div>
-            </div>
-
-            <div class="card accordion-card">
-                <div class="card-header accordion-header" onclick="toggleAccordion('published')"><div class="accordion-title"><i class="fas fa-chevron-down accordion-icon" id="publishedIcon"></i><h2><i class="fas fa-check-circle"></i> Articles Publiés</h2><span class="count-badge" id="publishedCount">0</span></div></div>
-                <div class="card-body accordion-body" id="publishedAccordion"><div id="publishedArticlesList"><div class="loading"><i class="fas fa-spinner fa-spin"></i><p>Chargement...</p></div></div><div id="publishedPagination" class="admin-pagination hidden"></div></div>
-            </div>
-            <div class="card accordion-card">
-                <div class="card-header accordion-header" onclick="toggleAccordion('scheduled')"><div class="accordion-title"><i class="fas fa-chevron-down accordion-icon" id="scheduledIcon"></i><h2><i class="fas fa-clock"></i> Articles Programmés</h2><span class="count-badge" id="scheduledCount">0</span></div></div>
-                <div class="card-body accordion-body" id="scheduledAccordion"><div id="scheduledArticlesList"><div class="empty-state"><i class="fas fa-clock"></i><p>Aucun article programmé</p></div></div><div id="scheduledPagination" class="admin-pagination hidden"></div></div>
-            </div>
-            <div class="card accordion-card">
-                <div class="card-header accordion-header" onclick="toggleAccordion('drafts')"><div class="accordion-title"><i class="fas fa-chevron-down accordion-icon" id="draftsIcon"></i><h2><i class="fas fa-file-alt"></i> Brouillons</h2><span class="count-badge" id="draftsCount">0</span></div></div>
-                <div class="card-body accordion-body" id="draftsAccordion"><div id="draftsArticlesList"><div class="empty-state"><i class="fas fa-file-alt"></i><p>Aucun brouillon</p></div></div><div id="draftsPagination" class="admin-pagination hidden"></div></div>
-            </div>
-            </div><!-- /#tab-dashboard-lists -->
-
-            <!-- ══ ONGLET 3 : NEWSLETTER ══ -->
+            <!-- ══════════════════════════════════
+                 ONGLET 3 : NEWSLETTER
+            ══════════════════════════════════ -->
             <div id="tab-newsletter" class="admin-tab-page">
-
-            <div class="card">
-                <div class="card-header"><h2><i class="fas fa-envelope"></i> Abonnés Newsletter</h2></div>
-                <div class="card-body">
-                    <div class="newsletter-actions"><button onclick="exportNewsletterCSV()" class="btn btn-primary"><i class="fas fa-download"></i> Exporter CSV</button></div>
-                    <div id="newsletterList"><div class="loading"><i class="fas fa-spinner fa-spin"></i><p>Chargement...</p></div></div>
+                <div class="card">
+                    <div class="card-header"><h2><i class="fas fa-envelope"></i> Abonnés Newsletter</h2></div>
+                    <div class="card-body">
+                        <div class="newsletter-actions"><button onclick="exportNewsletterCSV()" class="btn btn-primary"><i class="fas fa-download"></i> Exporter CSV</button></div>
+                        <div id="newsletterList"><div class="loading"><i class="fas fa-spinner fa-spin"></i><p>Chargement...</p></div></div>
+                    </div>
                 </div>
-            </div><!-- /.card newsletter -->
-
             </div><!-- /#tab-newsletter -->
 
-            <!-- ══ ONGLET 4 : ADMINS ══ -->
+            <!-- ══════════════════════════════════
+                 ONGLET 4 : ADMINS
+            ══════════════════════════════════ -->
             <div id="tab-admins" class="admin-tab-page">
-
-            <div class="card" style="max-width:520px; margin:0 auto;">
-                <div class="card-header" style="background:linear-gradient(135deg,#dc2626,#b91c1c);">
-                    <h2 style="color:white;"><i class="fas fa-user-shield"></i> Créer un compte Admin</h2>
-                </div>
-                <div class="card-body">
-                    <div style="background:#fef2f2;border:1px solid #fecaca;border-radius:.5rem;padding:.85rem 1rem;margin-bottom:1.25rem;font-size:.875rem;color:#991b1b;display:flex;align-items:flex-start;gap:.6rem;">
-                        <i class="fas fa-exclamation-triangle" style="margin-top:.1rem;flex-shrink:0;"></i>
-                        <span><strong>Attention :</strong> Un compte admin a accès à toute l'administration du site. N'accordez cet accès qu'à des personnes de confiance.</span>
+                <div class="card" style="max-width:520px; margin:0 auto;">
+                    <div class="card-header" style="background:linear-gradient(135deg,#dc2626,#b91c1c);">
+                        <h2 style="color:white;"><i class="fas fa-user-shield"></i> Créer un compte Admin</h2>
                     </div>
-
-                    <div class="form-group" style="margin-bottom:1rem;">
-                        <label style="font-weight:600;font-size:.9rem;color:#374151;display:block;margin-bottom:.4rem;">
-                            <i class="fas fa-user" style="color:#dc2626;margin-right:.3rem;"></i> Nom complet
-                        </label>
-                        <input type="text" id="newAdminName" class="input" placeholder="Ex: Jean Dupont" style="width:100%;">
-                    </div>
-
-                    <div class="form-group" style="margin-bottom:1rem;">
-                        <label style="font-weight:600;font-size:.9rem;color:#374151;display:block;margin-bottom:.4rem;">
-                            <i class="fas fa-envelope" style="color:#dc2626;margin-right:.3rem;"></i> Adresse email
-                        </label>
-                        <input type="email" id="newAdminEmail" class="input" placeholder="admin@exemple.com" style="width:100%;">
-                    </div>
-
-                    <div class="form-group" style="margin-bottom:1rem;">
-                        <label style="font-weight:600;font-size:.9rem;color:#374151;display:block;margin-bottom:.4rem;">
-                            <i class="fas fa-lock" style="color:#dc2626;margin-right:.3rem;"></i> Mot de passe temporaire
-                        </label>
-                        <div style="position:relative;">
-                            <input type="password" id="newAdminPassword" class="input" placeholder="Minimum 8 caractères" style="width:100%;padding-right:2.5rem;">
-                            <button type="button" onclick="toggleAdminPwd()" style="position:absolute;right:.6rem;top:50%;transform:translateY(-50%);background:none;border:none;color:#9ca3af;cursor:pointer;font-size:.9rem;">
-                                <i class="fas fa-eye" id="adminPwdIcon"></i>
-                            </button>
+                    <div class="card-body">
+                        <div style="background:#fef2f2;border:1px solid #fecaca;border-radius:.5rem;padding:.85rem 1rem;margin-bottom:1.25rem;font-size:.875rem;color:#991b1b;display:flex;align-items:flex-start;gap:.6rem;">
+                            <i class="fas fa-exclamation-triangle" style="margin-top:.1rem;flex-shrink:0;"></i>
+                            <span><strong>Attention :</strong> Un compte admin a accès à toute l'administration du site. N'accordez cet accès qu'à des personnes de confiance.</span>
                         </div>
-                        <div style="margin-top:.4rem;">
-                            <div id="adminPwdStrengthBar" style="height:4px;border-radius:2px;background:#e5e7eb;transition:all .3s;width:0%;"></div>
-                            <span id="adminPwdStrengthText" style="font-size:.75rem;color:#9ca3af;"></span>
+                        <div class="form-group" style="margin-bottom:1rem;">
+                            <label style="font-weight:600;font-size:.9rem;color:#374151;display:block;margin-bottom:.4rem;"><i class="fas fa-user" style="color:#dc2626;margin-right:.3rem;"></i> Nom complet</label>
+                            <input type="text" id="newAdminName" class="input" placeholder="Ex: Jean Dupont" style="width:100%;">
                         </div>
+                        <div class="form-group" style="margin-bottom:1rem;">
+                            <label style="font-weight:600;font-size:.9rem;color:#374151;display:block;margin-bottom:.4rem;"><i class="fas fa-envelope" style="color:#dc2626;margin-right:.3rem;"></i> Adresse email</label>
+                            <input type="email" id="newAdminEmail" class="input" placeholder="admin@exemple.com" style="width:100%;">
+                        </div>
+                        <div class="form-group" style="margin-bottom:1rem;">
+                            <label style="font-weight:600;font-size:.9rem;color:#374151;display:block;margin-bottom:.4rem;"><i class="fas fa-lock" style="color:#dc2626;margin-right:.3rem;"></i> Mot de passe temporaire</label>
+                            <div style="position:relative;">
+                                <input type="password" id="newAdminPassword" class="input" placeholder="Minimum 8 caractères" style="width:100%;padding-right:2.5rem;">
+                                <button type="button" onclick="toggleAdminPwd()" style="position:absolute;right:.6rem;top:50%;transform:translateY(-50%);background:none;border:none;color:#9ca3af;cursor:pointer;font-size:.9rem;">
+                                    <i class="fas fa-eye" id="adminPwdIcon"></i>
+                                </button>
+                            </div>
+                            <div style="margin-top:.4rem;">
+                                <div id="adminPwdStrengthBar" style="height:4px;border-radius:2px;background:#e5e7eb;transition:all .3s;width:0%;"></div>
+                                <span id="adminPwdStrengthText" style="font-size:.75rem;color:#9ca3af;"></span>
+                            </div>
+                        </div>
+                        <div id="createAdminStatus" style="min-height:1.5rem;font-size:.875rem;margin-bottom:1rem;"></div>
+                        <button id="createAdminBtn" onclick="createAdminAccount()" class="btn btn-danger" style="width:100%;justify-content:center;display:flex;align-items:center;gap:.5rem;padding:.75rem;font-size:1rem;">
+                            <i class="fas fa-user-plus"></i> Créer le compte Admin
+                        </button>
                     </div>
-
-                    <div id="createAdminStatus" style="min-height:1.5rem;font-size:.875rem;margin-bottom:1rem;"></div>
-
-                    <button id="createAdminBtn" onclick="createAdminAccount()" class="btn btn-danger" style="width:100%;justify-content:center;display:flex;align-items:center;gap:.5rem;padding:.75rem;font-size:1rem;">
-                        <i class="fas fa-user-plus"></i> Créer le compte Admin
-                    </button>
                 </div>
-            </div>
-
             </div><!-- /#tab-admins -->
 
-        </div>
+        </div><!-- /.container -->
     </main>
 
+    <!-- Modal suppression -->
     <div id="deleteModal" class="modal hidden">
         <div class="modal-overlay"></div>
         <div class="modal-content">
@@ -561,6 +454,7 @@
     </div>
     <div id="notification" class="notification hidden"></div>
 
+    <!-- Scripts tiers -->
     <script src="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.16/codemirror.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.16/mode/xml/xml.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.16/mode/javascript/javascript.min.js"></script>
@@ -571,24 +465,42 @@
     <script src="https://cdn.quilljs.com/1.3.6/quill.js"></script>
 
     <script>
-    // ══════════════════════════════════════════════
-    //  EDITOR MODE SWITCHER
-    // ══════════════════════════════════════════════
-    let articleEditorMode = 'quill';
-    let articleCmInstance = null;
+    // ═══════════════════════════════════════════════
+    //  ONGLETS ADMIN — UN SEUL ID PAR ONGLET
+    //  FIX : tab-dashboard-lists supprimé, tout est
+    //  dans tab-dashboard. Pas de setTimeout fragile.
+    // ═══════════════════════════════════════════════
+    window.switchAdminTab = function(tabName) {
+        document.querySelectorAll('.admin-tab-page').forEach(p => p.classList.remove('active'));
+        document.querySelectorAll('.admin-tab-btn').forEach(b => b.classList.remove('active'));
+        const tabMap = { dashboard:0, rediger:1, newsletter:2, admins:3 };
+        const id = { dashboard:'tab-dashboard', rediger:'tab-rediger', newsletter:'tab-newsletter', admins:'tab-admins' }[tabName];
+        if (id) document.getElementById(id).classList.add('active');
+        const idx = tabMap[tabName] ?? 0;
+        document.querySelectorAll('.admin-tab-btn')[idx]?.classList.add('active');
+        if (tabName === 'rediger') window.scrollTo({ top:0, behavior:'smooth' });
+    };
+
+    // ═══════════════════════════════════════════════
+    //  EDITOR MODE — exposé sur window dès le début
+    //  FIX : plus de variable let locale, tout sur
+    //  window pour que admin.js y accède toujours.
+    // ═══════════════════════════════════════════════
+    window.articleEditorMode  = 'quill';
+    window.articleCmInstance  = null;
 
     window.switchArticleEditorMode = function(mode) {
-        if (mode === articleEditorMode) return;
-        const prev = articleEditorMode;
-        articleEditorMode = mode;
+        if (mode === window.articleEditorMode) return;
+        const prev = window.articleEditorMode;
+        window.articleEditorMode = mode;
 
-        // Lire contenu de l'ancien mode
+        // Lire le contenu du mode précédent
         let html = '';
         if (prev === 'quill' && window._quillEditorRef) {
             html = window._quillEditorRef.root.innerHTML;
             if (html === '<p><br></p>') html = '';
-        } else if (prev === 'html' && articleCmInstance) {
-            html = articleCmInstance.getValue();
+        } else if (prev === 'html' && window.articleCmInstance) {
+            html = window.articleCmInstance.getValue();
         } else if (prev === 'wy') {
             html = document.getElementById('wyBody').innerHTML;
         }
@@ -599,7 +511,7 @@
         document.getElementById('wyEditorSection').style.display    = 'none';
         document.querySelectorAll('.mode-btn').forEach(b => b.classList.remove('active'));
 
-        // Afficher le nouveau mode et injecter le contenu
+        // Afficher + injecter contenu
         if (mode === 'quill') {
             document.getElementById('quillEditorSection').style.display = 'block';
             document.getElementById('modeQuillBtn').classList.add('active');
@@ -607,10 +519,9 @@
         } else if (mode === 'html') {
             document.getElementById('htmlEditorSection').style.display = 'block';
             document.getElementById('modeHtmlBtn').classList.add('active');
-            if (!articleCmInstance) _initArticleCm();
-            articleCmInstance.setValue(html);
-            articleCmInstance.refresh();
-            setTimeout(() => articleCmInstance.refresh(), 80);
+            if (!window.articleCmInstance) _initArticleCm();
+            window.articleCmInstance.setValue(html);
+            setTimeout(() => window.articleCmInstance.refresh(), 80);
         } else if (mode === 'wy') {
             document.getElementById('wyEditorSection').style.display = 'block';
             document.getElementById('modeWyBtn').classList.add('active');
@@ -623,55 +534,53 @@
     function _initArticleCm() {
         const wrapper  = document.getElementById('articleCmEditor');
         const textarea = document.createElement('textarea');
-        textarea.id = 'articleCmTextarea';
         wrapper.appendChild(textarea);
-        articleCmInstance = CodeMirror.fromTextArea(textarea, {
+        window.articleCmInstance = CodeMirror.fromTextArea(textarea, {
             mode:'htmlmixed', theme:'dracula', lineNumbers:true,
             lineWrapping:true, autoCloseTags:true, autoCloseBrackets:true,
             matchTags:{bothTags:true}, tabSize:2, indentWithTabs:false
         });
-        articleCmInstance.on('change', cm => {
+        window.articleCmInstance.on('change', cm => {
             document.getElementById('articleCmCount').textContent = cm.getValue().length + ' caractères';
         });
     }
 
     // ── Snippets CodeMirror ──
     window.articleInsertSnippet = function(type) {
-        if (!articleCmInstance) return;
+        if (!window.articleCmInstance) return;
         const s = {
             heading:   '<h2>Titre de section</h2>\n',
             paragraph: '<p>Votre texte ici...</p>\n',
-            table:     '<table style="width:100%; border-collapse:collapse;">\n  <thead><tr><th style="border:1px solid #ddd; padding:8px; background:#f2f2f2;">Col 1</th><th style="border:1px solid #ddd; padding:8px; background:#f2f2f2;">Col 2</th></tr></thead>\n  <tbody><tr><td style="border:1px solid #ddd; padding:8px;">Valeur 1</td><td style="border:1px solid #ddd; padding:8px;">Valeur 2</td></tr></tbody>\n</table>\n',
-            image:     '<img src="URL_IMAGE" alt="Description" style="max-width:100%; border-radius:8px;">\n',
+            table:     '<table style="width:100%;border-collapse:collapse;">\n  <thead><tr><th style="border:1px solid #ddd;padding:8px;background:#f2f2f2;">Col 1</th><th style="border:1px solid #ddd;padding:8px;background:#f2f2f2;">Col 2</th></tr></thead>\n  <tbody><tr><td style="border:1px solid #ddd;padding:8px;">Val 1</td><td style="border:1px solid #ddd;padding:8px;">Val 2</td></tr></tbody>\n</table>\n',
+            image:     '<img src="URL_IMAGE" alt="Description" style="max-width:100%;border-radius:8px;">\n',
             list:      '<ul>\n  <li>Élément 1</li>\n  <li>Élément 2</li>\n</ul>\n',
-            alert:     '<div style="background:#fef3c7; border-left:4px solid #f59e0b; padding:1rem; border-radius:4px; margin:1rem 0;">\n  <strong>⚠️ Important :</strong> Votre message ici.\n</div>\n',
-            grid:      '<div style="display:grid; grid-template-columns:1fr 1fr; gap:1rem;">\n  <div style="background:#f8fafc; padding:1rem; border-radius:8px;">Colonne gauche</div>\n  <div style="background:#f8fafc; padding:1rem; border-radius:8px;">Colonne droite</div>\n</div>\n'
+            alert:     '<div style="background:#fef3c7;border-left:4px solid #f59e0b;padding:1rem;border-radius:4px;margin:1rem 0;">\n  <strong>⚠️ Important :</strong> Votre message ici.\n</div>\n',
+            grid:      '<div style="display:grid;grid-template-columns:1fr 1fr;gap:1rem;">\n  <div style="background:#f8fafc;padding:1rem;border-radius:8px;">Colonne gauche</div>\n  <div style="background:#f8fafc;padding:1rem;border-radius:8px;">Colonne droite</div>\n</div>\n'
         };
-        articleCmInstance.replaceRange(s[type] || '', articleCmInstance.getCursor());
-        articleCmInstance.focus();
+        window.articleCmInstance.replaceRange(s[type] || '', window.articleCmInstance.getCursor());
+        window.articleCmInstance.focus();
     };
     window.articleFormatCode = function() {
-        if (!articleCmInstance) return;
-        let code = articleCmInstance.getValue(), indent = 0;
-        const fmt = code.replace(/>\s*</g,'>\n<').split('\n').map(line => {
-            line = line.trim(); if (!line) return '';
-            if (line.match(/^<\//)) indent = Math.max(0, indent - 1);
-            const r = '  '.repeat(indent) + line;
-            if (line.match(/^<[^/!][^>]*[^/]>$/) && !line.match(/^<(br|hr|img|input|meta|link)/i)) indent++;
-            return r;
-        }).filter(l => l !== '').join('\n');
-        articleCmInstance.setValue(fmt);
+        if (!window.articleCmInstance) return;
+        let indent = 0;
+        const fmt = window.articleCmInstance.getValue()
+            .replace(/>\s*</g,'>\n<').split('\n')
+            .map(line => {
+                line = line.trim(); if (!line) return '';
+                if (line.match(/^<\//)) indent = Math.max(0, indent - 1);
+                const r = '  '.repeat(indent) + line;
+                if (line.match(/^<[^/!][^>]*[^/]>$/) && !line.match(/^<(br|hr|img|input|meta|link)/i)) indent++;
+                return r;
+            }).filter(Boolean).join('\n');
+        window.articleCmInstance.setValue(fmt);
     };
 
-    // ══════════════════════════════════════════════
-    //  WYSIWYG — ÉDITEUR WORD-LIKE
-    // ══════════════════════════════════════════════
+    // ═══════════════════════════════════════════════
+    //  WYSIWYG
+    // ═══════════════════════════════════════════════
     window._wyInited = false;
-    let _wySelImg = null;     // image sélectionnée
-    let _wyResizing = false;
-    let _wyResizeDir = '';
-    let _wyStartX, _wyStartY, _wyStartW, _wyStartH;
-    let _wySavedRange = null; // range sauvegardé avant prompt
+    let _wySelImg = null, _wyResizing = false, _wyResizeDir = '';
+    let _wyStartX, _wyStartY, _wyStartW, _wyStartH, _wySavedRange = null;
 
     function _initWysiwyg() {
         window._wyInited = true;
@@ -679,111 +588,85 @@
         _bindWyEvents();
     }
 
-    // ── Construction de la toolbar ──
     function _buildToolbar() {
-        const tb = document.getElementById('wyToolbar');
-        tb.innerHTML = `
+        document.getElementById('wyToolbar').innerHTML = `
         <div class="wy-tb-group">
             <select class="wy-tb-select" id="wyBlockSel" title="Style de texte">
-                <option value="p">Paragraphe</option>
-                <option value="h1">Titre 1</option>
-                <option value="h2">Titre 2</option>
-                <option value="h3">Titre 3</option>
-                <option value="h4">Titre 4</option>
-                <option value="pre">Code</option>
+                <option value="p">Paragraphe</option><option value="h1">Titre 1</option>
+                <option value="h2">Titre 2</option><option value="h3">Titre 3</option>
+                <option value="h4">Titre 4</option><option value="pre">Code</option>
                 <option value="blockquote">Citation</option>
             </select>
         </div>
         <div class="wy-tb-sep"></div>
         <div class="wy-tb-group">
-            <button type="button" class="wy-tb-btn" data-cmd="bold" title="Gras (Ctrl+B)"><b>G</b></button>
-            <button type="button" class="wy-tb-btn" data-cmd="italic" title="Italique (Ctrl+I)"><i>I</i></button>
-            <button type="button" class="wy-tb-btn" data-cmd="underline" title="Souligné (Ctrl+U)"><u>S</u></button>
+            <button type="button" class="wy-tb-btn" data-cmd="bold" title="Gras"><b>G</b></button>
+            <button type="button" class="wy-tb-btn" data-cmd="italic" title="Italique"><i>I</i></button>
+            <button type="button" class="wy-tb-btn" data-cmd="underline" title="Souligné"><u>S</u></button>
             <button type="button" class="wy-tb-btn" data-cmd="strikeThrough" title="Barré"><s>B</s></button>
         </div>
         <div class="wy-tb-sep"></div>
         <div class="wy-tb-group">
-            <div class="wy-color-wrap" title="Couleur du texte">
-                <i class="fas fa-font"></i>
-                <input type="color" id="wyFgColor" value="#1f2937">
-                <div class="wy-color-bar" id="wyFgBar" style="background:#1f2937"></div>
-            </div>
-            <div class="wy-color-wrap" title="Surlignage">
-                <i class="fas fa-fill-drip"></i>
-                <input type="color" id="wyBgColor" value="#ffff00">
-                <div class="wy-color-bar" id="wyBgBar" style="background:#ffff00"></div>
-            </div>
+            <div class="wy-color-wrap" title="Couleur du texte"><i class="fas fa-font"></i><input type="color" id="wyFgColor" value="#1f2937"><div class="wy-color-bar" id="wyFgBar" style="background:#1f2937"></div></div>
+            <div class="wy-color-wrap" title="Surlignage"><i class="fas fa-fill-drip"></i><input type="color" id="wyBgColor" value="#ffff00"><div class="wy-color-bar" id="wyBgBar" style="background:#ffff00"></div></div>
         </div>
         <div class="wy-tb-sep"></div>
         <div class="wy-tb-group">
-            <button type="button" class="wy-tb-btn" data-cmd="justifyLeft"   title="Aligner gauche"><i class="fas fa-align-left"></i></button>
+            <button type="button" class="wy-tb-btn" data-cmd="justifyLeft"   title="Gauche"><i class="fas fa-align-left"></i></button>
             <button type="button" class="wy-tb-btn" data-cmd="justifyCenter" title="Centrer"><i class="fas fa-align-center"></i></button>
-            <button type="button" class="wy-tb-btn" data-cmd="justifyRight"  title="Aligner droite"><i class="fas fa-align-right"></i></button>
+            <button type="button" class="wy-tb-btn" data-cmd="justifyRight"  title="Droite"><i class="fas fa-align-right"></i></button>
             <button type="button" class="wy-tb-btn" data-cmd="justifyFull"   title="Justifier"><i class="fas fa-align-justify"></i></button>
         </div>
         <div class="wy-tb-sep"></div>
         <div class="wy-tb-group">
-            <button type="button" class="wy-tb-btn" data-cmd="insertUnorderedList" title="Liste à puces"><i class="fas fa-list-ul"></i></button>
+            <button type="button" class="wy-tb-btn" data-cmd="insertUnorderedList" title="Liste puces"><i class="fas fa-list-ul"></i></button>
             <button type="button" class="wy-tb-btn" data-cmd="insertOrderedList"   title="Liste numérotée"><i class="fas fa-list-ol"></i></button>
-            <button type="button" class="wy-tb-btn" data-cmd="indent"   title="Indenter"><i class="fas fa-indent"></i></button>
-            <button type="button" class="wy-tb-btn" data-cmd="outdent"  title="Désindenter"><i class="fas fa-outdent"></i></button>
+            <button type="button" class="wy-tb-btn" data-cmd="indent"  title="Indenter"><i class="fas fa-indent"></i></button>
+            <button type="button" class="wy-tb-btn" data-cmd="outdent" title="Désindenter"><i class="fas fa-outdent"></i></button>
         </div>
         <div class="wy-tb-sep"></div>
         <div class="wy-tb-group">
-            <button type="button" class="wy-tb-btn" data-act="link"  title="Insérer un lien"><i class="fas fa-link"></i></button>
-            <button type="button" class="wy-tb-btn" data-act="table" title="Insérer un tableau"><i class="fas fa-table"></i></button>
+            <button type="button" class="wy-tb-btn" data-act="link"  title="Lien"><i class="fas fa-link"></i></button>
+            <button type="button" class="wy-tb-btn" data-act="table" title="Tableau"><i class="fas fa-table"></i></button>
             <button type="button" class="wy-tb-btn" data-act="hr"    title="Séparateur"><i class="fas fa-minus"></i></button>
         </div>
         <div class="wy-tb-sep"></div>
         <div class="wy-tb-group">
-            <button type="button" class="wy-tb-btn wy-tb-btn-wide" data-act="imgUrl"  title="Image via URL"><i class="fas fa-link"></i> URL</button>
-            <label class="wy-tb-btn wy-tb-btn-wide" title="Image depuis fichier" style="cursor:pointer;">
-                <i class="fas fa-upload"></i> Fichier
-                <input type="file" accept="image/*" id="wyFileInput" style="display:none;">
-            </label>
+            <button type="button" class="wy-tb-btn wy-tb-btn-wide" data-act="imgUrl" title="Image URL"><i class="fas fa-link"></i> URL</button>
+            <label class="wy-tb-btn wy-tb-btn-wide" title="Image fichier" style="cursor:pointer;"><i class="fas fa-upload"></i> Fichier<input type="file" accept="image/*" id="wyFileInput" style="display:none;"></label>
         </div>
         <div class="wy-tb-sep"></div>
         <div class="wy-tb-group">
-            <button type="button" class="wy-tb-btn" data-cmd="undo" title="Annuler (Ctrl+Z)"><i class="fas fa-undo"></i></button>
+            <button type="button" class="wy-tb-btn" data-cmd="undo" title="Annuler"><i class="fas fa-undo"></i></button>
             <button type="button" class="wy-tb-btn" data-cmd="redo" title="Rétablir"><i class="fas fa-redo"></i></button>
             <button type="button" class="wy-tb-btn" data-cmd="removeFormat" title="Effacer formatage"><i class="fas fa-eraser"></i></button>
         </div>`;
     }
 
-    // ── Liaison des événements ──
     function _bindWyEvents() {
-        const body = document.getElementById('wyBody');
-        const tb   = document.getElementById('wyToolbar');
-        const wrap = document.getElementById('wyWrap');
-        const drop = document.getElementById('wyDrop');
+        const body   = document.getElementById('wyBody');
+        const tb     = document.getElementById('wyToolbar');
+        const wrap   = document.getElementById('wyWrap');
+        const drop   = document.getElementById('wyDrop');
         const imgBox = document.getElementById('wyImgBox');
         const imgTb  = document.getElementById('wyImgToolbar');
 
-        // ── Toolbar : execCommand ──
         tb.addEventListener('mousedown', e => {
             const btn = e.target.closest('[data-cmd]');
             if (btn) { e.preventDefault(); body.focus(); document.execCommand(btn.dataset.cmd, false, null); _updateTbState(); _wySync(); }
         });
-
-        // ── Toolbar : actions spéciales ──
         tb.addEventListener('click', e => {
             const btn = e.target.closest('[data-act]');
             if (!btn) return;
             const act = btn.dataset.act;
-            if (act === 'imgUrl')  { _wySaveRange(); _wyInsertImgUrl(); }
-            if (act === 'link')    { _wySaveRange(); _wyInsertLink(); }
-            if (act === 'table')   { _wySaveRange(); _wyInsertTable(); }
-            if (act === 'hr')      { body.focus(); document.execCommand('insertHorizontalRule'); _wySync(); }
+            if (act === 'imgUrl') { _wySaveRange(); _wyInsertImgUrl(); }
+            if (act === 'link')   { _wySaveRange(); _wyInsertLink(); }
+            if (act === 'table')  { _wySaveRange(); _wyInsertTable(); }
+            if (act === 'hr')     { body.focus(); document.execCommand('insertHorizontalRule'); _wySync(); }
         });
-
-        // ── Select formatBlock ──
         document.getElementById('wyBlockSel').addEventListener('change', e => {
-            body.focus();
-            document.execCommand('formatBlock', false, e.target.value);
-            _wySync();
+            body.focus(); document.execCommand('formatBlock', false, e.target.value); _wySync();
         });
-
-        // ── Couleurs ──
         document.getElementById('wyFgColor').addEventListener('input', e => {
             document.getElementById('wyFgBar').style.background = e.target.value;
             body.focus(); document.execCommand('foreColor', false, e.target.value); _wySync();
@@ -792,47 +675,30 @@
             document.getElementById('wyBgBar').style.background = e.target.value;
             body.focus(); document.execCommand('hiliteColor', false, e.target.value); _wySync();
         });
-
-        // ── File input ──
         document.getElementById('wyFileInput').addEventListener('change', e => {
             const file = e.target.files[0];
             if (file) _wyInsertImgFile(file);
             e.target.value = '';
         });
+        body.addEventListener('input',   () => { _wySync(); _updateTbState(); _updateCharCount(); });
+        body.addEventListener('keyup',   () => _updateTbState());
+        body.addEventListener('mouseup', () => _updateTbState());
+        body.addEventListener('click',   e => { e.target.tagName === 'IMG' ? _wySelectImg(e.target) : _wyDeselect(); });
 
-        // ── Sync sur frappe ──
-        body.addEventListener('input',  () => { _wySync(); _updateTbState(); _updateCharCount(); });
-        body.addEventListener('keyup',  () => _updateTbState());
-        body.addEventListener('mouseup',() => _updateTbState());
-
-        // ── Clic image → sélection ──
-        body.addEventListener('click', e => {
-            if (e.target.tagName === 'IMG') { _wySelectImg(e.target); }
-            else { _wyDeselect(); }
-        });
-
-        // ── Drag & drop image ──
         wrap.addEventListener('dragover', e => {
-            if ([...e.dataTransfer.items].some(i => i.type.startsWith('image/'))) {
-                e.preventDefault(); drop.classList.add('show');
-            }
+            if ([...e.dataTransfer.items].some(i => i.type.startsWith('image/'))) { e.preventDefault(); drop.classList.add('show'); }
         });
-        wrap.addEventListener('dragleave', e => {
-            if (!wrap.contains(e.relatedTarget)) drop.classList.remove('show');
-        });
+        wrap.addEventListener('dragleave', e => { if (!wrap.contains(e.relatedTarget)) drop.classList.remove('show'); });
         wrap.addEventListener('drop', e => {
             e.preventDefault(); drop.classList.remove('show');
             const file = [...e.dataTransfer.files].find(f => f.type.startsWith('image/'));
             if (file) _wyInsertImgFile(file);
         });
-
-        // ── Coller image Ctrl+V ──
         body.addEventListener('paste', e => {
             const item = [...(e.clipboardData?.items || [])].find(i => i.type.startsWith('image/'));
             if (item) { e.preventDefault(); _wyInsertImgFile(item.getAsFile()); }
         });
 
-        // ── Image toolbar flottante ──
         imgTb.addEventListener('click', e => {
             const btn = e.target.closest('[data-ia]');
             if (!btn || !_wySelImg) return;
@@ -842,773 +708,436 @@
             if (a === 'right')  { _wySelImg.style.cssFloat='right'; _wySelImg.style.margin='4px 0 4px 1rem'; _wySelImg.style.display=''; }
             if (a === 'full')   { _wySelImg.style.width='100%'; _wySelImg.style.height='auto'; }
             if (a === 'half')   { _wySelImg.style.width='50%'; _wySelImg.style.height='auto'; }
-            if (a === 'url') {
-                const url = prompt('Nouvelle URL de l\'image :');
-                if (url) _wySelImg.src = url.trim();
-            }
-            if (a === 'alt') {
-                const alt = prompt('Texte alternatif :', _wySelImg.alt || '');
-                if (alt !== null) _wySelImg.alt = alt;
-            }
-            if (a === 'del') { _wySelImg.remove(); _wyDeselect(); }
+            if (a === 'url')    { const u = prompt('Nouvelle URL :'); if (u) _wySelImg.src = u.trim(); }
+            if (a === 'alt')    { const t = prompt('Texte alt :', _wySelImg.alt||''); if (t !== null) _wySelImg.alt = t; }
+            if (a === 'del')    { _wySelImg.remove(); _wyDeselect(); }
             _wySync();
             if (a !== 'del') _posImgOverlay(_wySelImg);
         });
 
-        // ── Resize handles ──
         imgBox.querySelectorAll('.wy-rh').forEach(h => {
             h.addEventListener('mousedown', e => {
-                if (!_wySelImg) return;
-                e.preventDefault();
-                _wyResizing = true;
-                _wyResizeDir = h.dataset.d;
+                if (!_wySelImg) return; e.preventDefault();
+                _wyResizing = true; _wyResizeDir = h.dataset.d;
                 _wyStartX = e.clientX; _wyStartY = e.clientY;
-                _wyStartW = _wySelImg.offsetWidth;
-                _wyStartH = _wySelImg.offsetHeight;
+                _wyStartW = _wySelImg.offsetWidth; _wyStartH = _wySelImg.offsetHeight;
             });
         });
         document.addEventListener('mousemove', e => {
             if (!_wyResizing || !_wySelImg) return;
-            const dx = e.clientX - _wyStartX;
-            const dy = e.clientY - _wyStartY;
-            const d  = _wyResizeDir;
+            const dx = e.clientX - _wyStartX, dy = e.clientY - _wyStartY, d = _wyResizeDir;
             let w = _wyStartW, h = _wyStartH;
             if (d.includes('e')) w = Math.max(30, _wyStartW + dx);
             if (d.includes('w')) w = Math.max(30, _wyStartW - dx);
             if (d.includes('s')) h = Math.max(20, _wyStartH + dy);
             if (d.includes('n')) h = Math.max(20, _wyStartH - dy);
-            // Shift = proportionnel
-            if (e.shiftKey && (d === 'se' || d === 'ne' || d === 'sw' || d === 'nw')) {
-                const ratio = _wyStartH / _wyStartW;
-                h = Math.round(w * ratio);
-            }
+            if (e.shiftKey && ['se','ne','sw','nw'].includes(d)) h = Math.round(w * _wyStartH / _wyStartW);
             _wySelImg.style.width  = w + 'px';
-            _wySelImg.style.height = d === 'e' || d === 'w' ? 'auto' : h + 'px';
+            _wySelImg.style.height = (d==='e'||d==='w') ? 'auto' : h + 'px';
             _posImgOverlay(_wySelImg);
         });
-        document.addEventListener('mouseup', () => {
-            if (_wyResizing) { _wyResizing = false; _wySync(); }
-        });
-
-        // ── Désélectionner si clic hors ──
+        document.addEventListener('mouseup', () => { if (_wyResizing) { _wyResizing = false; _wySync(); } });
         document.addEventListener('mousedown', e => {
-            if (!imgBox.contains(e.target) && !imgTb.contains(e.target) && !body.contains(e.target)) {
-                _wyDeselect();
-            }
+            if (!imgBox.contains(e.target) && !imgTb.contains(e.target) && !body.contains(e.target)) _wyDeselect();
         });
-
-        // ── Repositionner overlay lors du scroll ──
-        document.addEventListener('scroll', () => {
-            if (_wySelImg) _posImgOverlay(_wySelImg);
-        }, true);
+        document.addEventListener('scroll', () => { if (_wySelImg) _posImgOverlay(_wySelImg); }, true);
     }
 
-    // ── Sauvegarde de la sélection avant prompt ──
     function _wySaveRange() {
         const sel = window.getSelection();
         if (sel && sel.rangeCount > 0) _wySavedRange = sel.getRangeAt(0).cloneRange();
     }
-
-    // ── Restaure la sélection après prompt ──
     function _wyRestoreRange() {
-        const body = document.getElementById('wyBody');
-        body.focus();
-        if (_wySavedRange) {
-            const sel = window.getSelection();
-            sel.removeAllRanges();
-            sel.addRange(_wySavedRange);
-        }
+        document.getElementById('wyBody').focus();
+        if (_wySavedRange) { const sel = window.getSelection(); sel.removeAllRanges(); sel.addRange(_wySavedRange); }
     }
-
-    // ── Sélection image ──
     function _wySelectImg(img) {
         if (_wySelImg) _wySelImg.style.outline = '';
-        _wySelImg = img;
-        img.style.outline = '2px solid #2563eb';
-        _posImgOverlay(img);
+        _wySelImg = img; img.style.outline = '2px solid #2563eb'; _posImgOverlay(img);
     }
     function _wyDeselect() {
         if (_wySelImg) { _wySelImg.style.outline = ''; _wySelImg = null; }
         document.getElementById('wyImgBox').style.display    = 'none';
         document.getElementById('wyImgToolbar').style.display = 'none';
     }
-
-    // ── Position de la resize box et toolbar image ──
     function _posImgOverlay(img) {
-        const box = document.getElementById('wyImgBox');
-        const itb = document.getElementById('wyImgToolbar');
-        const r   = img.getBoundingClientRect();
-        const sy  = window.scrollY;
-        const sx  = window.scrollX;
-
+        const box = document.getElementById('wyImgBox'), itb = document.getElementById('wyImgToolbar');
+        const r = img.getBoundingClientRect(), sy = window.scrollY, sx = window.scrollX;
         box.style.display = 'block';
-        box.style.top    = (r.top + sy - 3)  + 'px';
-        box.style.left   = (r.left + sx - 3) + 'px';
-        box.style.width  = (r.width  + 6)    + 'px';
-        box.style.height = (r.height + 6)    + 'px';
-
-        // Toolbar image au-dessus de l'image
+        box.style.top    = (r.top  + sy - 3) + 'px'; box.style.left   = (r.left + sx - 3) + 'px';
+        box.style.width  = (r.width  + 6) + 'px';    box.style.height = (r.height + 6) + 'px';
         itb.style.display = 'flex';
-        const tbH = 34;
-        let top = r.top + sy - tbH - 10;
+        let top = r.top + sy - 44;
         if (top < sy + 4) top = r.bottom + sy + 6;
-        itb.style.top  = top + 'px';
-        itb.style.left = Math.max(4, r.left + sx) + 'px';
-
-        // Afficher les dimensions
-        document.getElementById('wyImgSize').textContent =
-            Math.round(r.width) + '×' + Math.round(r.height);
+        itb.style.top  = top + 'px'; itb.style.left = Math.max(4, r.left + sx) + 'px';
+        document.getElementById('wyImgSize').textContent = Math.round(r.width) + '×' + Math.round(r.height);
     }
-
-    // ── Insérer image URL ──
     function _wyInsertImgUrl() {
         const url = prompt('URL de l\'image :');
-        if (!url || !url.trim()) return;
-        _wyRestoreRange();
-        _wyInsertImgEl(url.trim(), 'image');
+        if (!url?.trim()) return;
+        _wyRestoreRange(); _wyInsertImgEl(url.trim(), 'image');
     }
-
-    // ── Insérer image fichier ──
     function _wyInsertImgFile(file) {
         _wySaveRange();
         const reader = new FileReader();
-        reader.onload = ev => {
-            _wyRestoreRange();
-            _wyInsertImgEl(ev.target.result, file.name.replace(/\.[^.]+$/, ''));
-        };
+        reader.onload = ev => { _wyRestoreRange(); _wyInsertImgEl(ev.target.result, file.name.replace(/\.[^.]+$/,'')); };
         reader.readAsDataURL(file);
     }
-
-    // ── Créer et insérer <img> à la position du curseur ──
     function _wyInsertImgEl(src, alt) {
         const body = document.getElementById('wyBody');
-        const img = document.createElement('img');
+        const img  = document.createElement('img');
         img.src = src; img.alt = alt;
-        img.style.cssText = 'max-width:100%; border-radius:6px; margin:.5rem 0; display:block; box-shadow:0 2px 8px rgba(0,0,0,.12);';
-
+        img.style.cssText = 'max-width:100%;border-radius:6px;margin:.5rem 0;display:block;box-shadow:0 2px 8px rgba(0,0,0,.12);';
         const sel = window.getSelection();
         if (sel && sel.rangeCount > 0 && body.contains(sel.anchorNode)) {
-            const range = sel.getRangeAt(0);
-            range.collapse(false);
-            range.insertNode(img);
+            const range = sel.getRangeAt(0); range.collapse(false); range.insertNode(img);
             range.setStartAfter(img); range.setEndAfter(img);
             sel.removeAllRanges(); sel.addRange(range);
-        } else {
-            body.appendChild(img);
-        }
-        _wySync();
-        setTimeout(() => _wySelectImg(img), 30);
+        } else { body.appendChild(img); }
+        _wySync(); setTimeout(() => _wySelectImg(img), 30);
     }
-
-    // ── Insérer lien ──
     function _wyInsertLink() {
-        const url = prompt('URL du lien :');
-        if (!url) return;
-        const txt = prompt('Texte du lien :') || url;
-        _wyRestoreRange();
-        document.execCommand('insertHTML', false, `<a href="${url}" target="_blank" style="color:#2563eb;">${txt}</a>`);
-        _wySync();
+        const url = prompt('URL du lien :'); if (!url) return;
+        const txt = prompt('Texte :') || url;
+        _wyRestoreRange(); document.execCommand('insertHTML', false, `<a href="${url}" target="_blank" style="color:#2563eb;">${txt}</a>`); _wySync();
     }
-
-    // ── Insérer tableau ──
     function _wyInsertTable() {
         const cols = parseInt(prompt('Colonnes :', '3')) || 3;
         const rows = parseInt(prompt('Lignes :', '3')) || 3;
-        const head = Array(cols).fill(0).map((_, i) =>
-            `<th style="padding:8px 12px;background:#1e40af;color:white;border:1px solid #1e3a8a;text-align:left;">Colonne ${i+1}</th>`
-        ).join('');
-        const body_rows = Array(rows - 1).fill(0).map(() =>
-            '<tr>' + Array(cols).fill('<td style="padding:8px 12px;border:1px solid #e2e8f0;"> </td>').join('') + '</tr>'
-        ).join('');
+        const head = Array(cols).fill(0).map((_,i) => `<th style="padding:8px 12px;background:#1e40af;color:white;border:1px solid #1e3a8a;">Col ${i+1}</th>`).join('');
+        const brows = Array(rows-1).fill('<tr>'+Array(cols).fill('<td style="padding:8px 12px;border:1px solid #e2e8f0;"> </td>').join('')+'</tr>').join('');
         _wyRestoreRange();
-        document.execCommand('insertHTML', false,
-            `<div style="overflow-x:auto;margin:1rem 0;"><table style="width:100%;border-collapse:collapse;font-size:.95rem;"><thead><tr>${head}</tr></thead><tbody>${body_rows}</tbody></table></div>`
-        );
+        document.execCommand('insertHTML', false, `<div style="overflow-x:auto;margin:1rem 0;"><table style="width:100%;border-collapse:collapse;font-size:.95rem;"><thead><tr>${head}</tr></thead><tbody>${brows}</tbody></table></div>`);
         _wySync();
     }
-
-    // ── Mise à jour visuelle des boutons actifs ──
     function _updateTbState() {
         ['bold','italic','underline','strikeThrough','justifyLeft','justifyCenter','justifyRight','justifyFull','insertUnorderedList','insertOrderedList']
-        .forEach(cmd => {
-            const btn = document.querySelector(`#wyToolbar [data-cmd="${cmd}"]`);
-            if (btn) btn.classList.toggle('active', document.queryCommandState(cmd));
-        });
+        .forEach(cmd => { const b = document.querySelector(`#wyToolbar [data-cmd="${cmd}"]`); if(b) b.classList.toggle('active', document.queryCommandState(cmd)); });
     }
+    function _wySync() { document.getElementById('content').value = document.getElementById('wyBody').innerHTML; }
+    function _updateCharCount() { document.getElementById('wyCharCount').textContent = document.getElementById('wyBody').textContent.length + ' car.'; }
 
-    // ── Synchro vers textarea hidden (lu par admin.js) ──
-    function _wySync() {
-        const val = document.getElementById('wyBody').innerHTML;
-        document.getElementById('content').value = val;
-    }
-
-    function _updateCharCount() {
-        const len = document.getElementById('wyBody').textContent.length;
-        document.getElementById('wyCharCount').textContent = len + ' car.';
-    }
-
-    // ══════════════════════════════════════════════
-    //  LECTURE DU CONTENU AU SUBMIT (admin.js hook)
-    // ══════════════════════════════════════════════
-    // admin.js appelle window.getArticleContent() pour récupérer le contenu
     window.getArticleContent = function() {
-        if (articleEditorMode === 'quill' && window._quillEditorRef) {
-            return window._quillEditorRef.root.innerHTML;
-        } else if (articleEditorMode === 'html' && articleCmInstance) {
-            return articleCmInstance.getValue();
-        } else if (articleEditorMode === 'wy') {
-            return document.getElementById('wyBody').innerHTML;
-        }
+        if (window.articleEditorMode === 'quill' && window._quillEditorRef) return window._quillEditorRef.root.innerHTML;
+        if (window.articleEditorMode === 'html'  && window.articleCmInstance) return window.articleCmInstance.getValue();
+        if (window.articleEditorMode === 'wy') return document.getElementById('wyBody').innerHTML;
         return '';
     };
 
-    // ══════════════════════════════════════════════
+    // ═══════════════════════════════════════════════
     //  SCHEDULE FIELDS
-    // ══════════════════════════════════════════════
-    function toggleScheduleFields() {
+    // ═══════════════════════════════════════════════
+    window.toggleScheduleFields = function() {
         const status = document.getElementById('publicationStatus').value;
         const sf = document.getElementById('scheduleFields');
         const si = document.getElementById('scheduleInfo');
         const sb = document.getElementById('submitBtnText');
         if (status === 'scheduled') {
             sf.style.display = 'flex'; si.style.display = 'flex';
-            sb.textContent = 'Programmer'; updateSchedulePreview();
+            sb.textContent = 'Programmer'; _updateSchedulePreview();
         } else {
             sf.style.display = 'none'; si.style.display = 'none';
             sb.textContent = status === 'draft' ? 'Enregistrer brouillon' : 'Publier';
         }
-    }
-    function updateSchedulePreview() {
+    };
+    function _updateSchedulePreview() {
         const d = document.getElementById('scheduleDate').value;
         const t = document.getElementById('scheduleTime').value;
         if (d && t) {
             const dt = new Date(d + 'T' + t);
             document.getElementById('schedulePreview').textContent =
-                'L\'article sera publié le ' + dt.toLocaleDateString('fr-FR', {weekday:'long',year:'numeric',month:'long',day:'numeric',hour:'2-digit',minute:'2-digit'});
+                'L\'article sera publié le ' + dt.toLocaleDateString('fr-FR',{weekday:'long',year:'numeric',month:'long',day:'numeric',hour:'2-digit',minute:'2-digit'});
         }
     }
-    document.addEventListener('DOMContentLoaded', function() {
+    document.addEventListener('DOMContentLoaded', () => {
         const di = document.getElementById('scheduleDate');
         const ti = document.getElementById('scheduleTime');
-        if (di) { di.addEventListener('change', updateSchedulePreview); di.setAttribute('min', new Date().toISOString().split('T')[0]); }
-        if (ti) ti.addEventListener('change', updateSchedulePreview);
+        if (di) { di.addEventListener('change', _updateSchedulePreview); di.min = new Date().toISOString().split('T')[0]; }
+        if (ti) ti.addEventListener('change', _updateSchedulePreview);
     });
     </script>
 
+    <!-- Scripts métier (module) -->
     <script type="module" src="/admin.js"></script>
     <script type="module" src="/admin-enhancements.js"></script>
 
-    <!-- ══════════════════════════════════════════════════════
-         PATCH QUILL — Accepter tout type de HTML
-         (styles inline, div colorés, tableaux, iframes, etc.)
-    ══════════════════════════════════════════════════════ -->
     <script>
+    // ═══════════════════════════════════════════════
+    //  PATCH QUILL — HTML complet sans filtrage
+    // ═══════════════════════════════════════════════
     (function patchQuillForFullHTML() {
-
-        // ── 1. Enregistrer des formats Quill pour les attributs style, class, id ──
-        function registerCustomFormats() {
-            const Quill = window.Quill;
-            if (!Quill) return false;
-
-            // Autoriser style, class, id sur tous les blocs/inline
-            const Block  = Quill.import('blots/block');
-            const Inline = Quill.import('blots/inline');
-            const Embed  = Quill.import('blots/embed');
-
-            // Format générique qui conserve l'attribut style sur un span
-            class StyleInline extends Inline {
-                static create(value) {
-                    const node = super.create();
-                    if (value) node.setAttribute('style', value);
-                    return node;
-                }
-                static formats(node) { return node.getAttribute('style') || undefined; }
-                format(name, value) {
-                    if (name === 'customStyle') {
-                        if (value) this.domNode.setAttribute('style', value);
-                        else this.domNode.removeAttribute('style');
-                    } else super.format(name, value);
-                }
-            }
-            StyleInline.blotName = 'customStyle';
-            StyleInline.tagName  = 'span';
-            try { Quill.register(StyleInline, true); } catch(e) {}
-
-            return true;
-        }
-
-        // ── 2. Patch du clipboard pour ne PAS filtrer les styles ──
-        function patchClipboard(quill) {
-            const clipboard = quill.getModule('clipboard');
-            if (!clipboard) return;
-
-            // Intercepter TOUS les noeuds et préserver leurs styles inline
-            clipboard.addMatcher(Node.ELEMENT_NODE, function(node, delta) {
-                // Réappliquer les attributs style/class perdus lors de la conversion
-                delta.ops = delta.ops.map(op => {
-                    if (op.insert && typeof op.insert === 'string') {
-                        const attrs = op.attributes || {};
-                        // Récupérer le style du noeud parent si applicable
-                        if (node.style && node.style.cssText) {
-                            attrs['customStyle'] = node.style.cssText;
-                            op.attributes = attrs;
-                        }
-                    }
-                    return op;
-                });
-                return delta;
-            });
-
-            // ── Coller du HTML brut sans filtrage ──
-            // Surcharger onPaste pour injecter directement le HTML dans le DOM
-            const originalOnPaste = clipboard.onPaste.bind(clipboard);
-            clipboard.onPaste = function(e) {
-                const html = e.clipboardData && e.clipboardData.getData('text/html');
-                if (html && html.trim()) {
-                    e.preventDefault();
-                    e.stopPropagation();
-
-                    // Injecter directement dans le root de Quill sans sanitisation
-                    const range = quill.getSelection(true);
-                    const index = range ? range.index : quill.getLength();
-
-                    // Utiliser dangerouslyPasteHTML si dispo, sinon injecter dans innerHTML
-                    if (quill.clipboard.dangerouslyPasteHTML) {
-                        quill.clipboard.dangerouslyPasteHTML(index, html);
-                    } else {
-                        // Fallback : injecter dans le root directement
-                        quill.root.insertAdjacentHTML('beforeend', html);
-                        quill.update();
-                    }
-                    return;
-                }
-                originalOnPaste(e);
-            };
-        }
-
-        // ── 3. Attendre que admin.js initialise Quill (_quillEditorRef) ──
         let attempts = 0;
-        const interval = setInterval(function() {
+        const interval = setInterval(() => {
             attempts++;
             const Quill = window.Quill;
             const quill = window._quillEditorRef;
-
             if (Quill && !window._quillFormatsRegistered) {
-                registerCustomFormats();
+                try {
+                    class StyleInline extends Quill.import('blots/inline') {
+                        static create(v) { const n = super.create(); if(v) n.setAttribute('style',v); return n; }
+                        static formats(n) { return n.getAttribute('style')||undefined; }
+                        format(name, v) { if(name==='customStyle'){v?this.domNode.setAttribute('style',v):this.domNode.removeAttribute('style');}else super.format(name,v); }
+                    }
+                    StyleInline.blotName = 'customStyle'; StyleInline.tagName = 'span';
+                    Quill.register(StyleInline, true);
+                } catch(e) {}
                 window._quillFormatsRegistered = true;
             }
-
             if (quill && !quill._fullyPatched) {
-                patchClipboard(quill);
+                const cb = quill.getModule('clipboard');
+                if (cb) {
+                    const orig = cb.onPaste.bind(cb);
+                    cb.onPaste = function(e) {
+                        const html = e.clipboardData?.getData('text/html');
+                        if (html?.trim()) {
+                            e.preventDefault(); e.stopPropagation();
+                            const idx = quill.getSelection(true)?.index ?? quill.getLength();
+                            quill.clipboard.dangerouslyPasteHTML(idx, html);
+                            return;
+                        }
+                        orig(e);
+                    };
+                }
                 quill._fullyPatched = true;
-                console.log('[ElectroInfo] Quill patché — HTML complet autorisé ✅');
                 clearInterval(interval);
             }
-
-            if (attempts > 100) clearInterval(interval); // timeout après 10s
+            if (attempts > 100) clearInterval(interval);
         }, 100);
-
     })();
     </script>
 
-<!-- ═══════════════════════════════════════════════════════
-     🌍 SYSTÈME TRADUCTION MULTILINGUE ADMIN — ElectroInfo
-═══════════════════════════════════════════════════════ -->
-<script>
-// ─────────────────────────────────────────────────────────
-// GESTION DES ONGLETS LANGUE
-// ─────────────────────────────────────────────────────────
-window.switchLangTab = function(lang) {
-    // Cacher tous les tabs
-    document.querySelectorAll('.lang-tab-content').forEach(t => t.style.display = 'none');
-    // Réinitialiser les boutons
-    document.querySelectorAll('.lang-tab-btn').forEach(b => {
-        b.style.background = '#f1f5f9';
-        b.style.color = '#9ca3af';
-        b.style.borderBottom = 'none';
-    });
-    // Activer le bon
-    document.getElementById('langTab_' + lang).style.display = 'block';
-    const activeBtn = document.querySelector('.lang-tab-btn[data-lang="' + lang + '"]');
-    activeBtn.style.background = '#f8fafc';
-    activeBtn.style.color = '#374151';
-    activeBtn.style.borderBottom = '2px solid #7c3aed';
-    activeBtn.style.marginBottom = '-2px';
-};
+    <!-- ═══════════════════════════════════════════════
+         TRADUCTION MULTILINGUE
+    ═══════════════════════════════════════════════ -->
+    <script>
+    window.switchLangTab = function(lang) {
+        document.querySelectorAll('.lang-tab-content').forEach(t => t.style.display = 'none');
+        document.querySelectorAll('.lang-tab-btn').forEach(b => {
+            b.style.background = '#f1f5f9'; b.style.color = '#9ca3af'; b.style.borderBottom = 'none';
+        });
+        document.getElementById('langTab_' + lang).style.display = 'block';
+        const btn = document.querySelector('.lang-tab-btn[data-lang="' + lang + '"]');
+        if (btn) { btn.style.background = '#f8fafc'; btn.style.color = '#374151'; btn.style.borderBottom = '2px solid #7c3aed'; btn.style.marginBottom = '-2px'; }
+    };
 
-// ─────────────────────────────────────────────────────────
-// TRADUCTION AUTOMATIQUE VIA CLAUDE API
-// ─────────────────────────────────────────────────────────
-window.autoTranslateAll = async function() {
-    const btn = document.getElementById('autoTranslateBtn');
-    const status = document.getElementById('translateStatus');
-
-    // Récupérer le contenu source (titre + résumé depuis le formulaire principal)
-    const titleMain  = document.getElementById('title')?.value?.trim();
-    const summaryMain = document.getElementById('summary')?.value?.trim();
-    const contentMain = document.getElementById('content')?.value?.trim();
-    const titleEwe   = document.getElementById('title_ewe')?.value?.trim();
-    const summaryEwe = document.getElementById('summary_ewe')?.value?.trim();
-    const contentEwe = document.getElementById('content_ewe')?.value?.trim();
-
-    // Déterminer quelle source utiliser pour la traduction
-    const sourceTitle   = titleEwe   || titleMain   || '';
-    const sourceSummary = summaryEwe || summaryMain || '';
-    const sourceContent = contentEwe || contentMain || '';
-
-    if (!sourceTitle && !sourceSummary && !sourceContent) {
-        alert('⚠️ Remplissez d\'abord le titre, le résumé ou le contenu (en Eʋegbe ou dans le formulaire principal).');
-        return;
-    }
-
-    // Désactiver le bouton
-    btn.disabled = true;
-    btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Traduction en cours...';
-    status.innerHTML = '<i class="fas fa-spinner fa-spin"></i> IA en cours...';
-
-    try {
-        // Traduire en Français et Anglais en parallèle
-        const [frResult, enResult] = await Promise.all([
-            translateWithClaude(sourceTitle, sourceSummary, sourceContent, 'français'),
-            translateWithClaude(sourceTitle, sourceSummary, sourceContent, 'anglais'),
-        ]);
-
-        // Remplir Français
-        if (frResult) {
-            document.getElementById('title_fr').value   = frResult.title   || '';
-            document.getElementById('summary_fr').value = frResult.summary || '';
-            document.getElementById('content_fr').value = frResult.content || '';
+    window.autoTranslateAll = async function() {
+        const btn    = document.getElementById('autoTranslateBtn');
+        const status = document.getElementById('translateStatus');
+        const sourceTitle   = document.getElementById('title_ewe')?.value?.trim()   || document.getElementById('title')?.value?.trim()   || '';
+        const sourceSummary = document.getElementById('summary_ewe')?.value?.trim() || document.getElementById('summary')?.value?.trim() || '';
+        const sourceContent = document.getElementById('content_ewe')?.value?.trim() || document.getElementById('content')?.value?.trim() || '';
+        if (!sourceTitle && !sourceSummary && !sourceContent) {
+            alert('⚠️ Remplissez d\'abord le titre, le résumé ou le contenu avant de traduire.');
+            return;
         }
-
-        // Remplir Anglais
-        if (enResult) {
-            document.getElementById('title_en').value   = enResult.title   || '';
-            document.getElementById('summary_en').value = enResult.summary || '';
-            document.getElementById('content_en').value = enResult.content || '';
+        btn.disabled = true;
+        btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Traduction en cours...';
+        status.innerHTML = '<i class="fas fa-spinner fa-spin"></i> IA en cours...';
+        try {
+            const [frResult, enResult] = await Promise.all([
+                _translateWithClaude(sourceTitle, sourceSummary, sourceContent, 'français'),
+                _translateWithClaude(sourceTitle, sourceSummary, sourceContent, 'anglais')
+            ]);
+            if (frResult) { document.getElementById('title_fr').value = frResult.title||''; document.getElementById('summary_fr').value = frResult.summary||''; document.getElementById('content_fr').value = frResult.content||''; }
+            if (enResult) { document.getElementById('title_en').value = enResult.title||''; document.getElementById('summary_en').value = enResult.summary||''; document.getElementById('content_en').value = enResult.content||''; }
+            status.innerHTML = '<span style="color:#16a34a"><i class="fas fa-check-circle"></i> Traductions terminées !</span>';
+            btn.innerHTML = '<i class="fas fa-check"></i> Traduit avec succès';
+            btn.style.background = 'linear-gradient(135deg,#16a34a,#059669)';
+            switchLangTab('fr');
+        } catch(err) {
+            console.error('Erreur traduction:', err);
+            status.innerHTML = '<span style="color:#dc2626"><i class="fas fa-times-circle"></i> ' + err.message + '</span>';
+            btn.innerHTML = '<i class="fas fa-exclamation-triangle"></i> Réessayer';
+            btn.style.background = 'linear-gradient(135deg,#dc2626,#b91c1c)';
+        } finally {
+            btn.disabled = false;
         }
+    };
 
-        status.innerHTML = '<span style="color:#16a34a"><i class="fas fa-check-circle"></i> Traductions terminées !</span>';
-        btn.innerHTML = '<i class="fas fa-check"></i> Traduit avec succès';
-        btn.style.background = 'linear-gradient(135deg,#16a34a,#059669)';
-
-        // Aller voir le résultat Français
-        switchLangTab('fr');
-
-    } catch (err) {
-        console.error('Erreur traduction:', err);
-        status.innerHTML = '<span style="color:#dc2626"><i class="fas fa-times-circle"></i> Erreur : ' + err.message + '</span>';
-        btn.innerHTML = '<i class="fas fa-exclamation-triangle"></i> Réessayer';
-        btn.style.background = 'linear-gradient(135deg,#dc2626,#b91c1c)';
-    } finally {
-        btn.disabled = false;
-    }
-};
-
-// ─────────────────────────────────────────────────────────
-// APPEL API CLAUDE POUR UNE LANGUE CIBLE
-// ─────────────────────────────────────────────────────────
-async function translateWithClaude(title, summary, content, targetLang) {
-    const isEn = targetLang === 'anglais';
-
-    const prompt = `Tu es un traducteur expert. Je vais te donner le contenu d'un article du site web "ElectroInfo" (spécialisé en électricité industrielle au Togo).
-
-Traduis chaque partie en ${targetLang}${isEn ? ' (English)' : ''} de façon précise et professionnelle.
-
-Voici le contenu à traduire :
-
-TITRE : ${title || '(vide)'}
-
-RÉSUMÉ : ${summary || '(vide)'}
-
-CONTENU : ${content || '(vide)'}
-
-Réponds UNIQUEMENT avec un objet JSON valide, sans aucun texte avant ou après, dans ce format exact :
-{
-  "title": "...",
-  "summary": "...",
-  "content": "..."
-}`;
-
-    const response = await fetch('https://api.anthropic.com/v1/messages', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-            model: 'claude-sonnet-4-20250514',
-            max_tokens: 2000,
-            messages: [{ role: 'user', content: prompt }]
-        })
-    });
-
-    if (!response.ok) {
-        const err = await response.json();
-        throw new Error(err?.error?.message || 'Erreur API');
+    async function _translateWithClaude(title, summary, content, targetLang) {
+        const res = await fetch('https://api.anthropic.com/v1/messages', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+                model: 'claude-sonnet-4-20250514', max_tokens: 2000,
+                messages: [{ role:'user', content:
+                    `Tu es un traducteur expert. Traduis ce contenu d'article du site ElectroInfo en ${targetLang}.\n\nTITRE : ${title||'(vide)'}\nRÉSUMÉ : ${summary||'(vide)'}\nCONTENU : ${content||'(vide)'}\n\nRéponds UNIQUEMENT avec un JSON valide, sans texte autour :\n{"title":"...","summary":"...","content":"..."}`
+                }]
+            })
+        });
+        if (!res.ok) { const e = await res.json(); throw new Error(e?.error?.message || 'Erreur API'); }
+        const data = await res.json();
+        try { return JSON.parse((data.content?.[0]?.text||'{}').replace(/```json|```/g,'').trim()); }
+        catch(e) { return { title:'', summary:'', content: data.content?.[0]?.text||'' }; }
     }
 
-    const data = await response.json();
-    const rawText = data.content?.[0]?.text || '{}';
-
-    // Parser le JSON retourné
-    try {
-        const clean = rawText.replace(/```json|```/g, '').trim();
-        return JSON.parse(clean);
-    } catch (e) {
-        console.warn('JSON parse error:', rawText);
-        return { title: '', summary: '', content: rawText };
-    }
-}
-
-// ─────────────────────────────────────────────────────────
-// EXTENSION DU FORMULAIRE POUR SAUVEGARDER LES TRADUCTIONS
-// Patch de la soumission du formulaire pour inclure les traductions
-// ─────────────────────────────────────────────────────────
-document.addEventListener('DOMContentLoaded', function() {
-    // On attend que admin.js soit chargé (il gère le submit)
-    // On expose les traductions via window pour que admin.js les récupère
-    const form = document.getElementById('articleForm');
-    if (form) {
-        form.addEventListener('submit', function() {
-            // Stocker les traductions dans des champs cachés lisibles par admin.js
+    document.addEventListener('DOMContentLoaded', function() {
+        // Stocker les traductions avant soumission (capture phase = avant admin.js)
+        document.getElementById('articleForm')?.addEventListener('submit', function() {
             window.__translations = {
-                ewe: {
-                    title:   document.getElementById('title_ewe')?.value?.trim()   || '',
-                    summary: document.getElementById('summary_ewe')?.value?.trim() || '',
-                    content: document.getElementById('content_ewe')?.value?.trim() || '',
-                },
-                fr: {
-                    title:   document.getElementById('title_fr')?.value?.trim()   || '',
-                    summary: document.getElementById('summary_fr')?.value?.trim() || '',
-                    content: document.getElementById('content_fr')?.value?.trim() || '',
-                },
-                en: {
-                    title:   document.getElementById('title_en')?.value?.trim()   || '',
-                    summary: document.getElementById('summary_en')?.value?.trim() || '',
-                    content: document.getElementById('content_en')?.value?.trim() || '',
-                }
+                ewe: { title: document.getElementById('title_ewe')?.value?.trim()||'',   summary: document.getElementById('summary_ewe')?.value?.trim()||'',  content: document.getElementById('content_ewe')?.value?.trim()||'' },
+                fr:  { title: document.getElementById('title_fr')?.value?.trim()||'',    summary: document.getElementById('summary_fr')?.value?.trim()||'',   content: document.getElementById('content_fr')?.value?.trim()||'' },
+                en:  { title: document.getElementById('title_en')?.value?.trim()||'',    summary: document.getElementById('summary_en')?.value?.trim()||'',   content: document.getElementById('content_en')?.value?.trim()||'' }
             };
-        }, true); // capture phase = avant admin.js
-    }
+        }, true);
 
-    // Remplir les champs si on charge un article existant (mode édition)
-    window.fillTranslationFields = function(articleData) {
-        if (!articleData) return;
-        const t = articleData.translations || {};
-        
-        ['ewe','fr','en'].forEach(lang => {
-            if (t[lang]) {
+        // Remplir les champs traduction lors d'un editArticle
+        window.fillTranslationFields = function(articleData) {
+            const t = articleData?.translations || {};
+            ['ewe','fr','en'].forEach(lang => {
+                if (!t[lang]) return;
                 const f = t[lang];
-                const ti = document.getElementById('title_'   + lang);
-                const su = document.getElementById('summary_' + lang);
-                const co = document.getElementById('content_' + lang);
-                if (ti) ti.value = f.title   || '';
-                if (su) su.value = f.summary || '';
-                if (co) co.value = f.content || '';
-            }
-        });
-    };
-
-    // Réinitialiser les champs de traduction lors d'un cancelEdit
-    const originalCancel = window.cancelEdit;
-    window.cancelEdit = function() {
-        ['ewe','fr','en'].forEach(lang => {
-            ['title_','summary_','content_'].forEach(prefix => {
-                const el = document.getElementById(prefix + lang);
-                if (el) el.value = '';
+                ['title','summary','content'].forEach(field => {
+                    const el = document.getElementById(field + '_' + lang);
+                    if (el) el.value = f[field] || '';
+                });
             });
-        });
-        switchLangTab('ewe');
-        document.getElementById('translateStatus').innerHTML = '';
-        const btn = document.getElementById('autoTranslateBtn');
-        if (btn) {
-            btn.innerHTML = '<i class="fas fa-magic"></i> Traduire 🇫🇷 + 🇬🇧 automatiquement';
-            btn.style.background = 'linear-gradient(135deg,#7c3aed,#2563eb)';
-        }
-        if (originalCancel) originalCancel();
-    };
-});
-</script>
+        };
 
-<script>
-// ══════════════════════════════════════
-//  ONGLETS ADMIN PRINCIPAL
-// ══════════════════════════════════════
-window.switchAdminTab = function(tabName) {
-    // Cacher tous les onglets
-    const allPages = document.querySelectorAll('.admin-tab-page');
-    allPages.forEach(p => p.classList.remove('active'));
+        // ── FIX : cancelEdit centralisé ici, une seule fois ──
+        // On attend que admin.js expose la fonction originale, puis on l'enchaîne proprement.
+        // Pas de setTimeout fragile : on utilise un MutationObserver sur window.
+        let _cancelPatched = false;
+        const _patchCancel = () => {
+            if (_cancelPatched || !window.cancelEdit) return;
+            _cancelPatched = true;
+            const _orig = window.cancelEdit;
+            window.cancelEdit = function() {
+                // Vider les champs traduction
+                ['ewe','fr','en'].forEach(lang => {
+                    ['title_','summary_','content_'].forEach(p => { const el = document.getElementById(p+lang); if(el) el.value=''; });
+                });
+                switchLangTab('ewe');
+                document.getElementById('translateStatus').innerHTML = '';
+                const tBtn = document.getElementById('autoTranslateBtn');
+                if (tBtn) { tBtn.innerHTML = '<i class="fas fa-magic"></i> Traduire 🇫🇷 + 🇬🇧 automatiquement'; tBtn.style.background = 'linear-gradient(135deg,#7c3aed,#2563eb)'; }
+                // Retour au dashboard
+                switchAdminTab('dashboard');
+                return _orig();
+            };
+        };
+        // Vérifier immédiatement puis à chaque tick rapide
+        const _watchCancel = setInterval(() => { _patchCancel(); if (_cancelPatched) clearInterval(_watchCancel); }, 50);
 
-    // Désactiver tous les boutons
-    document.querySelectorAll('.admin-tab-btn').forEach(b => b.classList.remove('active'));
-
-    // Activer l'onglet sélectionné
-    if (tabName === 'dashboard') {
-        document.getElementById('tab-dashboard').classList.add('active');
-        document.getElementById('tab-dashboard-lists').classList.add('active');
-        document.querySelectorAll('.admin-tab-btn')[0].classList.add('active');
-    } else if (tabName === 'rediger') {
-        document.getElementById('tab-rediger').classList.add('active');
-        document.querySelectorAll('.admin-tab-btn')[1].classList.add('active');
-        window.scrollTo({ top: 0, behavior: 'smooth' });
-    } else if (tabName === 'newsletter') {
-        document.getElementById('tab-newsletter').classList.add('active');
-        document.querySelectorAll('.admin-tab-btn')[2].classList.add('active');
-    } else if (tabName === 'admins') {
-        document.getElementById('tab-admins').classList.add('active');
-        document.querySelectorAll('.admin-tab-btn')[3].classList.add('active');
-    }
-};
-
-// Exposer pour admin.js : quand on clique "Modifier" un article → aller sur l'onglet Rédiger
-window.goToArticleForm = function() {
-    switchAdminTab('rediger');
-};
-
-// Intercepter editArticle de admin.js pour switcher automatiquement sur l'onglet rédiger
-document.addEventListener('DOMContentLoaded', function() {
-    // On attend que admin.js charge sa fonction editArticle puis on la surcharge
-    setTimeout(function() {
-        const _origEdit = window.editArticle;
-        if (_origEdit) {
+        // ── FIX : editArticle — switcher sur l'onglet rédiger ──
+        // Même logique propre sans setTimeout long
+        let _editPatched = false;
+        const _watchEdit = setInterval(() => {
+            if (_editPatched || !window.editArticle) return;
+            _editPatched = true;
+            const _origEdit = window.editArticle;
             window.editArticle = function(id) {
                 switchAdminTab('rediger');
                 return _origEdit(id);
             };
-        }
-        // Aussi intercepter cancelEdit pour revenir au dashboard
-        const _origCancel = window.cancelEdit;
-        if (_origCancel) {
-            window.cancelEdit = function() {
-                const r = _origCancel();
-                switchAdminTab('dashboard');
-                return r;
-            };
-        }
-    }, 800);
-});
-</script>
-<script>
-// ══════════════════════════════════════
-//  CRÉATION D'UN ADMIN
-// ══════════════════════════════════════
+            clearInterval(_watchEdit);
+        }, 50);
+    });
+    </script>
 
-// Afficher/masquer mot de passe
-window.toggleAdminPwd = function() {
-    const inp = document.getElementById('newAdminPassword');
-    const ico = document.getElementById('adminPwdIcon');
-    if (inp.type === 'password') {
-        inp.type = 'text';
-        ico.classList.replace('fa-eye', 'fa-eye-slash');
-    } else {
-        inp.type = 'password';
-        ico.classList.replace('fa-eye-slash', 'fa-eye');
-    }
-};
+    <!-- ═══════════════════════════════════════════════
+         CRÉATION D'UN ADMIN
+         FIX : SDK Firebase v9 modulaire (import)
+         au lieu de firebase.auth() v8 compat
+    ═══════════════════════════════════════════════ -->
+    <script type="module">
+    import { getAuth, createUserWithEmailAndPassword, updateProfile } from 'https://www.gstatic.com/firebasejs/10.7.1/firebase-auth.js';
+    import { getFirestore, doc, setDoc, serverTimestamp } from 'https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js';
 
-// Indicateur force du mot de passe
-document.addEventListener('DOMContentLoaded', function() {
-    const inp = document.getElementById('newAdminPassword');
-    if (!inp) return;
-    inp.addEventListener('input', function() {
-        const v = inp.value;
-        const bar = document.getElementById('adminPwdStrengthBar');
-        const txt = document.getElementById('adminPwdStrengthText');
+    // Afficher/masquer mot de passe
+    window.toggleAdminPwd = function() {
+        const inp = document.getElementById('newAdminPassword');
+        const ico = document.getElementById('adminPwdIcon');
+        if (inp.type === 'password') { inp.type = 'text'; ico.classList.replace('fa-eye','fa-eye-slash'); }
+        else                         { inp.type = 'password'; ico.classList.replace('fa-eye-slash','fa-eye'); }
+    };
+
+    // Indicateur force du mot de passe
+    document.getElementById('newAdminPassword')?.addEventListener('input', function() {
+        const v = this.value;
         let score = 0;
         if (v.length >= 8) score++;
         if (/[A-Z]/.test(v)) score++;
         if (/[0-9]/.test(v)) score++;
         if (/[^A-Za-z0-9]/.test(v)) score++;
-        const levels = [
-            { w:'0%',   c:'#e5e7eb', t:'' },
-            { w:'25%',  c:'#ef4444', t:'Faible' },
-            { w:'50%',  c:'#f97316', t:'Moyen' },
-            { w:'75%',  c:'#eab308', t:'Bon' },
-            { w:'100%', c:'#22c55e', t:'Excellent' },
-        ];
+        const levels = [{w:'0%',c:'#e5e7eb',t:''},{w:'25%',c:'#ef4444',t:'Faible'},{w:'50%',c:'#f97316',t:'Moyen'},{w:'75%',c:'#eab308',t:'Bon'},{w:'100%',c:'#22c55e',t:'Excellent'}];
         const l = levels[score] || levels[0];
-        bar.style.width = l.w;
-        bar.style.background = l.c;
-        txt.textContent = l.t;
-        txt.style.color = l.c;
+        const bar = document.getElementById('adminPwdStrengthBar');
+        const txt = document.getElementById('adminPwdStrengthText');
+        bar.style.width = l.w; bar.style.background = l.c;
+        txt.textContent = l.t; txt.style.color = l.c;
     });
-});
 
-// Créer le compte admin via Firebase
-window.createAdminAccount = async function() {
-    const name     = document.getElementById('newAdminName').value.trim();
-    const email    = document.getElementById('newAdminEmail').value.trim();
-    const password = document.getElementById('newAdminPassword').value;
-    const status   = document.getElementById('createAdminStatus');
-    const btn      = document.getElementById('createAdminBtn');
+    // ── FIX MAJEUR : utiliser le SDK v9 modulaire ──
+    // L'ancien code utilisait firebase.auth() (compat v8) qui n'est pas chargé ici.
+    window.createAdminAccount = async function() {
+        const name     = document.getElementById('newAdminName').value.trim();
+        const email    = document.getElementById('newAdminEmail').value.trim();
+        const password = document.getElementById('newAdminPassword').value;
+        const status   = document.getElementById('createAdminStatus');
+        const btn      = document.getElementById('createAdminBtn');
 
-    // Validation
-    if (!name) {
-        status.innerHTML = '<span style="color:#dc2626"><i class="fas fa-times-circle"></i> Veuillez entrer un nom complet.</span>';
-        return;
-    }
-    if (!email || !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) {
-        status.innerHTML = '<span style="color:#dc2626"><i class="fas fa-times-circle"></i> Adresse email invalide.</span>';
-        return;
-    }
-    if (password.length < 8) {
-        status.innerHTML = '<span style="color:#dc2626"><i class="fas fa-times-circle"></i> Mot de passe trop court (8 caractères minimum).</span>';
-        return;
-    }
+        if (!name) { status.innerHTML = '<span style="color:#dc2626"><i class="fas fa-times-circle"></i> Veuillez entrer un nom complet.</span>'; return; }
+        if (!email || !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) { status.innerHTML = '<span style="color:#dc2626"><i class="fas fa-times-circle"></i> Adresse email invalide.</span>'; return; }
+        if (password.length < 8) { status.innerHTML = '<span style="color:#dc2626"><i class="fas fa-times-circle"></i> Mot de passe trop court (8 caractères minimum).</span>'; return; }
 
-    btn.disabled = true;
-    btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Création en cours...';
-    status.innerHTML = '';
+        btn.disabled = true;
+        btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Création en cours...';
+        status.innerHTML = '';
 
-    try {
-        // Sauvegarder la session courante
-        const currentUser = firebase.auth().currentUser;
+        try {
+            // Récupérer les instances Firebase déjà initialisées par admin.js
+            // admin.js exporte app & db via window (ou on les réimporte depuis la même config)
+            const auth = getAuth();
+            const db   = getFirestore();
+            const currentUser = auth.currentUser;
 
-        // Créer le nouveau compte via Firebase Auth
-        const cred = await firebase.auth().createUserWithEmailAndPassword(email, password);
-        const newUser = cred.user;
+            const cred    = await createUserWithEmailAndPassword(auth, email, password);
+            const newUser = cred.user;
+            await updateProfile(newUser, { displayName: name });
 
-        // Mettre à jour le profil (displayName)
-        await newUser.updateProfile({ displayName: name });
+            // Écrire dans Firestore (collection admins)
+            await setDoc(doc(db, 'admins', newUser.uid), {
+                uid:       newUser.uid,
+                name:      name,
+                email:     email,
+                role:      'admin',
+                createdAt: serverTimestamp(),
+                createdBy: currentUser?.email || 'inconnu'
+            });
 
-        // Enregistrer dans Firestore comme admin
-        await firebase.firestore().collection('admins').doc(newUser.uid).set({
-            uid:       newUser.uid,
-            name:      name,
-            email:     email,
-            role:      'admin',
-            createdAt: firebase.firestore.FieldValue.serverTimestamp(),
-            createdBy: currentUser ? currentUser.email : 'inconnu'
-        });
+            // Écrire aussi dans users pour que isAdmin() fonctionne dans les règles Firestore
+            await setDoc(doc(db, 'users', newUser.uid), {
+                email:       email,
+                displayName: name,
+                role:        'admin',
+                createdAt:   serverTimestamp()
+            });
 
-        // Reconnecter l'admin actuel (createUser déconnecte la session)
-        // Note : si tu utilises Firebase Admin SDK côté serveur, cette étape n'est pas nécessaire
-        status.innerHTML = `<span style="color:#16a34a"><i class="fas fa-check-circle"></i> Compte admin créé pour <strong>${name}</strong> (${email}) !</span>`;
-        btn.innerHTML    = '<i class="fas fa-check"></i> Compte créé !';
-        btn.style.background = 'linear-gradient(135deg,#16a34a,#059669)';
+            status.innerHTML = `<span style="color:#16a34a"><i class="fas fa-check-circle"></i> Compte admin créé pour <strong>${name}</strong> (${email}) !</span>`;
+            btn.innerHTML = '<i class="fas fa-check"></i> Compte créé !';
+            btn.style.background = 'linear-gradient(135deg,#16a34a,#059669)';
 
-        // Vider le formulaire
-        document.getElementById('newAdminName').value     = '';
-        document.getElementById('newAdminEmail').value    = '';
-        document.getElementById('newAdminPassword').value = '';
-        document.getElementById('adminPwdStrengthBar').style.width = '0%';
-        document.getElementById('adminPwdStrengthText').textContent = '';
+            document.getElementById('newAdminName').value     = '';
+            document.getElementById('newAdminEmail').value    = '';
+            document.getElementById('newAdminPassword').value = '';
+            document.getElementById('adminPwdStrengthBar').style.width = '0%';
+            document.getElementById('adminPwdStrengthText').textContent = '';
 
-        // Reset le bouton après 3 sec
-        setTimeout(() => {
+            setTimeout(() => { btn.disabled = false; btn.innerHTML = '<i class="fas fa-user-plus"></i> Créer le compte Admin'; btn.style.background = ''; }, 3000);
+
+        } catch(err) {
+            console.error('Erreur création admin:', err);
+            let msg = err.message;
+            if (err.code === 'auth/email-already-in-use') msg = 'Cette adresse email est déjà utilisée.';
+            if (err.code === 'auth/weak-password')        msg = 'Mot de passe trop faible.';
+            if (err.code === 'auth/invalid-email')        msg = 'Adresse email invalide.';
+            status.innerHTML = `<span style="color:#dc2626"><i class="fas fa-times-circle"></i> Erreur : ${msg}</span>`;
             btn.disabled = false;
-            btn.innerHTML = '<i class="fas fa-user-plus"></i> Créer le compte Admin';
-            btn.style.background = '';
-        }, 3000);
+            btn.innerHTML = '<i class="fas fa-user-plus"></i> Réessayer';
+        }
+    };
+    </script>
 
-    } catch (err) {
-        console.error('Erreur création admin:', err);
-        let msg = err.message;
-        if (err.code === 'auth/email-already-in-use') msg = 'Cette adresse email est déjà utilisée.';
-        if (err.code === 'auth/weak-password')        msg = 'Mot de passe trop faible.';
-        if (err.code === 'auth/invalid-email')        msg = 'Adresse email invalide.';
-        status.innerHTML = `<span style="color:#dc2626"><i class="fas fa-times-circle"></i> Erreur : ${msg}</span>`;
-        btn.disabled = false;
-        btn.innerHTML = '<i class="fas fa-user-plus"></i> Réessayer';
-    }
-};
-</script>
 </body>
 </html>
