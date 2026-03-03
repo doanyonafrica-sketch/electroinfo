@@ -641,8 +641,13 @@ articleForm?.addEventListener('submit', async (e) => {
         if (editorMode === 'html') {
             // Mode HTML CodeMirror
             content = window.articleCmInstance ? window.articleCmInstance.getValue() : '';
-            if (!content || content.trim().length < 10) {
-                showNotification('⚠️ Le contenu HTML est trop court (minimum 10 caractères)', 'error');
+            
+            // ✅ CORRECTION: Supprimer les balises HTML avant de mesurer la longueur réelle du texte
+            const htmlTextContent = content.replace(/<[^>]*>/g, '').replace(/&nbsp;/g, ' ').trim();
+            console.log('📏 Longueur du contenu HTML (texte seul):', htmlTextContent.length);
+            
+            if (!htmlTextContent || htmlTextContent.length < 10) {
+                showNotification('⚠️ Le contenu de l\'article est trop court (minimum 10 caractères)', 'error');
                 return;
             }
         } else {
@@ -683,7 +688,7 @@ articleForm?.addEventListener('submit', async (e) => {
                 console.log('✂️ Taille après troncature:', getContentSize(content), 'bytes');
             }
 
-            // Vérifier que le contenu n'est pas vide
+            // ✅ CORRECTION: Mesurer le texte réel (sans balises) pour la validation
             const textContent = quillEditor.getText().trim();
             console.log('📏 Longueur du contenu texte:', textContent.length);
             
