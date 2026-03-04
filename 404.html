@@ -1,36 +1,47 @@
 <!DOCTYPE html>
-<html>
+<html lang="fr">
 <head>
     <meta charset="UTF-8">
-    <script>
-        // Technique SPA redirect pour GitHub Pages
-        // Sauvegarde l'URL demandée et redirige vers la bonne page (sans .html)
-        const path = window.location.pathname;
-        const search = window.location.search;
-        
-        // Détecte la page cible selon le path
-        let target = '/';
-        
-        if (path.startsWith('/course/')) {
-            sessionStorage.setItem('redirect_path', path);
-            target = '/course-detail';
-        } else if (path.startsWith('/seance/')) {
-            sessionStorage.setItem('redirect_path', path);
-            target = '/session-detail';
-        } else if (path.startsWith('/article/')) {
-            sessionStorage.setItem('redirect_path', path);
-            target = '/article-detail';
-        } else if (path.startsWith('/session-detail')) {
-            target = '/session-detail' + search;
-        } else {
-            // Autres pages propres (/about, /courses, etc.)
-            const page = path.replace(/^\//, '') || 'index';
-            target = '/' + page;
-        }
-        
-        window.location.replace(target);
-    </script>
-    <title>Redirection...</title>
+    <title>ElectroInfo — Redirection</title>
 </head>
-<body></body>
+<body>
+<script>
+    // 404.html — GitHub Pages Router
+    // Intercepte toutes les URLs propres et redirige vers la bonne page .html
+    // tout en sauvegardant le path original dans sessionStorage pour que
+    // le script JS cible puisse le relire.
+
+    (function () {
+        var path = window.location.pathname;
+        var search = window.location.search || '';
+
+        // Sauvegarde le path complet (avec query string si présent)
+        sessionStorage.setItem('redirect_path', path + search);
+
+        var parts = path.split('/').filter(Boolean);
+        var segment = parts[0] || '';
+
+        var dest;
+
+        if (segment === 'course') {
+            // /course/mon-slug → course-detail.html
+            dest = '/course-detail.html';
+        } else if (segment === 'seance') {
+            // /seance/mon-slug/seq-N/seance-N → session-detail.html  ← LE FIX
+            dest = '/session-detail.html';
+        } else if (segment === 'article') {
+            // /article/mon-slug → article-detail.html
+            dest = '/article-detail.html';
+        } else {
+            // Fallback : retour à l'accueil
+            dest = '/';
+        }
+
+        window.location.replace(dest);
+    })();
+</script>
+<noscript>
+    <p>Redirection en cours… <a href="/">Retour à l'accueil</a></p>
+</noscript>
+</body>
 </html>
