@@ -227,25 +227,38 @@ function renderCoursesList(courses) {
 let currentCourse = null;
 
 async function initCourseDetailPage() {
-    // Nouveau format : /course/mon-slug
+    // Format 1 : /course/mon-slug (Firebase Hosting)
     const pathParts = location.pathname.split('/');
     if (pathParts[1] === 'course' && pathParts[2]) {
-        const slug = decodeURIComponent(pathParts[2]);
-        try {
-            const snap = await getDocs(query(collection(db, 'courses'), where('slug', '==', slug)));
-            if (snap.empty) { showErrorDetail(); return; }
-            currentCourse = { id: snap.docs[0].id, ...snap.docs[0].data() };
-            renderCourseDetail();
-        } catch(e) { console.error(e); showErrorDetail(); }
-        return;
+        return loadCourseBySlug(decodeURIComponent(pathParts[2]));
     }
-    // Ancien format (fallback) : /course-detail?id=XXX
+
+    // Format 2 : GitHub Pages — slug sauvegardé dans sessionStorage par 404.html
+    const redirectPath = sessionStorage.getItem('redirect_path');
+    if (redirectPath) {
+        sessionStorage.removeItem('redirect_path');
+        const parts = redirectPath.split('/');
+        if (parts[1] === 'course' && parts[2]) {
+            return loadCourseBySlug(decodeURIComponent(parts[2]));
+        }
+    }
+
+    // Format 3 (fallback legacy) : /course-detail?id=XXX
     const id = new URLSearchParams(location.search).get('id');
     if (!id) { showErrorDetail(); return; }
     try {
         const snap = await getDoc(doc(db,'courses',id));
         if (!snap.exists()) { showErrorDetail(); return; }
         currentCourse = { id: snap.id, ...snap.data() };
+        renderCourseDetail();
+    } catch(e) { console.error(e); showErrorDetail(); }
+}
+
+async function loadCourseBySlug(slug) {
+    try {
+        const snap = await getDocs(query(collection(db, 'courses'), where('slug', '==', slug)));
+        if (snap.empty) { showErrorDetail(); return; }
+        currentCourse = { id: snap.docs[0].id, ...snap.docs[0].data() };
         renderCourseDetail();
     } catch(e) { console.error(e); showErrorDetail(); }
 }
