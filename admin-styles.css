@@ -1428,3 +1428,33 @@ article img {
         flex-direction: column;
     }
 }
+
+.perso {
+  /* Supprime le soulignement par défaut des liens */
+  text-decoration: none;
+  
+  /* Mise en forme du "bouton" */
+  display: inline-block;
+  padding: 12px 24px;
+  background-color: #3498db; /* Un bleu propre */
+  color: white;
+  border-radius: 5px;
+  font-family: Arial, sans-serif;
+  font-weight: bold;
+  transition: all 0.3s ease; /* Pour une animation fluide */
+  border: none;
+  cursor: pointer;
+}
+
+/* Effet au survol (Hover) */
+.perso:hover {
+  background-color: #2980b9;
+  transform: translateY(-2px); /* Petit saut vers le haut */
+  box-shadow: 0 4px 8px rgba(0,0,0,0.2);
+}
+
+/* Effet quand on clique */
+.perso:active {
+  transform: translateY(0);
+  box-shadow: none;
+}
