@@ -162,6 +162,19 @@ if (mobileToggle && mobileMenu) {
 // PARAMÈTRES URL
 // ============================================
 function getUrlParams() {
+    // Nouveau format SEO : /seance/cours-slug/seq-N/seance-N
+    const parts = location.pathname.split('/');
+    if (parts[1] === 'seance' && parts[2]) {
+        const redirectPath = sessionStorage.getItem('redirect_path');
+        const src = redirectPath ? redirectPath.split('/') : parts;
+        if (redirectPath) sessionStorage.removeItem('redirect_path');
+        return {
+            courseSlug:   decodeURIComponent(src[2]),
+            seqIndex:     parseInt((src[3] || 'seq-1').replace('seq-', '')) - 1,
+            sessionIndex: parseInt((src[4] || 'seance-1').replace('seance-', '')) - 1
+        };
+    }
+    // Fallback legacy : ?courseId=XXX&seqIndex=N&sessionIndex=N
     const p = new URLSearchParams(window.location.search);
     return {
         courseId:     p.get('courseId'),
@@ -174,25 +187,30 @@ function getUrlParams() {
 // CHARGEMENT DE LA SÉANCE
 // ============================================
 async function loadSession() {
-    const { courseId, seqIndex, sessionIndex } = getUrlParams();
-
-    if (!courseId) {
-        alert('Cours introuvable');
-        return (window.location.href = '/courses');
-    }
+    const params = getUrlParams();
 
     try {
-        const docSnap = await getDoc(doc(db, 'courses', courseId));
+        let courseSnap = null;
 
-        if (!docSnap.exists()) {
+        if (params.courseSlug) {
+            // Nouveau format : recherche par slug
+            const { getFirestore, collection, query, where, getDocs } = await import('https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js');
+            const snap = await getDocs(query(collection(db, 'courses'), where('slug', '==', params.courseSlug)));
+            if (snap.empty) { alert('Cours introuvable'); return (window.location.href = '/courses'); }
+            courseSnap = snap.docs[0];
+        } else if (params.courseId) {
+            // Fallback legacy : par ID
+            const docSnap = await getDoc(doc(db, 'courses', params.courseId));
+            if (!docSnap.exists()) { alert('Cours introuvable'); return (window.location.href = '/courses'); }
+            courseSnap = docSnap;
+        } else {
             alert('Cours introuvable');
             return (window.location.href = '/courses');
         }
 
-        state.course       = { id: docSnap.id, ...docSnap.data() };
-        state.seqIndex     = seqIndex;
-        state.sessionIndex = sessionIndex;
-
+        state.course       = { id: courseSnap.id, ...courseSnap.data() };
+        state.seqIndex     = params.seqIndex;
+        state.sessionIndex = params.sessionIndex;
         displaySession();
     } catch (err) {
         console.error('Erreur chargement séance:', err);
@@ -225,7 +243,9 @@ function displaySession() {
     $('sessionBadge').textContent   = `Séance ${state.sessionIndex + 1}`;
     $('sessionTitle').textContent   = session.title || 'Séance';
     $('sessionContent').innerHTML   = session.content || '<p>Aucun contenu disponible.</p>';
-    $('backButton').href             = `/course-detail?id=${state.course.id}`;
+    $('backButton').href = state.course.slug
+        ? `/course/${state.course.slug}`
+        : `/course-detail?id=${state.course.id}`;
 
     // PDF
     const pdfSection = $('pdfSection');
@@ -247,36 +267,31 @@ function displaySession() {
 function setupNavigation(sequences, sessions) {
     const prevBtn = $('prevSessionBtn');
     const nextBtn = $('nextSessionBtn');
-
     const { course, seqIndex, sessionIndex } = state;
-    const baseUrl = `/session-detail?courseId=${course.id}`;
 
-    // --- Séance précédente ---
+    // Génère URL selon slug ou fallback ID
+    const makeUrl = (si, ssi) => course.slug
+        ? `/seance/${course.slug}/seq-${si+1}/seance-${ssi+1}`
+        : `/session-detail?courseId=${course.id}&seqIndex=${si}&sessionIndex=${ssi}`;
+
+    // Séance précédente
     let prevHref = null;
-
     if (sessionIndex > 0) {
-        prevHref = `${baseUrl}&seqIndex=${seqIndex}&sessionIndex=${sessionIndex - 1}`;
+        prevHref = makeUrl(seqIndex, sessionIndex - 1);
     } else if (seqIndex > 0) {
-        const prevSeqSessions = sequences[seqIndex - 1]?.sessions || [];
-        if (prevSeqSessions.length > 0) {
-            prevHref = `${baseUrl}&seqIndex=${seqIndex - 1}&sessionIndex=${prevSeqSessions.length - 1}`;
-        }
+        const prevLen = sequences[seqIndex - 1]?.sessions?.length || 0;
+        if (prevLen > 0) prevHref = makeUrl(seqIndex - 1, prevLen - 1);
     }
-
     setNavBtn(prevBtn, prevHref);
 
-    // --- Séance suivante ---
+    // Séance suivante
     let nextHref = null;
-
     if (sessionIndex < sessions.length - 1) {
-        nextHref = `${baseUrl}&seqIndex=${seqIndex}&sessionIndex=${sessionIndex + 1}`;
+        nextHref = makeUrl(seqIndex, sessionIndex + 1);
     } else if (seqIndex < sequences.length - 1) {
-        const nextSeqSessions = sequences[seqIndex + 1]?.sessions || [];
-        if (nextSeqSessions.length > 0) {
-            nextHref = `${baseUrl}&seqIndex=${seqIndex + 1}&sessionIndex=0`;
-        }
+        const nextLen = sequences[seqIndex + 1]?.sessions?.length || 0;
+        if (nextLen > 0) nextHref = makeUrl(seqIndex + 1, 0);
     }
-
     setNavBtn(nextBtn, nextHref);
 }
 
@@ -294,7 +309,9 @@ function setNavBtn(btn, href) {
 // Redirige vers la page du cours en cas d'erreur de séquence/séance
 function redirectToCourse() {
     alert('Séance introuvable');
-    window.location.href = `/course-detail?id=${state.course.id}`;
+    window.location.href = state.course.slug
+        ? `/course/${state.course.slug}`
+        : `/course-detail?id=${state.course.id}`;
 }
 
 // ============================================

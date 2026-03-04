@@ -12,10 +12,11 @@
         let target = '/';
         
         if (path.startsWith('/course/')) {
-            target = '/course-detail.html' + search + (search ? '&' : '?') + '_path=' + encodeURIComponent(path);
-            // Ou mieux : passe le slug via sessionStorage
             sessionStorage.setItem('redirect_path', path);
             target = '/course-detail.html';
+        } else if (path.startsWith('/seance/')) {
+            sessionStorage.setItem('redirect_path', path);
+            target = '/session-detail.html';
         } else if (path.startsWith('/article/')) {
             sessionStorage.setItem('redirect_path', path);
             target = '/article-detail.html';

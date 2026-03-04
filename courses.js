@@ -27,7 +27,7 @@ const auth = getAuth(app);
 // ── Détection de page ─────────────────────────────────────
 const PAGE = (() => {
     const p = location.pathname;
-    if (p.includes('session-detail'))  return 'session';
+    if (p.includes('session-detail') || p.startsWith('/seance/')) return 'session';
     // Supporte /course-detail?id=XXX ET /course/mon-slug
     if (p.includes('course-detail') || (p.startsWith('/course/') && p.split('/')[2])) return 'course';
     return 'courses';
@@ -322,9 +322,12 @@ function renderSessionItems(sessions, si) {
             <i class="fas fa-inbox" style="font-size:2rem;color:#9ca3af;margin-bottom:1rem;"></i>
             <p style="color:#6b7280;">Aucune séance dans cette séquence</p>
         </div>`;
-    return sessions.map((sess,ssi) => `
-        <div class="session-item"
-             onclick="location.href='/session-detail?courseId=${currentCourse.id}&seqIndex=${si}&sessionIndex=${ssi}'">
+    return sessions.map((sess,ssi) => {
+        const url = currentCourse.slug
+            ? `/seance/${currentCourse.slug}/seq-${si+1}/seance-${ssi+1}`
+            : `/session-detail?courseId=${currentCourse.id}&seqIndex=${si}&sessionIndex=${ssi}`;
+        return `
+        <div class="session-item" onclick="location.href='${url}'">
             <div class="session-icon"><i class="fas fa-play"></i></div>
             <div class="session-info">
                 <div class="session-number">Séance ${ssi+1}</div>
@@ -332,7 +335,7 @@ function renderSessionItems(sessions, si) {
                 ${sess.pdfUrl ? `<div class="session-has-pdf">
                     <i class="fas fa-file-pdf"></i> PDF disponible</div>` : ''}
             </div>
-            <i class="fas fa-chevron-right session-arrow"></i>
+            <i class="fas fa-chevron-right session-arrow"></i>`;
         </div>`).join('');
 }
 
@@ -361,6 +364,33 @@ let sdSeqIdx  = 0;
 let sdSessIdx = 0;
 
 async function initSessionPage() {
+    // Nouveau format SEO : /seance/cours-slug/seq-N/seance-N
+    const parts = location.pathname.split('/');
+    if (parts[1] === 'seance' && parts[2]) {
+        const courseSlug = decodeURIComponent(parts[2]);
+        sdSeqIdx  = parseInt((parts[3] || 'seq-1').replace('seq-', '')) - 1;
+        sdSessIdx = parseInt((parts[4] || 'seance-1').replace('seance-', '')) - 1;
+
+        // GitHub Pages : récupère le path depuis sessionStorage
+        const redirectPath = sessionStorage.getItem('redirect_path');
+        if (redirectPath) {
+            sessionStorage.removeItem('redirect_path');
+            const rParts = redirectPath.split('/');
+            sdSeqIdx  = parseInt((rParts[3] || 'seq-1').replace('seq-', '')) - 1;
+            sdSessIdx = parseInt((rParts[4] || 'seance-1').replace('seance-', '')) - 1;
+        }
+
+        try {
+            const { getDocs: gd, query: q, collection: col, where: wh } = await import('https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js');
+            const snap = await getDocs(query(collection(db,'courses'), where('slug','==',courseSlug)));
+            if (snap.empty) { sdShowError('Cours introuvable.'); return; }
+            sdCourse = { id: snap.docs[0].id, ...snap.docs[0].data() };
+            sdRender();
+        } catch(e) { console.error(e); sdShowError('Erreur réseau.'); }
+        return;
+    }
+
+    // Fallback legacy : ?courseId=XXX&seqIndex=N&sessionIndex=N
     const p = new URLSearchParams(location.search);
     const courseId = p.get('courseId');
     sdSeqIdx  = parseInt(p.get('seqIndex')     || '0', 10);
@@ -383,7 +413,7 @@ function sdRender() {
     if (tb) tb.innerHTML = `<strong>${esc(sdCourse.title)}</strong>`;
 
     const bl = $id('backLink');
-    if (bl) bl.href = `/course-detail?id=${sdCourse.id}`;
+    if (bl) bl.href = sdCourse.slug ? `/course/${sdCourse.slug}` : `/course-detail?id=${sdCourse.id}`;
 
     sdBuildSidebar();
     sdRenderSession();
@@ -496,10 +526,17 @@ window.sdGoTo = function(si, ssi) {
 };
 
 function sdPushUrl() {
-    const url = new URL(location.href);
-    url.searchParams.set('seqIndex',     sdSeqIdx);
-    url.searchParams.set('sessionIndex', sdSessIdx);
-    history.pushState({}, '', url);
+    if (sdCourse.slug) {
+        // Nouveau format SEO
+        const newUrl = `/seance/${sdCourse.slug}/seq-${sdSeqIdx+1}/seance-${sdSessIdx+1}`;
+        history.pushState({}, '', newUrl);
+    } else {
+        // Fallback legacy
+        const url = new URL(location.href);
+        url.searchParams.set('seqIndex',     sdSeqIdx);
+        url.searchParams.set('sessionIndex', sdSessIdx);
+        history.pushState({}, '', url);
+    }
 }
 
 function sdUpdateSidebarHighlight() {
