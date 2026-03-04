@@ -88,6 +88,11 @@ document.addEventListener('click', e => {
 // ============================================================
 // INIT selon la page
 // ============================================================
+// Ouvrir un cours (slug SEO ou fallback id)
+window.openCourse = function(id, slug) {
+    location.href = slug ? '/course/' + slug : '/course-detail?id=' + id;
+};
+
 document.addEventListener('DOMContentLoaded', () => {
     if (PAGE === 'courses') initCoursesPage();
     if (PAGE === 'course')  initCourseDetailPage();
@@ -147,9 +152,9 @@ function renderCoursesList(courses) {
 
         // Palettes de couleurs selon le niveau
         const levelColors = {
-            'D\xc3\xa9butant':     { badge:'#dcfce7', badgeTx:'#15803d', accent:'#22c55e' },
-            'Interm\xc3\xa9diaire': { badge:'#fef3c7', badgeTx:'#b45309', accent:'#f59e0b' },
-            'Avanc\xc3\xa9':       { badge:'#fee2e2', badgeTx:'#dc2626', accent:'#ef4444' },
+            'Débutant':     { badge:'#dcfce7', badgeTx:'#15803d', accent:'#22c55e' },
+            'Intermédiaire': { badge:'#fef3c7', badgeTx:'#b45309', accent:'#f59e0b' },
+            'Avancé':       { badge:'#fee2e2', badgeTx:'#dc2626', accent:'#ef4444' },
         };
         const lv = levelColors[c.level] || { badge:'#f3f4f6', badgeTx:'#374151', accent:'#6b7280' };
 
@@ -176,7 +181,7 @@ function renderCoursesList(courses) {
         const initials = (c.title||'?').split(' ').slice(0,2).map(w=>w[0]?.toUpperCase()||'').join('');
 
         return `
-        <div class="course-card-v2" onclick="location.href=(c.slug ? '/course/' + c.slug : '/course-detail?id=' + c.id)">
+        <div class="course-card-v2" onclick="openCourse('${c.id}','${c.slug||''}')">
 
             <!-- COVER -->
             <div class="ccv2-cover" style="background:${cover};">
@@ -200,11 +205,11 @@ function renderCoursesList(courses) {
                 <div class="ccv2-stats">
                     <span class="ccv2-stat">
                         <i class="fas fa-layer-group"></i>
-                        ${seqs} s\xc3\xa9q.
+                        ${seqs} séq.
                     </span>
                     <span class="ccv2-stat">
                         <i class="fas fa-file-alt"></i>
-                        ${sess} s\xc3\xa9ance${sess>1?'s':''}
+                        ${sess} séance${sess>1?'s':''}
                     </span>
                 </div>
                 <span class="ccv2-cta">
