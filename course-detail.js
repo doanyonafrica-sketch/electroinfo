@@ -1,6 +1,6 @@
 // course-detail.js - Détails du cours avec séquences et séances
 import { initializeApp } from 'https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js';
-import { getFirestore, doc, getDoc } from 'https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js';
+import { getFirestore, doc, getDoc, collection, query, where, getDocs } from 'https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js';
 import { getAuth, onAuthStateChanged, signOut } from 'https://www.gstatic.com/firebasejs/10.7.1/firebase-auth.js';
 
 // Configuration Firebase
@@ -100,38 +100,48 @@ if (logoutBtn) {
 }
 
 // ============================================
-// RÉCUPÉRER L'ID DU COURS DEPUIS L'URL
+// RÉCUPÉRER LE COURS DEPUIS L'URL (slug ou id)
 // ============================================
-function getCourseIdFromUrl() {
-    const urlParams = new URLSearchParams(window.location.search);
-    return urlParams.get('id');
+function getCourseParamFromUrl() {
+    // Nouveau format : /course/mon-slug
+    const pathParts = window.location.pathname.split('/');
+    if (pathParts[1] === 'course' && pathParts[2]) {
+        return { type: 'slug', value: decodeURIComponent(pathParts[2]) };
+    }
+    // Ancien format (fallback) : /course-detail?id=XXX
+    const id = new URLSearchParams(window.location.search).get('id');
+    if (id) return { type: 'id', value: id };
+    return null;
 }
 
 // ============================================
 // CHARGER LE COURS
 // ============================================
 async function loadCourse() {
-    const courseId = getCourseIdFromUrl();
-    
-    if (!courseId) {
+    const param = getCourseParamFromUrl();
+
+    if (!param) {
         showError();
         return;
     }
 
     try {
-        const docRef = doc(db, 'courses', courseId);
-        const docSnap = await getDoc(docRef);
+        let courseSnap = null;
 
-        if (!docSnap.exists()) {
-            showError();
-            return;
+        if (param.type === 'id') {
+            // Chargement direct par ID
+            const docRef = doc(db, 'courses', param.value);
+            courseSnap = await getDoc(docRef);
+            if (!courseSnap.exists()) { showError(); return; }
+        } else {
+            // Recherche par slug
+            const q = query(collection(db, 'courses'), where('slug', '==', param.value));
+            const snap = await getDocs(q);
+            if (snap.empty) { showError(); return; }
+            courseSnap = snap.docs[0];
         }
 
-        currentCourse = {
-            id: docSnap.id,
-            ...docSnap.data()
-        };
-
+        currentCourse = { id: courseSnap.id, ...courseSnap.data() };
         displayCourse();
     } catch (error) {
         console.error('Erreur chargement cours:', error);

@@ -176,7 +176,7 @@ function renderCoursesList(courses) {
         const initials = (c.title||'?').split(' ').slice(0,2).map(w=>w[0]?.toUpperCase()||'').join('');
 
         return `
-        <div class="course-card-v2" onclick="location.href='/course-detail?id=${c.id}'">
+        <div class="course-card-v2" onclick="location.href=(c.slug ? '/course/' + c.slug : '/course-detail?id=' + c.id)">
 
             <!-- COVER -->
             <div class="ccv2-cover" style="background:${cover};">

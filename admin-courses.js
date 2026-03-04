@@ -1185,6 +1185,21 @@ function updateSequenceNumbers() {
 }
 
 // ============================================
+// GÉNÉRATION DE SLUG SEO
+// ============================================
+function generateCourseSlug(title, diploma) {
+    const base = (diploma ? diploma + ' ' + title : title)
+        .toLowerCase()
+        .normalize('NFD').replace(/[\u0300-\u036f]/g, '')
+        .replace(/[^a-z0-9\s-]/g, '')
+        .trim()
+        .replace(/\s+/g, '-')
+        .replace(/-+/g, '-')
+        .substring(0, 80);
+    return base;
+}
+
+// ============================================
 // SOUMETTRE LE FORMULAIRE
 // ============================================
 document.getElementById('courseForm')?.addEventListener('submit', async (e) => {
@@ -1197,20 +1212,29 @@ document.getElementById('courseForm')?.addEventListener('submit', async (e) => {
         submitBtn.disabled = true;
         submitBtn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Enregistrement...';
         
+        const title = document.getElementById('courseTitle').value.trim();
+        const diploma = document.getElementById('courseDiploma').value;
+
         const courseData = {
-            title: document.getElementById('courseTitle').value.trim(),
+            title,
             description: document.getElementById('courseDescription').value.trim(),
-            diploma: document.getElementById('courseDiploma').value,
+            diploma,
             level: document.getElementById('courseLevel').value,
             sequences: await collectSequencesData(),
             updatedAt: serverTimestamp()
         };
         
         if (currentCourseId) {
+            // Garder le slug existant ; en générer un si absent
+            const existing = await getDoc(doc(db, 'courses', currentCourseId));
+            if (!existing.data()?.slug) {
+                courseData.slug = generateCourseSlug(title, diploma);
+            }
             await updateDoc(doc(db, 'courses', currentCourseId), courseData);
             alert('Cours modifié avec succès !');
         } else {
             courseData.createdAt = serverTimestamp();
+            courseData.slug = generateCourseSlug(title, diploma);
             await addDoc(collection(db, 'courses'), courseData);
             alert('Cours créé avec succès !');
         }
