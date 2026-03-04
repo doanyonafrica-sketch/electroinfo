@@ -104,11 +104,22 @@ if (logoutBtn) {
 // RÉCUPÉRER LE COURS DEPUIS L'URL (slug ou id)
 // ============================================
 function getCourseParamFromUrl() {
-    // Nouveau format : /course/mon-slug
+    // Nouveau format : /course/mon-slug (Firebase Hosting)
     const pathParts = window.location.pathname.split('/');
     if (pathParts[1] === 'course' && pathParts[2]) {
         return { type: 'slug', value: decodeURIComponent(pathParts[2]) };
     }
+
+    // GitHub Pages : le path réel est sauvegardé dans sessionStorage par 404.html
+    const redirectPath = sessionStorage.getItem('redirect_path');
+    if (redirectPath) {
+        sessionStorage.removeItem('redirect_path'); // nettoie après lecture
+        const parts = redirectPath.split('/');
+        if (parts[1] === 'course' && parts[2]) {
+            return { type: 'slug', value: decodeURIComponent(parts[2]) };
+        }
+    }
+
     // Ancien format (fallback) : /course-detail?id=XXX
     const id = new URLSearchParams(window.location.search).get('id');
     if (id) return { type: 'id', value: id };
