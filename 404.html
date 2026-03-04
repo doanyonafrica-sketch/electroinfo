@@ -4,7 +4,7 @@
     <meta charset="UTF-8">
     <script>
         // Technique SPA redirect pour GitHub Pages
-        // Sauvegarde l'URL demandée et redirige vers index.html
+        // Sauvegarde l'URL demandée et redirige vers la bonne page (sans .html)
         const path = window.location.pathname;
         const search = window.location.search;
         
@@ -13,19 +13,19 @@
         
         if (path.startsWith('/course/')) {
             sessionStorage.setItem('redirect_path', path);
-            target = '/course-detail.html';
+            target = '/course-detail';
         } else if (path.startsWith('/seance/')) {
             sessionStorage.setItem('redirect_path', path);
-            target = '/session-detail.html';
+            target = '/session-detail';
         } else if (path.startsWith('/article/')) {
             sessionStorage.setItem('redirect_path', path);
-            target = '/article-detail.html';
+            target = '/article-detail';
         } else if (path.startsWith('/session-detail')) {
-            target = '/session-detail.html' + search;
+            target = '/session-detail' + search;
         } else {
             // Autres pages propres (/about, /courses, etc.)
             const page = path.replace(/^\//, '') || 'index';
-            target = '/' + page + '.html';
+            target = '/' + page;
         }
         
         window.location.replace(target);
