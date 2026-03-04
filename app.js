@@ -521,7 +521,7 @@ document.addEventListener('click',(e)=>{if(navMenu&&mobileToggle&&!navMenu.conta
 window.addEventListener('online',()=>{hideOfflineIndicator();if(allArticles.length>0&&hasMoreArticles)loadArticles(false);});
 window.addEventListener('offline',()=>showOfflineIndicator());
 
-function getCategoryClass(category){return{INNOVATION:'blue','SECURITE':'red','NOUVEAUTE':'green',TUTO:'orange',DOMOTIQUE:'purple'}[category]||'blue';}
+function getCategoryClass(category){return{INNOVATION:'blue','SÉCURITÉ':'red','NOUVEAUTÉ':'green',TUTO:'orange',DOMOTIQUE:'purple',INFO:'cyan',ELECTRICITÉ:'yellow'}[category]||'blue';}
 function escapeHtml(text){if(!text)return'';const d=document.createElement('div');d.textContent=text;return d.innerHTML;}
 function showNotification(message,type='info'){const icons={success:'check-circle',error:'exclamation-circle',info:'info-circle'};const el=document.createElement('div');el.className=`notification ${type}`;el.innerHTML=`<i class="fas fa-${icons[type]}"></i><span>${escapeHtml(message)}</span>`;document.body.appendChild(el);requestAnimationFrame(()=>el.classList.add('show'));setTimeout(()=>{el.classList.remove('show');setTimeout(()=>el.remove(),300);},3000);}
 

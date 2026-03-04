@@ -83,8 +83,9 @@ export const ARTICLE_CATEGORIES = {
     SECURITY: 'SÉCURITÉ',
     NEWS: 'NOUVEAUTÉ',
     TUTORIAL: 'TUTO',
-    DOMOTICS: 'DOMOTIQUE'
-   
+    DOMOTICS: 'DOMOTIQUE',
+    INFO: 'INFO',
+    ELECTRICITY: 'ELECTRICITÉ'
 };
 /**
  * Configuration des catégories avec couleurs et icônes
@@ -120,6 +121,18 @@ export const CATEGORY_CONFIG = {
         color: '#8b5cf6',
         icon: 'fa-home',
         class: 'category-domotics'
+    },
+    [ARTICLE_CATEGORIES.INFO]: {
+        label: 'Info',
+        color: '#0ea5e9',
+        icon: 'fa-circle-info',
+        class: 'category-info'
+    },
+    [ARTICLE_CATEGORIES.ELECTRICITY]: {
+        label: 'Électricité',
+        color: '#f59e0b',
+        icon: 'fa-bolt',
+        class: 'category-electricity'
     }
 };
 
