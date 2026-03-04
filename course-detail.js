@@ -34,36 +34,37 @@ onAuthStateChanged(auth, async (user) => {
 
     if (user) {
         // Utilisateur connecté
-        loginBtn.classList.add('hidden');
-        userMenu.classList.remove('hidden');
+        loginBtn?.classList.add('hidden');
+        userMenu?.classList.remove('hidden');
 
         // Afficher nom et avatar
         const displayName = user.displayName || user.email.split('@')[0];
-        document.getElementById('userName').textContent = displayName;
-        document.getElementById('userNameDropdown').textContent = displayName;
-        document.getElementById('userEmailDropdown').textContent = user.email;
+        const el = id => document.getElementById(id);
+        if (el('userName')) el('userName').textContent = displayName;
+        if (el('userNameDropdown')) el('userNameDropdown').textContent = displayName;
+        if (el('userEmailDropdown')) el('userEmailDropdown').textContent = user.email;
 
         const avatarUrl = user.photoURL || `https://ui-avatars.com/api/?name=${encodeURIComponent(displayName)}&background=1e40af&color=fff`;
-        document.getElementById('userAvatar').src = avatarUrl;
-        document.getElementById('userAvatarDropdown').src = avatarUrl;
+        if (el('userAvatar')) el('userAvatar').src = avatarUrl;
+        if (el('userAvatarDropdown')) el('userAvatarDropdown').src = avatarUrl;
 
         // Vérifier si admin
         try {
             const userDocRef = doc(db, 'users', user.uid);
             const userDoc = await getDoc(userDocRef);
             if (userDoc.exists() && userDoc.data().role === 'admin') {
-                adminLink.classList.remove('hidden');
-                adminDivider.classList.remove('hidden');
+                adminLink?.classList.remove('hidden');
+                adminDivider?.classList.remove('hidden');
             }
         } catch (error) {
             console.error('Erreur vérification admin:', error);
         }
     } else {
         // Non connecté
-        loginBtn.classList.remove('hidden');
-        userMenu.classList.add('hidden');
-        adminLink.classList.add('hidden');
-        adminDivider.classList.add('hidden');
+        loginBtn?.classList.remove('hidden');
+        userMenu?.classList.add('hidden');
+        adminLink?.classList.add('hidden');
+        adminDivider?.classList.add('hidden');
     }
 });
 
@@ -154,8 +155,8 @@ async function loadCourse() {
 // ============================================
 function displayCourse() {
     // Masquer le loading
-    document.getElementById('loadingState').classList.add('hidden');
-    document.getElementById('courseContainer').classList.remove('hidden');
+    document.getElementById('loadingState')?.classList.add('hidden');
+    document.getElementById('courseContainer')?.classList.remove('hidden');
 
     // Mettre à jour le titre de la page
     document.title = `${currentCourse.title} | ElectroInfo`;
@@ -330,8 +331,8 @@ window.openSession = function(seqIndex, sessionIndex) {
 // AFFICHER L'ERREUR
 // ============================================
 function showError() {
-    document.getElementById('loadingState').classList.add('hidden');
-    document.getElementById('errorState').classList.remove('hidden');
+    document.getElementById('loadingState')?.classList.add('hidden');
+    document.getElementById('errorState')?.classList.remove('hidden');
 }
 
 // ============================================
