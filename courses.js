@@ -365,22 +365,31 @@ let sdSeqIdx  = 0;
 let sdSessIdx = 0;
 
 async function initSessionPage() {
-    // Nouveau format SEO : /seance/cours-slug/seq-N/seance-N
+    // GitHub Pages : récupère le path depuis sessionStorage (priorité absolue)
+    const redirectPath = sessionStorage.getItem('redirect_path');
+    if (redirectPath) {
+        sessionStorage.removeItem('redirect_path');
+        const rParts = redirectPath.split('/');
+        if (rParts[1] === 'seance' && rParts[2]) {
+            const courseSlug = decodeURIComponent(rParts[2]);
+            sdSeqIdx  = parseInt((rParts[3] || 'seq-1').replace('seq-', '')) - 1;
+            sdSessIdx = parseInt((rParts[4] || 'seance-1').replace('seance-', '')) - 1;
+            try {
+                const snap = await getDocs(query(collection(db,'courses'), where('slug','==',courseSlug)));
+                if (snap.empty) { sdShowError('Cours introuvable.'); return; }
+                sdCourse = { id: snap.docs[0].id, ...snap.docs[0].data() };
+                sdRender();
+            } catch(e) { console.error(e); sdShowError('Erreur réseau.'); }
+            return;
+        }
+    }
+
+    // Nouveau format SEO direct : /seance/cours-slug/seq-N/seance-N
     const parts = location.pathname.split('/');
     if (parts[1] === 'seance' && parts[2]) {
         const courseSlug = decodeURIComponent(parts[2]);
         sdSeqIdx  = parseInt((parts[3] || 'seq-1').replace('seq-', '')) - 1;
         sdSessIdx = parseInt((parts[4] || 'seance-1').replace('seance-', '')) - 1;
-
-        // GitHub Pages : récupère le path depuis sessionStorage
-        const redirectPath = sessionStorage.getItem('redirect_path');
-        if (redirectPath) {
-            sessionStorage.removeItem('redirect_path');
-            const rParts = redirectPath.split('/');
-            sdSeqIdx  = parseInt((rParts[3] || 'seq-1').replace('seq-', '')) - 1;
-            sdSessIdx = parseInt((rParts[4] || 'seance-1').replace('seance-', '')) - 1;
-        }
-
         try {
             const snap = await getDocs(query(collection(db,'courses'), where('slug','==',courseSlug)));
             if (snap.empty) { sdShowError('Cours introuvable.'); return; }
