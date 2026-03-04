@@ -91,7 +91,7 @@ if (logoutBtn) {
     logoutBtn.addEventListener('click', async () => {
         try {
             await signOut(auth);
-            window.location.href = 'index.html';
+            window.location.href = '/';
         } catch (error) {
             console.error('Erreur déconnexion:', error);
             alert('Erreur lors de la déconnexion');
@@ -313,7 +313,7 @@ window.openSession = function(seqIndex, sessionIndex) {
     if (!currentCourse) return;
     
     // Rediriger vers la page de détails de la séance
-    window.location.href = `session-detail.html?courseId=${currentCourse.id}&seqIndex=${seqIndex}&sessionIndex=${sessionIndex}`;
+    window.location.href = `/session-detail?courseId=${currentCourse.id}&seqIndex=${seqIndex}&sessionIndex=${sessionIndex}`;
 };
 
 // ============================================

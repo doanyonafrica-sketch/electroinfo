@@ -368,7 +368,12 @@ onAuthStateChanged(auth, (user) => {
 async function loadArticle() {
     const urlParams = new URLSearchParams(window.location.search);
     const articleId = urlParams.get('id');
-    const slug      = urlParams.get('slug');
+
+    // Slug peut venir de /article/mon-slug (path) OU ?slug=mon-slug (legacy)
+    const pathParts = window.location.pathname.split('/');
+    const slug = pathParts[1] === 'article' && pathParts[2]
+        ? decodeURIComponent(pathParts[2])
+        : urlParams.get('slug');
 
     console.log('🔍 Chargement article:', { id: articleId, slug });
 
@@ -846,7 +851,7 @@ function renderRelatedArticles(articles) {
     container.innerHTML = articles.map(article => {
         const articleUrl = article.slug
             ? `/article/${article.slug}`
-            : `/article-detail.html?id=${article.id}`;
+            : `/article-detail?id=${article.id}`;
 
         // Titre traduit de l'article connexe
         const title    = getTranslated(article, 'title') || article.title;
@@ -980,7 +985,7 @@ window.copyLink = function() {
 };
 
 window.filterByTag = function(tag) {
-    window.location.href = `/articles.html?tag=${encodeURIComponent(tag)}`;
+    window.location.href = `/articles?tag=${encodeURIComponent(tag)}`;
 };
 
 window.openNewsletterModal = function() {

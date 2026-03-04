@@ -45,7 +45,7 @@
       "contactPoint": {
         "@type": "ContactPoint",
         "contactType": "customer support",
-        "url": "https://electroinfo.online/contact.html"
+        "url": "https://electroinfo.online/contact"
       }
     }
     </script>
@@ -61,7 +61,7 @@
       "inLanguage": "fr",
       "potentialAction": {
         "@type": "SearchAction",
-        "target": "https://electroinfo.online/articles.html?q={search_term_string}",
+        "target": "https://electroinfo.online/articles?q={search_term_string}",
         "query-input": "required name=search_term_string"
       }
     }
@@ -78,28 +78,28 @@
           "@type": "ListItem",
           "position": 1,
           "name": "Actualités électricité industrielle",
-          "url": "https://electroinfo.online/articles.html",
+          "url": "https://electroinfo.online/articles",
           "description": "Les dernières actualités, innovations et tutoriels en électricité industrielle"
         },
         {
           "@type": "ListItem",
           "position": 2,
           "name": "Cours d'électricité BAC PRO, BEP, CAP, BTS, Licence",
-          "url": "https://electroinfo.online/courses.html",
+          "url": "https://electroinfo.online/courses",
           "description": "Cours complets d'électricité pour toutes les formations professionnelles au Togo"
         },
         {
           "@type": "ListItem",
           "position": 3,
           "name": "Tutoriels pratiques électricité",
-          "url": "https://electroinfo.online/articles.html?category=TUTO",
+          "url": "https://electroinfo.online/articles?category=TUTO",
           "description": "Guides pratiques et tutoriels pour maîtriser les techniques électriques"
         },
         {
           "@type": "ListItem",
           "position": 4,
           "name": "Sécurité électrique et normes",
-          "url": "https://electroinfo.online/articles.html?category=SÉCURITÉ",
+          "url": "https://electroinfo.online/articles?category=SÉCURITÉ",
           "description": "Normes, réglementations et bonnes pratiques de sécurité électrique"
         }
       ]
@@ -751,15 +751,15 @@
 
             <div class="nav-menu" id="mobileMenu">
                 <div class="nav-links">
-                    <a href="index.html" class="nav-link active" data-i18n="nav_home">Accueil</a>
-                    <a href="articles.html" class="nav-link" data-i18n="nav_articles">Articles</a>
-                    <a href="courses.html" class="nav-link" data-i18n="nav_courses">Cours</a>
-                    <a href="about.html" class="nav-link" data-i18n="nav_about">À propos</a>
-                    <a href="contact.html" class="nav-link" data-i18n="nav_contact">Contact</a>
+                    <a href="/" class="nav-link active" data-i18n="nav_home">Accueil</a>
+                    <a href="/articles" class="nav-link" data-i18n="nav_articles">Articles</a>
+                    <a href="/courses" class="nav-link" data-i18n="nav_courses">Cours</a>
+                    <a href="/about" class="nav-link" data-i18n="nav_about">À propos</a>
+                    <a href="/contact" class="nav-link" data-i18n="nav_contact">Contact</a>
                 </div>
                 <div class="nav-actions">
                     <!-- Non connecté -->
-                    <a href="auth.html" id="loginBtn" class="btn btn-primary">
+                    <a href="/auth" id="loginBtn" class="btn btn-primary">
                         <i class="fas fa-sign-in-alt"></i>
                         <span class="btn-text" data-i18n="nav_login">Connexion</span>
                     </a>
@@ -780,11 +780,11 @@
                                 </div>
                             </div>
                             <div class="dropdown-divider"></div>
-                            <a href="profile.html" class="dropdown-item">
+                            <a href="/profile" class="dropdown-item">
                                 <i class="fas fa-user"></i> <span data-i18n="nav_profile">Mon profil</span>
                             </a>
                             <div class="dropdown-divider hidden" id="adminDivider"></div>
-                            <a href="/admin.html" class="dropdown-item hidden" id="adminLink">
+                            <a href="/admin" class="dropdown-item hidden" id="adminLink">
                                 <i class="fas fa-cog"></i> <span data-i18n="nav_admin">Administration</span>
                             </a>
                             <div class="dropdown-divider"></div>
@@ -803,13 +803,13 @@
         <h1>ElectroInfo — Actualités et Cours d'Électricité Industrielle</h1>
         <p>ElectroInfo est votre portail d'expertise en électricité industrielle au Togo. Nous proposons des actualités, des articles techniques et des cours complets pour les formations BAC PRO, BEP, CAP, BTS et Licence en électricité et électrotechnique.</p>
         <nav>
-            <a href="/articles.html">Articles et actualités électricité</a>
-            <a href="/courses.html">Cours d'électricité BAC PRO, BEP, CAP, BTS, Licence</a>
-            <a href="/articles.html?category=TUTO">Tutoriels pratiques électricité</a>
-            <a href="/articles.html?category=SÉCURITÉ">Sécurité électrique et normes</a>
-            <a href="/articles.html?category=INNOVATION">Innovations en électricité industrielle</a>
-            <a href="/about.html">À propos d'ElectroInfo</a>
-            <a href="/contact.html">Contact</a>
+            <a href="/articles">Articles et actualités électricité</a>
+            <a href="/courses">Cours d'électricité BAC PRO, BEP, CAP, BTS, Licence</a>
+            <a href="/articles?category=TUTO">Tutoriels pratiques électricité</a>
+            <a href="/articles?category=SÉCURITÉ">Sécurité électrique et normes</a>
+            <a href="/articles?category=INNOVATION">Innovations en électricité industrielle</a>
+            <a href="/about">À propos d'ElectroInfo</a>
+            <a href="/contact">Contact</a>
         </nav>
     </div>
 
@@ -822,10 +822,10 @@
             </h1>
             <p class="subtitle" data-i18n="hero_subtitle">Votre portail d'expertise en électricité industrielle. Actualités, cours complets et ressources pour professionnels et étudiants.</p>
             <div class="hero-cta">
-                <a href="articles.html" class="btn btn-hero-primary">
+                <a href="/articles" class="btn btn-hero-primary">
                     <i class="fas fa-newspaper"></i> <span data-i18n="hero_btn_articles">Découvrir les articles</span>
                 </a>
-                <a href="courses.html" class="btn btn-hero-secondary">
+                <a href="/courses" class="btn btn-hero-secondary">
                     <i class="fas fa-graduation-cap"></i> <span data-i18n="hero_btn_courses">Voir les cours</span>
                 </a>
             </div>
@@ -841,25 +841,25 @@
             </div>
 
             <div class="features-grid">
-                <div class="feature-card" onclick="window.location.href='articles.html'">
+                <div class="feature-card" onclick="window.location.href='/articles'">
                     <div class="feature-icon"><i class="fas fa-newspaper"></i></div>
                     <h3 data-i18n="feat_news_title">Actualités</h3>
                     <p data-i18n="feat_news_desc">Les dernières innovations et tendances en électricité industrielle, mises à jour régulièrement.</p>
                 </div>
 
-                <div class="feature-card" onclick="window.location.href='courses.html'">
+                <div class="feature-card" onclick="window.location.href='/courses'">
                     <div class="feature-icon"><i class="fas fa-graduation-cap"></i></div>
                     <h3 data-i18n="feat_courses_title">Cours Complets</h3>
                     <p data-i18n="feat_courses_desc">Formations pour BAC PRO, BEP, CAP, BTS et Licence en électricité et électrotechnique.</p>
                 </div>
 
-                <div class="feature-card" onclick="window.location.href='articles.html?category=TUTO'">
+                <div class="feature-card" onclick="window.location.href='/articles?category=TUTO'">
                     <div class="feature-icon"><i class="fas fa-tools"></i></div>
                     <h3 data-i18n="feat_tuto_title">Tutoriels</h3>
                     <p data-i18n="feat_tuto_desc">Guides pratiques et tutoriels détaillés pour maîtriser les techniques électriques.</p>
                 </div>
 
-                <div class="feature-card" onclick="window.location.href='articles.html?category=SÉCURITÉ'">
+                <div class="feature-card" onclick="window.location.href='/articles?category=SÉCURITÉ'">
                     <div class="feature-icon"><i class="fas fa-shield-alt"></i></div>
                     <h3 data-i18n="feat_security_title">Sécurité</h3>
                     <p data-i18n="feat_security_desc">Normes, réglementations et bonnes pratiques pour travailler en toute sécurité.</p>
@@ -871,7 +871,7 @@
                     <p data-i18n="feat_newsletter_desc">Recevez les derniers articles et actualités directement dans votre boîte mail.</p>
                 </div>
 
-                <div class="feature-card" onclick="window.location.href='about.html'">
+                <div class="feature-card" onclick="window.location.href='/about'">
                     <div class="feature-icon"><i class="fas fa-users"></i></div>
                     <h3 data-i18n="feat_community_title">Communauté</h3>
                     <p data-i18n="feat_community_desc">Rejoignez une communauté de passionnés et professionnels de l'électricité.</p>
@@ -896,7 +896,7 @@
             </div>
 
             <div class="view-all-container">
-                <a href="articles.html" class="btn btn-primary btn-lg">
+                <a href="/articles" class="btn btn-primary btn-lg">
                     <i class="fas fa-th"></i> <span data-i18n="view_all">Voir tous les articles</span>
                 </a>
             </div>
@@ -939,30 +939,30 @@
                 <div class="footer-section">
                     <h4 class="footer-subtitle" data-i18n="footer_nav">Navigation</h4>
                     <ul class="footer-links">
-                        <li><a href="index.html">Accueil</a></li>
-                        <li><a href="articles.html">Articles</a></li>
-                        <li><a href="courses.html">Cours</a></li>
-                        <li><a href="about.html">À propos</a></li>
-                        <li><a href="contact.html">Contact</a></li>
+                        <li><a href="/">Accueil</a></li>
+                        <li><a href="/articles">Articles</a></li>
+                        <li><a href="/courses">Cours</a></li>
+                        <li><a href="/about">À propos</a></li>
+                        <li><a href="/contact">Contact</a></li>
                     </ul>
                 </div>
 
                 <div class="footer-section">
                     <h4 class="footer-subtitle" data-i18n="footer_resources">Ressources</h4>
                     <ul class="footer-links">
-                        <li><a href="articles.html?category=SÉCURITÉ">Sécurité</a></li>
-                        <li><a href="articles.html?category=INNOVATION">Innovations</a></li>
-                        <li><a href="articles.html?category=TUTO">Tutoriels</a></li>
-                        <li><a href="archives.html">Archives</a></li>
+                        <li><a href="/articles?category=SÉCURITÉ">Sécurité</a></li>
+                        <li><a href="/articles?category=INNOVATION">Innovations</a></li>
+                        <li><a href="/articles?category=TUTO">Tutoriels</a></li>
+                        <li><a href="/archives">Archives</a></li>
                     </ul>
                 </div>
 
                 <div class="footer-section">
                     <h4 class="footer-subtitle" data-i18n="footer_legal">Informations Légales</h4>
                     <ul class="footer-links">
-                        <li><a href="privacy.html" data-i18n="footer_privacy">Politique de confidentialité</a></li>
-                        <li><a href="terms.html" data-i18n="footer_terms">Conditions d'utilisation</a></li>
-                        <li><a href="mentions-legales.html" data-i18n="footer_legal_mentions">Mentions légales</a></li>
+                        <li><a href="/privacy" data-i18n="footer_privacy">Politique de confidentialité</a></li>
+                        <li><a href="/terms" data-i18n="footer_terms">Conditions d'utilisation</a></li>
+                        <li><a href="/mentions-legales" data-i18n="footer_legal_mentions">Mentions légales</a></li>
                         <li>
                             <a href="#" onclick="window.CookieConsent.show(); return false;" class="footer-consent-link">
                                 <i class="fas fa-cookie-bite"></i> Gestion des cookies

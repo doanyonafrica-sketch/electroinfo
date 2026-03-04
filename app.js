@@ -334,7 +334,7 @@ function updateLoadMoreButton() {
 }
 
 function getArticleUrl(article) {
-    return article.slug ? `/article/${article.slug}` : `/article-detail.html?id=${article.id}`;
+    return article.slug ? `/article/${article.slug}` : `/article-detail?id=${article.id}`;
 }
 
 function getArticleDate(article) {
@@ -468,7 +468,7 @@ function displayPopularArticles(articles) {
     const viewsLabel = { fr: 'vues', en: 'views', ewe: 'kpɔkpɔwo' }[getCurrentLang()] || 'vues';
     popularArticles.innerHTML = articles.map(article => {
         const imgUrl = article.imageUrl || 'https://images.unsplash.com/photo-1518770660439-4636190af475?w=400';
-        const articleUrl = article.slug ? `/article/${article.slug}` : `/article-detail.html?id=${article.id}`;
+        const articleUrl = article.slug ? `/article/${article.slug}` : `/article-detail?id=${article.id}`;
         const title = getTranslated(article, 'title');
         return `<div class="popular-article" onclick="window.location.href='${articleUrl}'">
             <img src="${imgUrl}" alt="${escapeHtml(title)}" onerror="this.src='https://images.unsplash.com/photo-1518770660439-4636190af475?w=400'">

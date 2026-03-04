@@ -39,6 +39,7 @@ export const COLLECTIONS = {
  */
 export const USER_ROLES = {
     ADMIN: 'admin',
+    SUPERADMIN: 'superadmin',
     USER: 'user',
     GUEST: 'guest'
 };
@@ -384,24 +385,29 @@ export const SUCCESS_MESSAGES = {
 // ============================================
 
 /**
- * Routes de l'application
+ * Routes de l'application (sans extension .html)
  * @constant {Object}
  */
 export const ROUTES = {
     HOME: '/',
-    ARTICLES: '/articles.html',
-    ARTICLE_DETAIL: '/article-detail.html',
-    COURSES: '/courses.html',
-    COURSE_DETAIL: '/course-detail.html',
-    SESSION_DETAIL: '/session-detail.html',
-    ARCHIVES: '/archives.html',
-    ABOUT: '/about.html',
-    CONTACT: '/contact.html',
-    AUTH: '/auth.html',
-    ADMIN: '/admin.html',
-    ADMIN_COURSES: '/admin-courses.html',
-    ADMIN_CREATE: '/admin_créer.html',
-    MENTIONS: '/mentions-legales.html'
+    ARTICLES: '/articles',
+    ARTICLE_DETAIL: '/article-detail',
+    COURSES: '/courses',
+    COURSE_DETAIL: '/course-detail',
+    SESSION_DETAIL: '/session-detail',
+    ARCHIVES: '/archives',
+    ABOUT: '/about',
+    CONTACT: '/contact',
+    AUTH: '/auth',
+    PROFILE: '/profile',
+    DASHBOARD: '/dashboard',
+    ADMIN: '/admin',
+    ADMIN_USERS: '/admin-users',
+    ADMIN_COURSES: '/admin-courses',
+    ADMIN_NEWSLETTER: '/admin-newsletter',
+    MENTIONS: '/mentions-legales',
+    PRIVACY: '/privacy',
+    TERMS: '/terms'
 };
 
 /**

@@ -69,7 +69,7 @@ onAuthStateChanged(auth, async (user) => {
 });
 
 $id('logoutBtn')?.addEventListener('click', async () => {
-    await signOut(auth); window.location.href = 'index.html';
+    await signOut(auth); window.location.href = '/';
 });
 $id('mobileToggle')?.addEventListener('click', () => {
     $id('mobileMenu')?.classList.toggle('open');
@@ -176,7 +176,7 @@ function renderCoursesList(courses) {
         const initials = (c.title||'?').split(' ').slice(0,2).map(w=>w[0]?.toUpperCase()||'').join('');
 
         return `
-        <div class="course-card-v2" onclick="location.href='course-detail.html?id=${c.id}'">
+        <div class="course-card-v2" onclick="location.href='/course-detail?id=${c.id}'">
 
             <!-- COVER -->
             <div class="ccv2-cover" style="background:${cover};">
@@ -292,7 +292,7 @@ function renderSessionItems(sessions, si) {
         </div>`;
     return sessions.map((sess,ssi) => `
         <div class="session-item"
-             onclick="location.href='session-detail.html?courseId=${currentCourse.id}&seqIndex=${si}&sessionIndex=${ssi}'">
+             onclick="location.href='/session-detail?courseId=${currentCourse.id}&seqIndex=${si}&sessionIndex=${ssi}'">
             <div class="session-icon"><i class="fas fa-play"></i></div>
             <div class="session-info">
                 <div class="session-number">Séance ${ssi+1}</div>
@@ -351,7 +351,7 @@ function sdRender() {
     if (tb) tb.innerHTML = `<strong>${esc(sdCourse.title)}</strong>`;
 
     const bl = $id('backLink');
-    if (bl) bl.href = `course-detail.html?id=${sdCourse.id}`;
+    if (bl) bl.href = `/course-detail?id=${sdCourse.id}`;
 
     sdBuildSidebar();
     sdRenderSession();
@@ -487,7 +487,7 @@ function sdShowError(msg) {
     if (ls) ls.innerHTML = `
         <i class="fas fa-exclamation-triangle" style="color:#ef4444;font-size:2.5rem;"></i>
         <p style="font-size:1rem;font-weight:600;margin-top:1rem;">${msg}</p>
-        <a href="courses.html"
+        <a href="/courses"
            style="margin-top:1rem;padding:.6rem 1.5rem;background:#1d4ed8;color:white;
                   border-radius:7px;text-decoration:none;font-weight:700;
                   display:inline-flex;align-items:center;gap:.5rem;">
