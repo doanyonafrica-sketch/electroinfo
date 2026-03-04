@@ -8,7 +8,7 @@
 import { initializeApp }          from 'https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js';
 import { getAuth, onAuthStateChanged, signOut }
                                   from 'https://www.gstatic.com/firebasejs/10.7.1/firebase-auth.js';
-import { getFirestore, collection, getDocs, query, orderBy, doc, getDoc }
+import { getFirestore, collection, getDocs, query, orderBy, where, doc, getDoc }
                                   from 'https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js';
 
 // ── Firebase ──────────────────────────────────────────────
@@ -28,7 +28,8 @@ const auth = getAuth(app);
 const PAGE = (() => {
     const p = location.pathname;
     if (p.includes('session-detail'))  return 'session';
-    if (p.includes('course-detail'))   return 'course';
+    // Supporte /course-detail?id=XXX ET /course/mon-slug
+    if (p.includes('course-detail') || (p.startsWith('/course/') && p.split('/')[2])) return 'course';
     return 'courses';
 })();
 
@@ -205,11 +206,11 @@ function renderCoursesList(courses) {
                 <div class="ccv2-stats">
                     <span class="ccv2-stat">
                         <i class="fas fa-layer-group"></i>
-                        ${seqs} séq.
+                    ${seqs} s\u00e9q.
                     </span>
                     <span class="ccv2-stat">
                         <i class="fas fa-file-alt"></i>
-                        ${sess} séance${sess>1?'s':''}
+                        ${sess} s\u00e9ance${sess>1?'s':''}
                     </span>
                 </div>
                 <span class="ccv2-cta">
@@ -226,6 +227,19 @@ function renderCoursesList(courses) {
 let currentCourse = null;
 
 async function initCourseDetailPage() {
+    // Nouveau format : /course/mon-slug
+    const pathParts = location.pathname.split('/');
+    if (pathParts[1] === 'course' && pathParts[2]) {
+        const slug = decodeURIComponent(pathParts[2]);
+        try {
+            const snap = await getDocs(query(collection(db, 'courses'), where('slug', '==', slug)));
+            if (snap.empty) { showErrorDetail(); return; }
+            currentCourse = { id: snap.docs[0].id, ...snap.docs[0].data() };
+            renderCourseDetail();
+        } catch(e) { console.error(e); showErrorDetail(); }
+        return;
+    }
+    // Ancien format (fallback) : /course-detail?id=XXX
     const id = new URLSearchParams(location.search).get('id');
     if (!id) { showErrorDetail(); return; }
     try {
