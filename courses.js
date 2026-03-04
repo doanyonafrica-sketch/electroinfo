@@ -335,8 +335,9 @@ function renderSessionItems(sessions, si) {
                 ${sess.pdfUrl ? `<div class="session-has-pdf">
                     <i class="fas fa-file-pdf"></i> PDF disponible</div>` : ''}
             </div>
-            <i class="fas fa-chevron-right session-arrow"></i>`;
-        </div>`).join('');
+            <i class="fas fa-chevron-right session-arrow"></i>
+        </div>`;
+    }).join('');
 }
 
 window.toggleSeq = function(i) {
@@ -381,7 +382,6 @@ async function initSessionPage() {
         }
 
         try {
-            const { getDocs: gd, query: q, collection: col, where: wh } = await import('https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js');
             const snap = await getDocs(query(collection(db,'courses'), where('slug','==',courseSlug)));
             if (snap.empty) { sdShowError('Cours introuvable.'); return; }
             sdCourse = { id: snap.docs[0].id, ...snap.docs[0].data() };
