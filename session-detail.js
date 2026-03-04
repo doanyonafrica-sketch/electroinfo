@@ -45,8 +45,8 @@ onAuthStateChanged(auth, async (user) => {
     const adminDivider= $('adminDivider');
 
     if (user) {
-        loginBtn.classList.add('hidden');
-        userMenu.classList.remove('hidden');
+        loginBtn?.classList.add('hidden');
+        userMenu?.classList.remove('hidden');
 
         // Nom & avatar
         const displayName = user.displayName || user.email.split('@')[0];
@@ -78,8 +78,8 @@ onAuthStateChanged(auth, async (user) => {
             }
         }
     } else {
-        loginBtn.classList.remove('hidden');
-        userMenu.classList.add('hidden');
+        loginBtn?.classList.remove('hidden');
+        userMenu?.classList.add('hidden');
         adminLink.classList.add('hidden');
         adminDivider.classList.add('hidden');
     }
@@ -109,7 +109,7 @@ document.addEventListener('click', (e) => {
 $('logoutBtn')?.addEventListener('click', async () => {
     try {
         await signOut(auth);
-        window.location.href = 'index.html';
+        window.location.href = '/';
     } catch (err) {
         console.error('Erreur déconnexion:', err);
         alert('Erreur lors de la déconnexion');
@@ -178,7 +178,7 @@ async function loadSession() {
 
     if (!courseId) {
         alert('Cours introuvable');
-        return (window.location.href = 'courses.html');
+        return (window.location.href = '/courses');
     }
 
     try {
@@ -186,7 +186,7 @@ async function loadSession() {
 
         if (!docSnap.exists()) {
             alert('Cours introuvable');
-            return (window.location.href = 'courses.html');
+            return (window.location.href = '/courses');
         }
 
         state.course       = { id: docSnap.id, ...docSnap.data() };
@@ -197,7 +197,7 @@ async function loadSession() {
     } catch (err) {
         console.error('Erreur chargement séance:', err);
         alert('Erreur lors du chargement de la séance');
-        window.location.href = 'courses.html';
+        window.location.href = '/courses';
     }
 }
 
@@ -225,7 +225,7 @@ function displaySession() {
     $('sessionBadge').textContent   = `Séance ${state.sessionIndex + 1}`;
     $('sessionTitle').textContent   = session.title || 'Séance';
     $('sessionContent').innerHTML   = session.content || '<p>Aucun contenu disponible.</p>';
-    $('backButton').href             = `course-detail.html?id=${state.course.id}`;
+    $('backButton').href             = `/course-detail?id=${state.course.id}`;
 
     // PDF
     const pdfSection = $('pdfSection');
@@ -249,7 +249,7 @@ function setupNavigation(sequences, sessions) {
     const nextBtn = $('nextSessionBtn');
 
     const { course, seqIndex, sessionIndex } = state;
-    const baseUrl = `session-detail.html?courseId=${course.id}`;
+    const baseUrl = `/session-detail?courseId=${course.id}`;
 
     // --- Séance précédente ---
     let prevHref = null;
@@ -294,7 +294,7 @@ function setNavBtn(btn, href) {
 // Redirige vers la page du cours en cas d'erreur de séquence/séance
 function redirectToCourse() {
     alert('Séance introuvable');
-    window.location.href = `course-detail.html?id=${state.course.id}`;
+    window.location.href = `/course-detail?id=${state.course.id}`;
 }
 
 // ============================================
