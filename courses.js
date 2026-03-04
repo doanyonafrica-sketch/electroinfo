@@ -415,42 +415,17 @@ async function initSessionPage() {
 }
 
 function sdRender() {
-    const ls = $id('loading-screen');
-    if (ls) ls.style.display = 'none';
+    // IDs correspondant à session-detail.html
+    hide('loadingState');
+    show('sessionPage');
 
-    const tb = $id('tbCourseName');
-    if (tb) tb.innerHTML = `<strong>${esc(sdCourse.title)}</strong>`;
-
-    const bl = $id('backLink');
+    const bl = $id('backButton');
     if (bl) bl.href = sdCourse.slug ? `/course/${sdCourse.slug}` : `/course-detail?id=${sdCourse.id}`;
 
-    sdBuildSidebar();
     sdRenderSession();
 }
 
-function sdBuildSidebar() {
-    const nav = $id('sidebarNav');
-    if (!nav) return;
-    nav.innerHTML = (sdCourse.sequences||[]).map((seq,si) => `
-        <div class="seq-block">
-            <div class="seq-title-row">
-                <i class="fas fa-folder"></i>
-                ${esc(seq.title||`Séquence ${si+1}`)}
-            </div>
-            ${(seq.sessions||[]).map((sess,ssi) => `
-                <div class="sess-item ${si===sdSeqIdx&&ssi===sdSessIdx?'active':''}"
-                     id="nav-${si}-${ssi}"
-                     onclick="sdGoTo(${si},${ssi})">
-                    <div class="sess-icon">
-                        <i class="fas fa-${si===sdSeqIdx&&ssi===sdSessIdx?'play':'file-alt'}"></i>
-                    </div>
-                    <div class="sess-text">
-                        <div class="sess-num">Séance ${ssi+1}</div>
-                        <div class="sess-name">${esc(sess.title||`Séance ${ssi+1}`)}</div>
-                    </div>
-                </div>`).join('')}
-        </div>`).join('');
-}
+// (sidebar supprimée — session-detail.html n'a pas de sidebarNav)
 
 function sdRenderSession() {
     const seqs = sdCourse.sequences || [];
@@ -458,10 +433,12 @@ function sdRenderSession() {
     const sess = seq?.sessions?.[sdSessIdx];
 
     document.title = `${sess?.title||'Séance'} | ElectroInfo`;
-    setText('bandSeq',   seq?.title  || `Séquence ${sdSeqIdx+1}`);
-    setText('bandTitle', sess?.title || `Séance ${sdSessIdx+1}`);
 
-    const contentEl = $id('session-content');
+    // IDs du HTML actuel : sessionBadge, sessionTitle, sessionContent
+    setText('sessionBadge', `Séance ${sdSessIdx + 1}`);
+    setText('sessionTitle', sess?.title || `Séance ${sdSessIdx + 1}`);
+
+    const contentEl = $id('sessionContent');
     if (contentEl) {
         contentEl.innerHTML = sess?.content
             ? sess.content
@@ -471,49 +448,58 @@ function sdRenderSession() {
                </div>`;
     }
 
-    const pdfBlock = $id('pdf-block');
-    const pdfLink  = $id('pdfLink');
+    // PDF — IDs du HTML actuel : pdfSection, pdfDownloadBtn
     if (sess?.pdfUrl) {
-        if (pdfBlock) pdfBlock.style.display = 'flex';
-        if (pdfLink)  pdfLink.href = sess.pdfUrl;
+        show('pdfSection');
+        setAttr('pdfDownloadBtn', 'href', sess.pdfUrl);
     } else {
-        if (pdfBlock) pdfBlock.style.display = 'none';
+        hide('pdfSection');
     }
 
+    // Bouton retour
+    const bl = $id('backButton');
+    if (bl) bl.href = sdCourse.slug ? `/course/${sdCourse.slug}` : `/course-detail?id=${sdCourse.id}`;
+
     sdUpdateNav();
-    sdUpdateSidebarHighlight();
-    const reader = $id('reader');
+    const reader = $id('sessionContent');
     if (reader) reader.scrollTop = 0;
 }
 
 function sdUpdateNav() {
     const seqs = sdCourse.sequences || [];
-    let total = 0, current = 0;
-    seqs.forEach((s,si) => {
-        (s.sessions||[]).forEach((_,ssi) => {
-            total++;
-            if (si < sdSeqIdx || (si===sdSeqIdx && ssi<=sdSessIdx)) current = total;
-        });
-    });
-
-    const isFirst = sdSeqIdx===0 && sdSessIdx===0;
-    const lastSi  = seqs.length-1;
-    const lastSsi = (seqs[lastSi]?.sessions?.length||1)-1;
-    const isLast  = sdSeqIdx===lastSi && sdSessIdx===lastSsi;
-
-    const prev = $id('prevBtn'); const next = $id('nextBtn');
-    if (prev) prev.disabled = isFirst;
-    if (next) next.disabled = isLast;
-
     const sess = seqs[sdSeqIdx]?.sessions?.[sdSessIdx];
-    setText('navTitle',   sess?.title || `Séance ${sdSessIdx+1}`);
-    setText('navCounter', `${current} / ${total}`);
 
-    const pct = total > 0 ? Math.round((current/total)*100) : 0;
-    const fill = $id('progressFill');
-    const pctEl = $id('progressText');
-    if (fill)  fill.style.width = `${pct}%`;
-    if (pctEl) pctEl.textContent = `${pct}%`;
+    // Bouton précédent — ID : prevSessionBtn
+    const prevBtn = $id('prevSessionBtn');
+    const nextBtn = $id('nextSessionBtn');
+
+    let prevHref = null, nextHref = null;
+    const makeUrl = (si, ssi) => sdCourse.slug
+        ? `/seance/${sdCourse.slug}/seq-${si+1}/seance-${ssi+1}`
+        : `/session-detail?courseId=${sdCourse.id}&seqIndex=${si}&sessionIndex=${ssi}`;
+
+    if (sdSessIdx > 0) {
+        prevHref = makeUrl(sdSeqIdx, sdSessIdx - 1);
+    } else if (sdSeqIdx > 0) {
+        const prevLen = seqs[sdSeqIdx - 1]?.sessions?.length || 0;
+        if (prevLen > 0) prevHref = makeUrl(sdSeqIdx - 1, prevLen - 1);
+    }
+
+    const curLen = seqs[sdSeqIdx]?.sessions?.length || 0;
+    if (sdSessIdx < curLen - 1) {
+        nextHref = makeUrl(sdSeqIdx, sdSessIdx + 1);
+    } else if (sdSeqIdx < seqs.length - 1) {
+        if ((seqs[sdSeqIdx + 1]?.sessions?.length || 0) > 0) nextHref = makeUrl(sdSeqIdx + 1, 0);
+    }
+
+    if (prevBtn) {
+        if (prevHref) { prevBtn.href = prevHref; prevBtn.classList.remove('disabled'); }
+        else { prevBtn.removeAttribute('href'); prevBtn.classList.add('disabled'); }
+    }
+    if (nextBtn) {
+        if (nextHref) { nextBtn.href = nextHref; nextBtn.classList.remove('disabled'); }
+        else { nextBtn.removeAttribute('href'); nextBtn.classList.add('disabled'); }
+    }
 }
 
 window.navigate = function(dir) {
@@ -526,11 +512,6 @@ window.navigate = function(dir) {
         if (sdSessIdx < len-1) sdSessIdx++;
         else if (sdSeqIdx < seqs.length-1) { sdSeqIdx++; sdSessIdx = 0; }
     }
-    sdPushUrl(); sdRenderSession();
-};
-
-window.sdGoTo = function(si, ssi) {
-    sdSeqIdx = si; sdSessIdx = ssi;
     sdPushUrl(); sdRenderSession();
 };
 
@@ -548,20 +529,10 @@ function sdPushUrl() {
     }
 }
 
-function sdUpdateSidebarHighlight() {
-    document.querySelectorAll('.sess-item').forEach(el => el.classList.remove('active'));
-    document.querySelectorAll('.sess-icon i').forEach(el => el.className = 'fas fa-file-alt');
-    const active = $id(`nav-${sdSeqIdx}-${sdSessIdx}`);
-    if (active) {
-        active.classList.add('active');
-        const ic = active.querySelector('.sess-icon i');
-        if (ic) ic.className = 'fas fa-play';
-        active.scrollIntoView({ block:'nearest', behavior:'smooth' });
-    }
-}
+// (highlight sidebar supprimé — session-detail.html n'a pas de sidebar)
 
 function sdShowError(msg) {
-    const ls = $id('loading-screen');
+    const ls = $id('loadingState');
     if (ls) ls.innerHTML = `
         <i class="fas fa-exclamation-triangle" style="color:#ef4444;font-size:2.5rem;"></i>
         <p style="font-size:1rem;font-weight:600;margin-top:1rem;">${msg}</p>
