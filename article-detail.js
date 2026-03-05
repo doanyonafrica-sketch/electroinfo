@@ -369,11 +369,29 @@ async function loadArticle() {
     const urlParams = new URLSearchParams(window.location.search);
     const articleId = urlParams.get('id');
 
-    // Slug peut venir de /article/mon-slug (path) OU ?slug=mon-slug (legacy)
-    const pathParts = window.location.pathname.split('/');
-    const slug = pathParts[1] === 'article' && pathParts[2]
-        ? decodeURIComponent(pathParts[2])
-        : urlParams.get('slug');
+    // Slug : 3 priorités
+    // 1. PATH réel   : /article/mon-slug  (Firebase Hosting / Vite dev avec clean URLs)
+    // 2. sessionStorage redirect_path     : /article/mon-slug (après redirection 404.html GitHub Pages)
+    // 3. ?slug=mon-slug                   : legacy fallback
+    let slug = null;
+
+    const realParts = window.location.pathname.split('/').filter(Boolean);
+    if (realParts[0] === 'article' && realParts[1]) {
+        // Accès direct via clean URL
+        slug = decodeURIComponent(realParts[1]);
+    } else {
+        // Après redirection 404.html → article-detail.html (GitHub Pages)
+        const redirectPath = sessionStorage.getItem('redirect_path');
+        if (redirectPath) {
+            const rParts = redirectPath.split('?')[0].split('/').filter(Boolean);
+            if (rParts[0] === 'article' && rParts[1]) {
+                slug = decodeURIComponent(rParts[1]);
+                sessionStorage.removeItem('redirect_path'); // Nettoyer après usage
+            }
+        }
+        // Fallback legacy ?slug=
+        if (!slug) slug = urlParams.get('slug');
+    }
 
     console.log('🔍 Chargement article:', { id: articleId, slug });
 
