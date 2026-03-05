@@ -1202,8 +1202,8 @@
     .article-meta-content { flex-direction: column; align-items: flex-start; gap: 1.5rem; }
     .share-buttons { width: 100%; justify-content: center; }
     .form-row { grid-template-columns: 1fr; }
-    .reactions-container { flex-direction: column; }
-    .reaction-btn { width: 100%; justify-content: center; }
+    .reactions-container { flex-direction: row; flex-wrap: wrap; gap: 0.5rem; }
+    .reaction-btn { flex: 1 1 calc(50% - 0.5rem); min-width: 120px; justify-content: center; padding: 0.75rem 1rem; }
     .article-body { font-size: 1.0625rem; }
     .article-body h2 { font-size: 1.875rem; }
     .article-body h3 { font-size: 1.5rem; }
