@@ -369,29 +369,11 @@ async function loadArticle() {
     const urlParams = new URLSearchParams(window.location.search);
     const articleId = urlParams.get('id');
 
-    // Slug : 3 priorités
-    // 1. PATH réel   : /article/mon-slug  (Firebase Hosting / Vite dev avec clean URLs)
-    // 2. sessionStorage redirect_path     : /article/mon-slug (après redirection 404.html GitHub Pages)
-    // 3. ?slug=mon-slug                   : legacy fallback
-    let slug = null;
-
-    const realParts = window.location.pathname.split('/').filter(Boolean);
-    if (realParts[0] === 'article' && realParts[1]) {
-        // Accès direct via clean URL
-        slug = decodeURIComponent(realParts[1]);
-    } else {
-        // Après redirection 404.html → article-detail.html (GitHub Pages)
-        const redirectPath = sessionStorage.getItem('redirect_path');
-        if (redirectPath) {
-            const rParts = redirectPath.split('?')[0].split('/').filter(Boolean);
-            if (rParts[0] === 'article' && rParts[1]) {
-                slug = decodeURIComponent(rParts[1]);
-                sessionStorage.removeItem('redirect_path'); // Nettoyer après usage
-            }
-        }
-        // Fallback legacy ?slug=
-        if (!slug) slug = urlParams.get('slug');
-    }
+    // Slug peut venir de /article/mon-slug (path) OU ?slug=mon-slug (legacy)
+    const pathParts = window.location.pathname.split('/');
+    const slug = pathParts[1] === 'article' && pathParts[2]
+        ? decodeURIComponent(pathParts[2])
+        : urlParams.get('slug');
 
     console.log('🔍 Chargement article:', { id: articleId, slug });
 
@@ -723,8 +705,26 @@ function setupReactions(article) {
             const span  = btn.querySelector('span');
             if (span) span.textContent = count;
             btn.onclick = () => handleReaction(article.id, type);
+
+            // Restaurer l'état visuel si déjà voté
+            if (hasUserReacted(article.id, type)) {
+                btn.classList.add('active');
+                btn.disabled = true;
+                btn.style.opacity = '0.8';
+            }
         }
     });
+
+    // Si l'utilisateur a déjà voté pour un type, désactiver les autres
+    const userReactions = getUserReactions()[article.id] || {};
+    if (Object.keys(userReactions).length > 0) {
+        ['like', 'love', 'insight', 'support'].forEach(type => {
+            if (!userReactions[type]) {
+                const btn = document.querySelector(`button[data-reaction="${type}"]`);
+                if (btn) { btn.disabled = true; btn.style.opacity = '0.5'; }
+            }
+        });
+    }
 }
 
 function setupShareButtons(article) {
@@ -964,12 +964,71 @@ async function incrementViews(articleId) {
     }
 }
 
+// Réactions déjà votées (persistées en localStorage)
+const REACTIONS_KEY = 'electroinfo_reactions';
+
+function getUserReactions() {
+    try { return JSON.parse(localStorage.getItem(REACTIONS_KEY) || '{}'); }
+    catch { return {}; }
+}
+
+function saveUserReaction(articleId, type) {
+    const reactions = getUserReactions();
+    if (!reactions[articleId]) reactions[articleId] = {};
+    reactions[articleId][type] = true;
+    localStorage.setItem(REACTIONS_KEY, JSON.stringify(reactions));
+}
+
+function hasUserReacted(articleId, type) {
+    const reactions = getUserReactions();
+    return !!(reactions[articleId]?.[type]);
+}
+
 async function handleReaction(articleId, type) {
     if (!isOnline()) {
         showNotification(t('reactionNeedOnline'), 'error');
         return;
     }
-    showNotification(t('reactionSuccess'), 'success');
+
+    // Empêcher le double vote
+    if (hasUserReacted(articleId, type)) {
+        showNotification(currentLang === 'fr' ? 'Vous avez déjà réagi !' : 'Already reacted!', 'info');
+        return;
+    }
+
+    try {
+        // Incrémenter dans Firestore
+        await updateDoc(doc(db, 'articles', articleId), {
+            [`reactions.${type}`]: increment(1)
+        });
+
+        // Sauvegarder localement pour éviter le double vote
+        saveUserReaction(articleId, type);
+
+        // Mettre à jour l'UI immédiatement
+        const btn = document.querySelector(`button[data-reaction="${type}"]`);
+        if (btn) {
+            const span = btn.querySelector('span');
+            if (span) span.textContent = parseInt(span.textContent || '0') + 1;
+            btn.classList.add('active');
+            btn.disabled = true;
+            btn.style.opacity = '0.8';
+        }
+
+        // Désactiver aussi les autres boutons si déjà voté une fois
+        ['like', 'love', 'insight', 'support'].forEach(r => {
+            if (r !== type) {
+                const b = document.querySelector(`button[data-reaction="${r}"]`);
+                if (b) { b.disabled = true; b.style.opacity = '0.5'; }
+            }
+        });
+
+        showNotification(t('reactionSuccess'), 'success');
+
+    } catch (error) {
+        console.error('Erreur réaction:', error);
+        showNotification(currentLang === 'fr' ? 'Erreur lors de la réaction' : 'Reaction error', 'error');
+    }
 }
 
 function showNotification(message, type = 'info') {
