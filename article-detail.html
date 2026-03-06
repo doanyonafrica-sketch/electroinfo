@@ -92,12 +92,14 @@
                     <i class="fas fa-moon" id="themeIcon"></i>
                     <span class="theme-text" id="themeText" data-i18n="theme_dark">Sombre</span>
                 </button>
-            </div>
 
-            <!-- Bouton hamburger HORS de nav-actions pour rester dans la barre fixe -->
-            <button id="mobileMenuToggle" class="mobile-toggle" aria-label="Menu">
-                <i class="fas fa-bars"></i>
-            </button>
+                <!-- Bouton langue FR/EN requis par article-detail.js -->
+                <button id="langToggle" class="theme-toggle-btn" aria-label="Langue" onclick="toggleLanguage()" title="Changer la langue FR / EN" style="display:none;"></button>
+                
+                <button id="mobileMenuToggle" class="mobile-toggle" aria-label="Menu">
+                    <i class="fas fa-bars"></i>
+                </button>
+            </div>
         </div>
     </nav>
     
