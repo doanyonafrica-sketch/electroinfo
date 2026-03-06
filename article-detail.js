@@ -375,8 +375,8 @@ async function loadArticle() {
         ? decodeURIComponent(pathParts[2])
         : urlParams.get('slug');
 
-    // ✅ GitHub Pages : 404.html sauvegarde le path dans sessionStorage avant
-    // de rediriger vers article-detail.html — on le lit ici comme courses.js
+    // ✅ GitHub Pages — ÉTAPE 1 : 404.html sauvegarde redirect_path dans sessionStorage
+    // On lit le slug et on le re-sauvegarde dans une clé persistante (survit au refresh)
     if (!slug && !articleId) {
         const redirectPath = sessionStorage.getItem('redirect_path');
         if (redirectPath) {
@@ -384,11 +384,21 @@ async function loadArticle() {
             const redirectParts = redirectPath.split('/');
             if (redirectParts[1] === 'article' && redirectParts[2]) {
                 slug = decodeURIComponent(redirectParts[2]);
+                // 🔑 Sauvegarder dans une clé persistante pour que le refresh fonctionne
+                // sessionStorage survit aux rafraîchissements mais pas à la fermeture du tab
+                sessionStorage.setItem('current_article_slug', slug);
                 console.log('📦 Slug récupéré depuis sessionStorage (GitHub Pages):', slug);
-                // ✅ REFRESH FIX : mettre à jour l'URL pour que le refresh
-                // trouve le slug dans le chemin et ne retombe pas sur l'erreur
-                history.replaceState(null, '', '/article/' + slug);
             }
+        }
+    }
+
+    // ✅ GitHub Pages — ÉTAPE 2 : refresh sur article-detail.html
+    // redirect_path est vide mais current_article_slug est toujours là
+    if (!slug && !articleId) {
+        const savedSlug = sessionStorage.getItem('current_article_slug');
+        if (savedSlug) {
+            slug = savedSlug;
+            console.log('🔄 Slug récupéré depuis sessionStorage (refresh):', slug);
         }
     }
 
