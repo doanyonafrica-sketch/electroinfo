@@ -380,11 +380,14 @@ async function loadArticle() {
     if (!slug && !articleId) {
         const redirectPath = sessionStorage.getItem('redirect_path');
         if (redirectPath) {
-            sessionStorage.removeItem('redirect_path'); // nettoyer après lecture
+            sessionStorage.removeItem('redirect_path');
             const redirectParts = redirectPath.split('/');
             if (redirectParts[1] === 'article' && redirectParts[2]) {
                 slug = decodeURIComponent(redirectParts[2]);
                 console.log('📦 Slug récupéré depuis sessionStorage (GitHub Pages):', slug);
+                // ✅ REFRESH FIX : mettre à jour l'URL pour que le refresh
+                // trouve le slug dans le chemin et ne retombe pas sur l'erreur
+                history.replaceState(null, '', '/article/' + slug);
             }
         }
     }
