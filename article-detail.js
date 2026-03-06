@@ -371,9 +371,23 @@ async function loadArticle() {
 
     // Slug peut venir de /article/mon-slug (path) OU ?slug=mon-slug (legacy)
     const pathParts = window.location.pathname.split('/');
-    const slug = pathParts[1] === 'article' && pathParts[2]
+    let slug = pathParts[1] === 'article' && pathParts[2]
         ? decodeURIComponent(pathParts[2])
         : urlParams.get('slug');
+
+    // ✅ GitHub Pages : 404.html sauvegarde le path dans sessionStorage avant
+    // de rediriger vers article-detail.html — on le lit ici comme courses.js
+    if (!slug && !articleId) {
+        const redirectPath = sessionStorage.getItem('redirect_path');
+        if (redirectPath) {
+            sessionStorage.removeItem('redirect_path'); // nettoyer après lecture
+            const redirectParts = redirectPath.split('/');
+            if (redirectParts[1] === 'article' && redirectParts[2]) {
+                slug = decodeURIComponent(redirectParts[2]);
+                console.log('📦 Slug récupéré depuis sessionStorage (GitHub Pages):', slug);
+            }
+        }
+    }
 
     console.log('🔍 Chargement article:', { id: articleId, slug });
 
@@ -705,26 +719,8 @@ function setupReactions(article) {
             const span  = btn.querySelector('span');
             if (span) span.textContent = count;
             btn.onclick = () => handleReaction(article.id, type);
-
-            // Restaurer l'état visuel si déjà voté
-            if (hasUserReacted(article.id, type)) {
-                btn.classList.add('active');
-                btn.disabled = true;
-                btn.style.opacity = '0.8';
-            }
         }
     });
-
-    // Si l'utilisateur a déjà voté pour un type, désactiver les autres
-    const userReactions = getUserReactions()[article.id] || {};
-    if (Object.keys(userReactions).length > 0) {
-        ['like', 'love', 'insight', 'support'].forEach(type => {
-            if (!userReactions[type]) {
-                const btn = document.querySelector(`button[data-reaction="${type}"]`);
-                if (btn) { btn.disabled = true; btn.style.opacity = '0.5'; }
-            }
-        });
-    }
 }
 
 function setupShareButtons(article) {
@@ -964,71 +960,12 @@ async function incrementViews(articleId) {
     }
 }
 
-// Réactions déjà votées (persistées en localStorage)
-const REACTIONS_KEY = 'electroinfo_reactions';
-
-function getUserReactions() {
-    try { return JSON.parse(localStorage.getItem(REACTIONS_KEY) || '{}'); }
-    catch { return {}; }
-}
-
-function saveUserReaction(articleId, type) {
-    const reactions = getUserReactions();
-    if (!reactions[articleId]) reactions[articleId] = {};
-    reactions[articleId][type] = true;
-    localStorage.setItem(REACTIONS_KEY, JSON.stringify(reactions));
-}
-
-function hasUserReacted(articleId, type) {
-    const reactions = getUserReactions();
-    return !!(reactions[articleId]?.[type]);
-}
-
 async function handleReaction(articleId, type) {
     if (!isOnline()) {
         showNotification(t('reactionNeedOnline'), 'error');
         return;
     }
-
-    // Empêcher le double vote
-    if (hasUserReacted(articleId, type)) {
-        showNotification(currentLang === 'fr' ? 'Vous avez déjà réagi !' : 'Already reacted!', 'info');
-        return;
-    }
-
-    try {
-        // Incrémenter dans Firestore
-        await updateDoc(doc(db, 'articles', articleId), {
-            [`reactions.${type}`]: increment(1)
-        });
-
-        // Sauvegarder localement pour éviter le double vote
-        saveUserReaction(articleId, type);
-
-        // Mettre à jour l'UI immédiatement
-        const btn = document.querySelector(`button[data-reaction="${type}"]`);
-        if (btn) {
-            const span = btn.querySelector('span');
-            if (span) span.textContent = parseInt(span.textContent || '0') + 1;
-            btn.classList.add('active');
-            btn.disabled = true;
-            btn.style.opacity = '0.8';
-        }
-
-        // Désactiver aussi les autres boutons si déjà voté une fois
-        ['like', 'love', 'insight', 'support'].forEach(r => {
-            if (r !== type) {
-                const b = document.querySelector(`button[data-reaction="${r}"]`);
-                if (b) { b.disabled = true; b.style.opacity = '0.5'; }
-            }
-        });
-
-        showNotification(t('reactionSuccess'), 'success');
-
-    } catch (error) {
-        console.error('Erreur réaction:', error);
-        showNotification(currentLang === 'fr' ? 'Erreur lors de la réaction' : 'Reaction error', 'error');
-    }
+    showNotification(t('reactionSuccess'), 'success');
 }
 
 function showNotification(message, type = 'info') {
