@@ -502,99 +502,344 @@
 }
 
 /* ========================================
-   RESPONSIVE DESIGN
+   RESPONSIVE DESIGN — TOUS TÉLÉPHONES
    ======================================== */
 
-@media (max-width: 768px) {
-    .archives-hero {
-        padding: 3rem 0 2rem;
-    }
-    
-    .archives-title {
-        font-size: 2rem;
-        flex-direction: column;
-    }
-    
-    .archives-title i {
-        font-size: 2.5rem;
-    }
-    
-    .archives-subtitle {
-        font-size: 1rem;
-    }
-    
-    .stats-grid-archives,
-    .filters-container {
-        grid-template-columns: 1fr;
-        gap: 1rem;
-    }
-    
-    .stat-card-archives {
-        padding: 1.5rem;
-    }
-    
-    .stat-number {
-        font-size: 1.75rem;
-    }
-    
-    .archives-filters {
-        padding: 1.5rem;
-    }
-    
-    .view-switcher {
-        flex-wrap: wrap;
-    }
-    
-    .timeline-article {
-        flex-direction: column;
-    }
-    
-    .timeline-date-badge {
-        min-width: 100%;
-        padding: 0.75rem;
-    }
-    
-    .timeline-day {
-        display: inline-block;
-        margin-right: 0.5rem;
-    }
-    
-    .timeline-month {
-        display: inline-block;
-    }
-    
-    .timeline-article-footer {
-        flex-direction: column;
-        align-items: flex-start;
-        gap: 1rem;
-    }
-    
+/* ── Tablettes paysage / grands téléphones (≤ 1024px) ── */
+@media (max-width: 1024px) {
     .archives-grid {
-        grid-template-columns: 1fr;
+        grid-template-columns: repeat(2, 1fr);
+        gap: 1.25rem;
     }
-    
-    .list-article {
-        flex-direction: column;
-        align-items: flex-start;
-        gap: 1rem;
-        padding: 1.25rem 1.5rem;
+
+    .stats-grid-archives {
+        grid-template-columns: repeat(2, 1fr);
     }
-    
-    .list-date {
-        width: auto;
-    }
-    
-    .list-stats {
-        width: 100%;
-        justify-content: space-between;
+
+    .filters-container {
+        grid-template-columns: repeat(2, 1fr);
     }
 }
 
+/* ── Tablettes portrait / grands téléphones (≤ 768px) ── */
+@media (max-width: 768px) {
+    /* Hero */
+    .archives-hero {
+        padding: 3rem 1rem 2rem;
+    }
+
+    .archives-title {
+        font-size: 1.85rem;
+        flex-direction: column;
+        gap: 0.5rem;
+    }
+
+    .archives-title i {
+        font-size: 2.25rem;
+    }
+
+    .archives-subtitle {
+        font-size: 1rem;
+        padding: 0 1rem;
+    }
+
+    /* Contenu */
+    .archives-content {
+        padding: 2rem 0 3rem;
+    }
+
+    /* Stats */
+    .stats-grid-archives {
+        grid-template-columns: repeat(2, 1fr);
+        gap: 1rem;
+    }
+
+    .stat-card-archives {
+        padding: 1.25rem;
+        gap: 1rem;
+    }
+
+    .stat-card-archives i {
+        font-size: 2rem;
+    }
+
+    .stat-number {
+        font-size: 1.6rem;
+    }
+
+    /* Filtres */
+    .archives-filters {
+        padding: 1.25rem;
+        border-radius: 0.75rem;
+    }
+
+    .filters-container {
+        grid-template-columns: 1fr;
+        gap: 1rem;
+        margin-bottom: 1rem;
+    }
+
+    /* Vues */
+    .view-switcher {
+        flex-wrap: wrap;
+        gap: 0.4rem;
+    }
+
+    .view-btn {
+        padding: 0.6rem 1rem;
+        font-size: 0.875rem;
+        flex: 1;
+        min-width: 80px;
+        text-align: center;
+    }
+
+    /* Results */
+    .results-info {
+        padding: 0.75rem 1rem;
+        font-size: 0.875rem;
+    }
+
+    /* Timeline */
+    .timeline-header {
+        top: 60px;
+        padding: 0.75rem 0;
+    }
+
+    .timeline-header h2 {
+        font-size: 1.4rem;
+    }
+
+    .timeline-article {
+        flex-direction: column;
+        padding: 1.25rem;
+        gap: 1rem;
+    }
+
+    .timeline-date-badge {
+        min-width: 100%;
+        padding: 0.6rem 1rem;
+        display: flex;
+        align-items: center;
+        gap: 0.5rem;
+        border-radius: 0.5rem;
+    }
+
+    .timeline-day {
+        font-size: 1.5rem;
+        margin-bottom: 0;
+    }
+
+    .timeline-month {
+        font-size: 0.875rem;
+    }
+
+    .timeline-article-title {
+        font-size: 1.15rem;
+    }
+
+    .timeline-article-footer {
+        flex-direction: column;
+        align-items: flex-start;
+        gap: 0.75rem;
+    }
+
+    .timeline-stats {
+        flex-wrap: wrap;
+        gap: 0.75rem;
+    }
+
+    /* Grid */
+    .archives-grid {
+        grid-template-columns: 1fr;
+        gap: 1.25rem;
+    }
+
+    .grid-article-image {
+        height: 180px;
+    }
+
+    .grid-article-content {
+        padding: 1.25rem;
+    }
+
+    .grid-article-title {
+        font-size: 1.1rem;
+    }
+
+    /* Liste */
+    .list-article {
+        flex-direction: column;
+        align-items: flex-start;
+        gap: 0.75rem;
+        padding: 1rem 1.25rem;
+    }
+
+    .list-date {
+        width: auto;
+        font-size: 0.875rem;
+    }
+
+    .list-title {
+        font-size: 1rem;
+    }
+
+    .list-stats {
+        width: 100%;
+        justify-content: space-between;
+        flex-wrap: wrap;
+        gap: 0.5rem;
+    }
+}
+
+/* ── Téléphones standard (≤ 480px) ── */
 @media (max-width: 480px) {
+    /* Hero */
+    .archives-title {
+        font-size: 1.6rem;
+    }
+
+    .archives-title i {
+        font-size: 2rem;
+    }
+
+    .archives-subtitle {
+        font-size: 0.9rem;
+    }
+
+    /* Stats : 1 colonne sur petits écrans */
+    .stats-grid-archives {
+        grid-template-columns: 1fr;
+    }
+
+    .stat-card-archives {
+        padding: 1rem;
+    }
+
+    .stat-number {
+        font-size: 1.4rem;
+    }
+
+    /* Timeline */
+    .timeline-items {
+        gap: 1rem;
+    }
+
+    .timeline-article {
+        padding: 1rem;
+    }
+
+    .timeline-article-title {
+        font-size: 1.05rem;
+    }
+
+    .timeline-article-summary {
+        font-size: 0.875rem;
+        display: -webkit-box;
+        -webkit-line-clamp: 3;
+        -webkit-box-orient: vertical;
+        overflow: hidden;
+    }
+
     .timeline-stats,
     .grid-stats,
     .list-meta {
         flex-direction: column;
+        gap: 0.4rem;
+    }
+
+    /* Grid */
+    .grid-article-image {
+        height: 160px;
+    }
+
+    .grid-article-title {
+        font-size: 1rem;
+    }
+
+    .grid-article-summary {
+        font-size: 0.875rem;
+        display: -webkit-box;
+        -webkit-line-clamp: 3;
+        -webkit-box-orient: vertical;
+        overflow: hidden;
+    }
+
+    .grid-stats {
+        flex-direction: row;
+        flex-wrap: wrap;
         gap: 0.5rem;
+    }
+
+    /* Liste */
+    .list-article {
+        padding: 0.875rem 1rem;
+    }
+
+    .list-meta {
+        flex-direction: column;
+        gap: 0.35rem;
+    }
+
+    /* Filtres */
+    .archives-filters {
+        padding: 1rem;
+    }
+
+    /* Vides / loading */
+    .empty-state {
+        padding: 3rem 1.5rem;
+    }
+
+    .empty-state i {
+        font-size: 3rem;
+    }
+
+    .empty-state h3 {
+        font-size: 1.25rem;
+    }
+
+    .loading {
+        padding: 3rem 1rem;
+    }
+}
+
+/* ── Très petits téléphones (≤ 360px — Galaxy S8, iPhone SE 1ère gen…) ── */
+@media (max-width: 360px) {
+    .archives-title {
+        font-size: 1.35rem;
+    }
+
+    .archives-filters {
+        padding: 0.875rem;
+    }
+
+    .view-btn {
+        padding: 0.5rem 0.6rem;
+        font-size: 0.8rem;
+    }
+
+    .timeline-article {
+        padding: 0.875rem;
+    }
+
+    .timeline-day {
+        font-size: 1.25rem;
+    }
+
+    .stat-number {
+        font-size: 1.25rem;
+    }
+
+    .stat-card-archives i {
+        font-size: 1.75rem;
+    }
+
+    .grid-article-image {
+        height: 140px;
+    }
+
+    .timeline-count {
+        font-size: 0.75rem;
+        padding: 0.2rem 0.5rem;
     }
 }
