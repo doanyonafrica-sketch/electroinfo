@@ -736,11 +736,11 @@
             <!-- 🌍 Sélecteur de langue -->
             <div id="langSwitcher" class="lang-switcher">
                 <button id="langCurrentBtn" class="lang-current-btn" onclick="toggleLangDropdown()" aria-label="Changer la langue">
-                    🌍 Eʋe
+                    🇫🇷 FR
                 </button>
                 <div class="lang-dropdown" id="langDropdown">
-                    <button class="lang-option lang-active" data-lang="ewe" onclick="setLang('ewe')">🌍 Eʋegbe</button>
-                    <button class="lang-option" data-lang="fr" onclick="setLang('fr')">🇫🇷 Français</button>
+                    <button class="lang-option" data-lang="ewe" onclick="setLang('ewe')">🌍 Eʋegbe</button>
+                    <button class="lang-option lang-active" data-lang="fr" onclick="setLang('fr')">🇫🇷 Français</button>
                     <button class="lang-option" data-lang="en" onclick="setLang('en')">🇬🇧 English</button>
                 </div>
             </div>
@@ -1190,7 +1190,7 @@
 
         // Appliquer la langue sauvegardée au chargement
         document.addEventListener('DOMContentLoaded', function() {
-            const saved = localStorage.getItem(KEY) || 'ewe';
+            const saved = localStorage.getItem(KEY) || 'fr';
             setLang(saved);
         });
     })();
