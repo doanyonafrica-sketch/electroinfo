@@ -526,6 +526,24 @@ async function loadArticleBySlug(slug) {
 }
 
 // ============================================
+// INJECTION HTML + RÉEXÉCUTION DES SCRIPTS
+// ============================================
+// Les <script> injectés via innerHTML ne s'exécutent jamais (règle HTML5).
+// On clone chaque script dans un nouvel élément pour forcer l'exécution.
+// setTimeout(0) garantit que le DOM est peint avant que le script tourne.
+function setInnerHTMLWithScripts(container, html) {
+    container.innerHTML = html;
+    container.querySelectorAll('script').forEach(function(oldScript) {
+        var newScript = document.createElement('script');
+        Array.from(oldScript.attributes).forEach(function(attr) {
+            newScript.setAttribute(attr.name, attr.value);
+        });
+        newScript.textContent = oldScript.textContent;
+        oldScript.parentNode.replaceChild(newScript, oldScript);
+    });
+}
+
+// ============================================
 // RENDU DE L'ARTICLE — AVEC TRADUCTIONS
 // ============================================
 function renderArticle(article) {
@@ -616,7 +634,7 @@ function renderArticle(article) {
     const contentEl = document.getElementById('articleContent');
     if (contentEl) {
         const content = getTranslated(article, 'content') || getTranslated(article, 'body') || t('noContent');
-        contentEl.innerHTML = content;
+        setInnerHTMLWithScripts(contentEl, content);
     }
 
     // ----- BADGE TRADUCTION DISPONIBLE -----
