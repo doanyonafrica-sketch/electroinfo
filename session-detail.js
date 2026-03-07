@@ -220,6 +220,27 @@ async function loadSession() {
 }
 
 // ============================================
+// INJECTION HTML + RÉEXÉCUTION DES SCRIPTS
+// ============================================
+// innerHTML ne réexécute PAS les balises <script> (règle de sécurité HTML5).
+// Cette fonction clone chaque script et le réinsère dans le DOM pour le forcer
+// à s'exécuter — nécessaire pour les simulations électriques interactives.
+function setInnerHTMLWithScripts(container, html) {
+    container.innerHTML = html;
+    container.querySelectorAll('script').forEach(function (oldScript) {
+        const newScript = document.createElement('script');
+        // Copier tous les attributs (type, src, etc.)
+        Array.from(oldScript.attributes).forEach(function (attr) {
+            newScript.setAttribute(attr.name, attr.value);
+        });
+        // Copier le contenu inline
+        newScript.textContent = oldScript.textContent;
+        // Remplacer l'ancien script par le nouveau → le navigateur l'exécute
+        oldScript.parentNode.replaceChild(newScript, oldScript);
+    });
+}
+
+// ============================================
 // AFFICHAGE DE LA SÉANCE
 // ============================================
 function displaySession() {
@@ -242,7 +263,7 @@ function displaySession() {
     // Contenu DOM
     $('sessionBadge').textContent   = `Séance ${state.sessionIndex + 1}`;
     $('sessionTitle').textContent   = session.title || 'Séance';
-    $('sessionContent').innerHTML   = session.content || '<p>Aucun contenu disponible.</p>';
+    setInnerHTMLWithScripts($('sessionContent'), session.content || '<p>Aucun contenu disponible.</p>');
     $('backButton').href = state.course.slug
         ? `/course/${state.course.slug}`
         : `/course-detail?id=${state.course.id}`;
