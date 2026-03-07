@@ -222,20 +222,20 @@ async function loadSession() {
 // ============================================
 // INJECTION HTML + RÉEXÉCUTION DES SCRIPTS
 // ============================================
-// innerHTML ne réexécute PAS les balises <script> (règle de sécurité HTML5).
-// Cette fonction clone chaque script et le réinsère dans le DOM pour le forcer
-// à s'exécuter — nécessaire pour les simulations électriques interactives.
+// Les <script> injectés via innerHTML ne s'exécutent jamais (règle HTML5).
+// On clone chaque script dans un nouvel élément pour forcer l'exécution.
+// Le setTimeout(0) garantit que le DOM est peint avant que le script tourne,
+// ce qui règle le problème où getElementById('simBtn') retournait null.
 function setInnerHTMLWithScripts(container, html) {
     container.innerHTML = html;
-    container.querySelectorAll('script').forEach(function (oldScript) {
+    const scripts = container.querySelectorAll('script');
+    if (!scripts.length) return;
+    scripts.forEach(function(oldScript) {
         const newScript = document.createElement('script');
-        // Copier tous les attributs (type, src, etc.)
-        Array.from(oldScript.attributes).forEach(function (attr) {
+        Array.from(oldScript.attributes).forEach(function(attr) {
             newScript.setAttribute(attr.name, attr.value);
         });
-        // Copier le contenu inline
         newScript.textContent = oldScript.textContent;
-        // Remplacer l'ancien script par le nouveau → le navigateur l'exécute
         oldScript.parentNode.replaceChild(newScript, oldScript);
     });
 }
