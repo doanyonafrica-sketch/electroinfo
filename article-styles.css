@@ -2407,3 +2407,495 @@ body,
     display: block;
     margin: 1.5rem auto;
 }
+
+/* ============================================================
+   📱 MOBILE RESPONSIVE — AMÉLIORATIONS COMPLÈTES
+   Optimisé pour écrans téléphone (320px → 480px)
+   ============================================================ */
+
+/* ── Corrections globales mobile ── */
+@media (max-width: 768px) {
+
+    /* Assure que rien ne déborde horizontalement */
+    body {
+        overflow-x: hidden;
+    }
+
+    /* Meilleur container sur mobile */
+    .article-container {
+        padding: 0 1rem;
+    }
+
+    .article-main-content-full {
+        padding: 0 1rem;
+    }
+
+    /* Hero overlay : plus de place pour le texte */
+    .article-hero-overlay {
+        padding: 1.5rem 1rem 2rem;
+        align-items: flex-end;
+    }
+
+    .article-category-badge {
+        padding: 0.4rem 0.875rem;
+        font-size: 0.75rem;
+        margin-bottom: 0.75rem;
+    }
+
+    /* Section meta auteur */
+    .article-meta-section {
+        padding: 1.5rem 0;
+        margin-bottom: 2rem;
+    }
+
+    .article-author-info {
+        gap: 0.875rem;
+    }
+
+    .author-name {
+        font-size: 1rem;
+    }
+
+    .article-stats-section {
+        gap: 1rem;
+    }
+
+    .article-stat {
+        font-size: 0.85rem;
+        gap: 0.4rem;
+    }
+
+    /* Corps article : meilleure lisibilité */
+    .article-body {
+        font-size: 1rem;
+        line-height: 1.75;
+        margin-bottom: 2.5rem;
+    }
+
+    .article-body h2 {
+        font-size: 1.625rem;
+        margin: 2rem 0 1rem;
+    }
+
+    .article-body h3 {
+        font-size: 1.325rem;
+        margin: 1.75rem 0 0.875rem;
+    }
+
+    .article-body h4 {
+        font-size: 1.125rem;
+        margin: 1.5rem 0 0.75rem;
+    }
+
+    .article-body p {
+        margin-bottom: 1.375rem;
+    }
+
+    .article-body blockquote {
+        margin: 1.75rem 0;
+        padding: 1.25rem 1.25rem;
+        font-size: 0.975rem;
+    }
+
+    .article-body pre {
+        padding: 1.25rem;
+        font-size: 0.875rem;
+        border-radius: 0.625rem;
+        margin: 1.75rem -1rem; /* déborde légèrement pour effet plein écran */
+        border-radius: 0;
+    }
+
+    .article-body img {
+        margin: 1.5rem 0;
+        border-radius: 0.75rem;
+    }
+
+    .article-body ul, .article-body ol {
+        padding-left: 1.5rem;
+    }
+
+    /* Réactions : boutons plus compacts */
+    .article-actions-bar {
+        padding: 1.25rem 1rem;
+        margin-bottom: 2rem;
+        border-radius: 1rem;
+    }
+
+    .reactions-container {
+        gap: 0.625rem;
+    }
+
+    .reaction-btn {
+        padding: 0.75rem 1.25rem;
+        font-size: 0.9375rem;
+        border-radius: 0.75rem;
+    }
+
+    .reaction-btn i {
+        font-size: 1.125rem;
+    }
+
+    /* Tags */
+    .article-tags-section {
+        padding: 1.5rem 1.25rem;
+        margin-bottom: 2rem;
+        border-radius: 1rem;
+    }
+
+    .tag {
+        padding: 0.5rem 1rem;
+        font-size: 0.875rem;
+    }
+
+    /* Commentaires */
+    .comments-section {
+        padding: 1.5rem 1.25rem;
+        border-radius: 1rem;
+    }
+
+    .comments-title {
+        font-size: 1.375rem;
+        margin-bottom: 1.5rem;
+    }
+
+    .comment-form {
+        padding: 1.25rem 1rem;
+        border-radius: 0.875rem;
+        margin-bottom: 1.75rem;
+    }
+
+    .comment-item {
+        padding: 1.25rem 1rem;
+        border-radius: 0.875rem;
+    }
+
+    /* Footer widgets */
+    .footer-widget {
+        padding: 1.75rem 1.25rem;
+        border-radius: 1rem;
+    }
+
+    .footer-widgets {
+        gap: 1.5rem;
+        margin-bottom: 2rem;
+    }
+
+    /* Notification toast */
+    .notification {
+        width: calc(100% - 2rem);
+        max-width: 380px;
+        white-space: normal;
+        text-align: center;
+        justify-content: center;
+        bottom: max(1.25rem, env(safe-area-inset-bottom) + 0.75rem);
+    }
+
+    /* Toast réseau */
+    .network-toast {
+        bottom: max(1.25rem, env(safe-area-inset-bottom) + 0.75rem);
+        right: 1rem;
+        left: 1rem;
+        transform: translateY(120%);
+        border-radius: 0.75rem;
+        font-size: 0.875rem;
+    }
+
+    .network-toast.show {
+        transform: translateY(0);
+    }
+
+    /* Articles liés */
+    .related-article-item {
+        border-radius: 0.75rem;
+    }
+
+    /* Modal newsletter */
+    .modal-content {
+        margin: 1rem;
+        border-radius: 1.25rem;
+        padding: 1.5rem;
+    }
+}
+
+/* ── Petits téléphones (≤ 480px) ── */
+@media (max-width: 480px) {
+
+    .article-hero {
+        height: 260px;
+    }
+
+    .article-hero-overlay {
+        padding: 1rem 1rem 1.5rem;
+    }
+
+    .article-title-hero {
+        font-size: 1.5rem;
+        line-height: 1.2;
+        letter-spacing: -0.015em;
+    }
+
+    .article-category-badge {
+        font-size: 0.7rem;
+        padding: 0.35rem 0.75rem;
+        margin-bottom: 0.625rem;
+    }
+
+    /* Author info en ligne réduit */
+    .author-avatar-large {
+        width: 48px;
+        height: 48px;
+    }
+
+    .article-stats-section {
+        flex-direction: row;
+        flex-wrap: wrap;
+        gap: 0.625rem;
+    }
+
+    .article-stat {
+        font-size: 0.8rem;
+    }
+
+    /* Boutons partage centrés et espacés */
+    .share-buttons {
+        gap: 0.5rem;
+    }
+
+    .share-btn {
+        width: 40px;
+        height: 40px;
+        font-size: 0.975rem;
+    }
+
+    /* Corps article */
+    .article-body {
+        font-size: 0.975rem;
+    }
+
+    .article-body h2 {
+        font-size: 1.425rem;
+    }
+
+    .article-body h3 {
+        font-size: 1.2rem;
+    }
+
+    .article-body h4 {
+        font-size: 1.05rem;
+    }
+
+    .article-body blockquote {
+        padding: 1rem;
+        font-size: 0.925rem;
+    }
+
+    /* Reactions : 2 par ligne */
+    .reactions-container {
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        gap: 0.625rem;
+    }
+
+    .reaction-btn {
+        padding: 0.75rem 0.625rem;
+        font-size: 0.875rem;
+        justify-content: center;
+        width: auto;
+    }
+
+    .reaction-btn i {
+        font-size: 1rem;
+    }
+
+    /* Commentaire form */
+    .comment-form .input {
+        padding: 0.875rem 1rem;
+        font-size: 1rem;
+    }
+
+    .comments-section {
+        padding: 1.25rem 0.875rem;
+    }
+
+    .comment-item {
+        padding: 1rem 0.875rem;
+    }
+
+    .comment-avatar {
+        width: 40px;
+        height: 40px;
+    }
+
+    /* Articles liés : image pleine largeur */
+    .related-article-image {
+        width: 100%;
+        height: 160px;
+        border-radius: 0.625rem;
+    }
+
+    .related-article-item {
+        flex-direction: column;
+        gap: 0.75rem;
+    }
+
+    /* Footer widget */
+    .footer-widget {
+        padding: 1.5rem 1rem;
+    }
+
+    .newsletter-icon {
+        font-size: 2.25rem;
+    }
+
+    .footer-widget-title {
+        font-size: 1.25rem;
+    }
+
+    /* Error state */
+    .error-content h2 {
+        font-size: 1.625rem;
+    }
+
+    .error-content i {
+        font-size: 3.5rem;
+    }
+}
+
+/* ── Très petits téléphones (≤ 360px) ── */
+@media (max-width: 360px) {
+
+    .article-hero {
+        height: 230px;
+    }
+
+    .article-title-hero {
+        font-size: 1.325rem;
+    }
+
+    .article-container {
+        padding: 0 0.75rem;
+    }
+
+    .article-main-content-full {
+        padding: 0 0.75rem;
+    }
+
+    .article-body {
+        font-size: 0.9375rem;
+    }
+
+    .article-body h2 {
+        font-size: 1.3rem;
+    }
+
+    .author-avatar-large {
+        width: 42px;
+        height: 42px;
+    }
+
+    .reactions-container {
+        grid-template-columns: 1fr 1fr;
+    }
+
+    .reaction-btn {
+        padding: 0.625rem 0.5rem;
+        font-size: 0.8125rem;
+        gap: 0.4rem;
+    }
+
+    .nav-brand span {
+        font-size: 1rem;
+    }
+
+    .comments-section {
+        padding: 1rem 0.75rem;
+    }
+
+    .footer-widget {
+        padding: 1.25rem 0.875rem;
+    }
+}
+
+/* ── Orientation paysage sur téléphone ── */
+@media (max-height: 500px) and (max-width: 900px) {
+    .article-hero {
+        height: 200px;
+    }
+
+    .article-title-hero {
+        font-size: 1.375rem;
+    }
+
+    .article-hero-overlay {
+        padding: 1rem;
+    }
+}
+
+/* ── Support des encoches iPhone (safe areas) ── */
+@supports (padding: max(0px)) {
+    .navbar {
+        padding-left: max(1.5rem, env(safe-area-inset-left));
+        padding-right: max(1.5rem, env(safe-area-inset-right));
+    }
+
+    .article-container,
+    .article-main-content-full {
+        padding-left: max(1rem, env(safe-area-inset-left));
+        padding-right: max(1rem, env(safe-area-inset-right));
+    }
+
+    .footer {
+        padding-bottom: max(1.5rem, env(safe-area-inset-bottom));
+    }
+}
+
+/* ── Amélioration des zones de clic tactile ── */
+@media (hover: none) and (pointer: coarse) {
+
+    /* Tous les boutons interactifs ≥ 44px de hauteur */
+    .share-btn,
+    .reaction-btn,
+    .tag,
+    .filter-btn,
+    .pagination-btn,
+    .btn-read-more {
+        min-height: 44px;
+    }
+
+    /* Liens nav en mode menu mobile */
+    .nav-link {
+        min-height: 48px;
+        display: flex;
+        align-items: center;
+    }
+
+    /* Plus d'espacement entre les commentaires */
+    .comment-item + .comment-item {
+        margin-top: 0.25rem;
+    }
+
+    /* Enlever tous les effets hover qui perturbent le toucher */
+    .article-card:hover,
+    .article-card:hover .article-image,
+    .btn-read-more:hover,
+    .reaction-btn:hover,
+    .tag:hover,
+    .share-btn:hover,
+    .related-article-item:hover {
+        transform: none;
+    }
+
+    /* Feedback visuel au tap */
+    .reaction-btn:active {
+        transform: scale(0.97);
+        background: rgba(37, 99, 235, 0.08);
+    }
+
+    .tag:active {
+        background: rgba(37, 99, 235, 0.1);
+    }
+
+    .share-btn:active {
+        background: rgba(37, 99, 235, 0.1);
+    }
+}
