@@ -1,3 +1,4 @@
+
 <!DOCTYPE html>
 <html lang="fr">
 <head>
@@ -287,7 +288,7 @@
         }
         .newsletter-form-inline input {
             flex: 1;
-            min-width: 250px;
+            min-width: 0;
             padding: 1rem;
             border-radius: 0.5rem;
             border: none;
@@ -309,10 +310,12 @@
         }
 
         @media (max-width: 768px) {
-            .hero-cta { flex-direction: column; }
+            .hero-cta { flex-direction: column; align-items: stretch; }
             .newsletter-form-inline { flex-direction: column; }
             .newsletter-form-inline input,
-            .newsletter-form-inline button { width: 100%; }
+            .newsletter-form-inline button { width: 100%; min-width: 0; }
+            #loginBtn .btn-text { display: none; }
+            #loginBtn { padding: 0.5rem 0.75rem; border-radius: 50%; width: 38px; height: 38px; justify-content: center; }
         }
 
         /* ============================================
@@ -728,72 +731,75 @@
     <!-- Navigation -->
     <nav class="navbar">
         <div class="container">
+            <!-- Logo -->
             <div class="nav-brand">
                 <img src="images/logo-small.png" alt="Logo ElectroInfo" class="nav-logo">
                 <span>ELECTROINFO</span>
             </div>
 
-            <!-- 🌍 Sélecteur de langue -->
-            <div id="langSwitcher" class="lang-switcher">
-                <button id="langCurrentBtn" class="lang-current-btn" onclick="toggleLangDropdown()" aria-label="Changer la langue">
-                    🇫🇷 FR
-                </button>
-                <div class="lang-dropdown" id="langDropdown">
-                    <button class="lang-option" data-lang="ewe" onclick="setLang('ewe')">🌍 Eʋegbe</button>
-                    <button class="lang-option lang-active" data-lang="fr" onclick="setLang('fr')">🇫🇷 Français</button>
-                    <button class="lang-option" data-lang="en" onclick="setLang('en')">🇬🇧 English</button>
-                </div>
+            <!-- Liens de navigation (cachés sur mobile) -->
+            <div class="nav-menu" id="navMenu">
+                <a href="/" class="nav-link active" data-i18n="nav_home">Accueil</a>
+                <a href="/articles" class="nav-link" data-i18n="nav_articles">Articles</a>
+                <a href="/courses" class="nav-link" data-i18n="nav_courses">Cours</a>
+                <a href="/about" class="nav-link" data-i18n="nav_about">À propos</a>
+                <a href="/contact" class="nav-link" data-i18n="nav_contact">Contact</a>
             </div>
 
-            <button class="mobile-toggle" id="mobileToggle">
-                <i class="fas fa-bars"></i>
-            </button>
-
-            <div class="nav-menu" id="mobileMenu">
-                <div class="nav-links">
-                    <a href="/" class="nav-link active" data-i18n="nav_home">Accueil</a>
-                    <a href="/articles" class="nav-link" data-i18n="nav_articles">Articles</a>
-                    <a href="/courses" class="nav-link" data-i18n="nav_courses">Cours</a>
-                    <a href="/about" class="nav-link" data-i18n="nav_about">À propos</a>
-                    <a href="/contact" class="nav-link" data-i18n="nav_contact">Contact</a>
-                </div>
-                <div class="nav-actions">
-                    <!-- Non connecté -->
-                    <a href="/auth" id="loginBtn" class="btn btn-primary">
-                        <i class="fas fa-sign-in-alt"></i>
-                        <span class="btn-text" data-i18n="nav_login">Connexion</span>
-                    </a>
-
-                    <!-- Connecté -->
-                    <div id="userMenu" class="user-menu hidden">
-                        <button class="user-btn" id="userMenuToggle">
-                            <img id="userAvatar" src="" alt="Avatar" class="avatar">
-                            <span id="userName" class="user-name"></span>
-                            <i class="fas fa-chevron-down"></i>
-                        </button>
-                        <div class="dropdown hidden" id="userDropdown">
-                            <div class="dropdown-header">
-                                <img id="userAvatarDropdown" src="" alt="Avatar" class="avatar-large">
-                                <div>
-                                    <strong id="userNameDropdown"></strong>
-                                    <p id="userEmailDropdown"></p>
-                                </div>
-                            </div>
-                            <div class="dropdown-divider"></div>
-                            <a href="/profile" class="dropdown-item">
-                                <i class="fas fa-user"></i> <span data-i18n="nav_profile">Mon profil</span>
-                            </a>
-                            <div class="dropdown-divider hidden" id="adminDivider"></div>
-                            <a href="/admin" class="dropdown-item hidden" id="adminLink">
-                                <i class="fas fa-cog"></i> <span data-i18n="nav_admin">Administration</span>
-                            </a>
-                            <div class="dropdown-divider"></div>
-                            <button class="dropdown-item" id="logoutBtn">
-                                <i class="fas fa-sign-out-alt"></i> <span data-i18n="nav_logout">Déconnexion</span>
-                            </button>
-                        </div>
+            <!-- Actions (toujours visibles) -->
+            <div class="nav-actions">
+                <!-- 🌍 Sélecteur de langue -->
+                <div id="langSwitcher" class="lang-switcher">
+                    <button id="langCurrentBtn" class="lang-current-btn" onclick="toggleLangDropdown()" aria-label="Changer la langue">
+                        🇫🇷 FR
+                    </button>
+                    <div class="lang-dropdown" id="langDropdown">
+                        <button class="lang-option" data-lang="ewe" onclick="setLang('ewe')">🌍 Eʋegbe</button>
+                        <button class="lang-option lang-active" data-lang="fr" onclick="setLang('fr')">🇫🇷 Français</button>
+                        <button class="lang-option" data-lang="en" onclick="setLang('en')">🇬🇧 English</button>
                     </div>
                 </div>
+
+                <!-- Non connecté -->
+                <a href="/auth" id="loginBtn" class="btn btn-primary">
+                    <i class="fas fa-sign-in-alt"></i>
+                    <span class="btn-text" data-i18n="nav_login">Connexion</span>
+                </a>
+
+                <!-- Connecté -->
+                <div id="userMenu" class="user-menu hidden">
+                    <button class="user-btn" id="userMenuToggle">
+                        <img id="userAvatar" src="" alt="Avatar" class="avatar">
+                        <span id="userName" class="user-name"></span>
+                        <i class="fas fa-chevron-down"></i>
+                    </button>
+                    <div class="dropdown hidden" id="userDropdown">
+                        <div class="dropdown-header">
+                            <img id="userAvatarDropdown" src="" alt="Avatar" class="avatar-large">
+                            <div>
+                                <strong id="userNameDropdown"></strong>
+                                <p id="userEmailDropdown"></p>
+                            </div>
+                        </div>
+                        <div class="dropdown-divider"></div>
+                        <a href="/profile" class="dropdown-item">
+                            <i class="fas fa-user"></i> <span data-i18n="nav_profile">Mon profil</span>
+                        </a>
+                        <div class="dropdown-divider hidden" id="adminDivider"></div>
+                        <a href="/admin" class="dropdown-item hidden" id="adminLink">
+                            <i class="fas fa-cog"></i> <span data-i18n="nav_admin">Administration</span>
+                        </a>
+                        <div class="dropdown-divider"></div>
+                        <button class="dropdown-item" id="logoutBtn">
+                            <i class="fas fa-sign-out-alt"></i> <span data-i18n="nav_logout">Déconnexion</span>
+                        </button>
+                    </div>
+                </div>
+
+                <!-- Bouton hamburger (visible sur mobile uniquement) -->
+                <button id="mobileMenuToggle" aria-label="Menu" aria-expanded="false">
+                    <i class="fas fa-bars"></i>
+                </button>
             </div>
         </div>
     </nav>
@@ -1007,6 +1013,42 @@
     
     <!-- Script principal -->
     <script type="module" src="home.js"></script>
+
+    <!-- Script du menu hamburger mobile -->
+    <script>
+        (function() {
+            document.addEventListener('DOMContentLoaded', function() {
+                var toggle = document.getElementById('mobileMenuToggle');
+                var menu   = document.getElementById('navMenu');
+                if (!toggle || !menu) return;
+
+                toggle.addEventListener('click', function(e) {
+                    e.stopPropagation();
+                    var isOpen = menu.classList.toggle('active');
+                    toggle.setAttribute('aria-expanded', isOpen);
+                    toggle.querySelector('i').className = isOpen ? 'fas fa-times' : 'fas fa-bars';
+                });
+
+                // Fermer le menu en cliquant en dehors
+                document.addEventListener('click', function(e) {
+                    if (!e.target.closest('.navbar')) {
+                        menu.classList.remove('active');
+                        toggle.setAttribute('aria-expanded', 'false');
+                        toggle.querySelector('i').className = 'fas fa-bars';
+                    }
+                });
+
+                // Fermer au clic sur un lien
+                menu.querySelectorAll('.nav-link').forEach(function(link) {
+                    link.addEventListener('click', function() {
+                        menu.classList.remove('active');
+                        toggle.setAttribute('aria-expanded', 'false');
+                        toggle.querySelector('i').className = 'fas fa-bars';
+                    });
+                });
+            });
+        })();
+    </script>
 
     <!-- Script inline pour la newsletter modal (fallback si home.js ne charge pas) -->
     <script>
