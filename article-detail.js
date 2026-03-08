@@ -755,16 +755,40 @@ function setupReactions(article) {
 }
 
 function setupShareButtons(article) {
-    const pageUrl  = encodeURIComponent(window.location.href);
-    const title    = encodeURIComponent(getTranslated(article, 'title') || article.title);
+    const rawUrl   = window.location.href;
+    const rawTitle = getTranslated(article, 'title') || article.title || '';
+
+    // Encoder séparément — évite le double encodage
+    const pageUrl = encodeURIComponent(rawUrl);
+    const title   = encodeURIComponent(rawTitle);
 
     const twitterBtn  = document.getElementById('twitterShare');
     const linkedinBtn = document.getElementById('linkedinShare');
     const whatsappBtn = document.getElementById('whatsappShare');
 
-    if (twitterBtn)  twitterBtn.href  = `https://twitter.com/intent/tweet?url=${pageUrl}&text=${title}`;
-    if (linkedinBtn) linkedinBtn.href = `https://www.linkedin.com/sharing/share-offsite/?url=${pageUrl}`;
-    if (whatsappBtn) whatsappBtn.href = `https://wa.me/?text=${title}%0A${pageUrl}`;
+    if (twitterBtn) {
+        twitterBtn.href = `https://twitter.com/intent/tweet?url=${pageUrl}&text=${title}`;
+        twitterBtn.setAttribute('rel', 'noopener noreferrer');
+    }
+    if (linkedinBtn) {
+        linkedinBtn.href = `https://www.linkedin.com/sharing/share-offsite/?url=${pageUrl}`;
+        linkedinBtn.setAttribute('rel', 'noopener noreferrer');
+    }
+    if (whatsappBtn) {
+        // encodeURIComponent encode aussi le \n correctement
+        const whatsappText = encodeURIComponent(rawTitle + '\n' + rawUrl);
+        whatsappBtn.href = `https://wa.me/?text=${whatsappText}`;
+        whatsappBtn.setAttribute('rel', 'noopener noreferrer');
+    }
+
+    // Ouvrir dans une popup propre — évite le blocage navigateur sur les href="#"
+    [twitterBtn, linkedinBtn, whatsappBtn].forEach(btn => {
+        if (!btn) return;
+        btn.addEventListener('click', (e) => {
+            e.preventDefault();
+            window.open(btn.href, '_blank', 'noopener,noreferrer,width=600,height=500');
+        });
+    });
 }
 
 // ============================================
@@ -1016,18 +1040,33 @@ function showNotification(message, type = 'info') {
 // FONCTIONS GLOBALES (appelées depuis le HTML)
 // ============================================
 window.copyLink = function() {
-    navigator.clipboard.writeText(window.location.href)
-        .then(() => showNotification(t('linkCopied'), 'success'))
-        .catch(() => {
-            const el = document.createElement('input');
-            el.value = window.location.href;
-            document.body.appendChild(el);
-            el.select();
-            document.execCommand('copy');
-            document.body.removeChild(el);
-            showNotification(t('linkCopied'), 'success');
-        });
+    const url = window.location.href;
+
+    if (navigator.clipboard && navigator.clipboard.writeText) {
+        navigator.clipboard.writeText(url)
+            .then(() => showNotification(t('linkCopied'), 'success'))
+            .catch(() => fallbackCopy(url));
+    } else {
+        fallbackCopy(url);
+    }
 };
+
+function fallbackCopy(text) {
+    try {
+        const el = document.createElement('textarea');
+        el.value = text;
+        el.style.cssText = 'position:fixed;top:-9999px;left:-9999px;opacity:0';
+        document.body.appendChild(el);
+        el.focus();
+        el.select();
+        el.setSelectionRange(0, el.value.length); // iOS
+        document.execCommand('copy');
+        document.body.removeChild(el);
+        showNotification(t('linkCopied'), 'success');
+    } catch (e) {
+        console.error('Erreur copie lien:', e);
+    }
+}
 
 window.filterByTag = function(tag) {
     window.location.href = `/articles?tag=${encodeURIComponent(tag)}`;
