@@ -549,6 +549,13 @@ function setInnerHTMLWithScripts(container, html) {
 function renderArticle(article) {
     console.log('🎨 Rendu article:', article.title, '| Langue:', currentLang);
 
+    // ✅ FIX : Corriger l'URL du navigateur avec le vrai slug (important pour le partage)
+    if (article.slug && !window.location.pathname.includes('/article/')) {
+        history.replaceState(null, '', `/article/${article.slug}`);
+        // Nettoyer le sessionStorage une fois l'URL corrigée
+        sessionStorage.removeItem('current_article_slug');
+    }
+
     // Cacher loading / erreur, afficher conteneur
     document.getElementById('loadingState')?.classList.add('hidden');
     document.getElementById('errorState')?.classList.add('hidden');
@@ -701,7 +708,10 @@ function updatePageMeta(article) {
     updateMetaTag('og:title',             article.title);
     updateMetaTag('og:description',       article.summary || article.excerpt || '');
     updateMetaTag('og:image',             article.imageUrl || 'https://electroinfo.online/images/logo.png');
-    updateMetaTag('og:url',               window.location.href);
+    // ✅ FIX : og:url doit pointer vers l'URL canonique avec le slug
+    updateMetaTag('og:url', article.slug
+        ? `${window.location.origin}/article/${article.slug}`
+        : window.location.href);
     updateMetaTag('twitter:title',        article.title);
     updateMetaTag('twitter:description',  article.summary || article.excerpt || '');
     updateMetaTag('twitter:image',        article.imageUrl || 'https://electroinfo.online/images/logo.png');
@@ -755,7 +765,10 @@ function setupReactions(article) {
 }
 
 function setupShareButtons(article) {
-    const rawUrl   = window.location.href;
+    // ✅ FIX : Utiliser l'URL canonique avec le slug, pas l'URL actuelle (article-detail.html?...)
+    const rawUrl = article.slug
+        ? `${window.location.origin}/article/${article.slug}`
+        : window.location.href;
     const rawTitle = getTranslated(article, 'title') || article.title || '';
 
     // Encoder séparément — évite le double encodage
@@ -1040,7 +1053,10 @@ function showNotification(message, type = 'info') {
 // FONCTIONS GLOBALES (appelées depuis le HTML)
 // ============================================
 window.copyLink = function() {
-    const url = window.location.href;
+    // ✅ FIX : Utiliser l'URL canonique avec le slug
+    const url = currentArticle?.slug
+        ? `${window.location.origin}/article/${currentArticle.slug}`
+        : window.location.href;
 
     if (navigator.clipboard && navigator.clipboard.writeText) {
         navigator.clipboard.writeText(url)
