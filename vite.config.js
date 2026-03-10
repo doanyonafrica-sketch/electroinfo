@@ -35,6 +35,12 @@ export default defineConfig({
             return next();
           }
 
+          // /matiere/{courseId}/{matiereId} → matiere-detail.html  ← NOUVEAU
+          if (req.url.startsWith('/matiere/') && !req.url.includes('.')) {
+            req.url = '/matiere-detail.html';
+            return next();
+          }
+
           // Toutes les autres pages sans extension : /about → /about.html
           if (!url.includes('.') && url !== '/' && url !== '') {
             const query = req.url.includes('?') ? req.url.slice(req.url.indexOf('?')) : '';
