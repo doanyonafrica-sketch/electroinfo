@@ -44,7 +44,6 @@ const storage = getStorage(app);
 // Variables globales
 let currentUser = null;
 let currentCourseId = null;
-let currentMatiereId = null; // ← NOUVEAU
 let currentTab = 'list';
 let allCourses = [];
 
@@ -98,23 +97,21 @@ window.switchTab = function(tab) {
     });
     
     const activeBtn = document.querySelector(`[onclick*="switchTab('${tab}')"]`);
-    if (activeBtn) activeBtn.classList.add('active');
+    if (activeBtn) {
+        activeBtn.classList.add('active');
+    }
     
     const coursesListTab = document.getElementById('coursesListTab');
-    const courseFormTab  = document.getElementById('courseFormTab');
-    const matieresTab    = document.getElementById('matieresTab'); // ← NOUVEAU
+    const courseFormTab = document.getElementById('courseFormTab');
     
     if (coursesListTab) coursesListTab.classList.add('hidden');
-    if (courseFormTab)  courseFormTab.classList.add('hidden');
-    if (matieresTab)    matieresTab.classList.add('hidden');
+    if (courseFormTab) courseFormTab.classList.add('hidden');
     
     if (tab === 'list' && coursesListTab) {
         coursesListTab.classList.remove('hidden');
         loadCourses();
     } else if (tab === 'form' && courseFormTab) {
         courseFormTab.classList.remove('hidden');
-    } else if (tab === 'matieres' && matieresTab) { // ← NOUVEAU
-        matieresTab.classList.remove('hidden');
     }
 };
 
@@ -177,6 +174,14 @@ function displayCourses() {
     }
     
     coursesTableBody.innerHTML = allCourses.map(course => {
+        const sequencesCount = course.sequences?.length || 0;
+        let sessionsCount = 0;
+        if (course.sequences) {
+            course.sequences.forEach(seq => {
+                sessionsCount += seq.sessions?.length || 0;
+            });
+        }
+
         const date = course.createdAt?.toDate?.() || new Date();
         const formattedDate = date.toLocaleDateString('fr-FR');
 
@@ -185,16 +190,12 @@ function displayCourses() {
                 <td>${escapeHtml(course.title)}</td>
                 <td><span class="badge">${escapeHtml(course.diploma || 'N/A')}</span></td>
                 <td><span class="badge badge-info">${escapeHtml(course.level || 'N/A')}</span></td>
-                <td>
-                    <button onclick="openMatieresPanel('${course.id}', '${escapeHtml(course.title)}')"
-                        class="btn-action btn-matieres" title="Gérer les matières" style="display:inline-flex;align-items:center;gap:.35rem;padding:.35rem .75rem;background:#eff6ff;color:#1d4ed8;border:1px solid #bfdbfe;border-radius:7px;font-size:.82rem;cursor:pointer;">
-                        <i class="fas fa-book"></i> Matières
-                    </button>
-                </td>
+                <td>${sequencesCount}</td>
+                <td>${sessionsCount}</td>
                 <td>${formattedDate}</td>
                 <td>
                     <div class="action-buttons">
-                        <button onclick="editCourse('${course.id}')" class="btn-action btn-edit" title="Modifier infos cours">
+                        <button onclick="editCourse('${course.id}')" class="btn-action btn-edit" title="Modifier">
                             <i class="fas fa-edit"></i>
                         </button>
                         <button onclick="deleteCourse('${course.id}')" class="btn-action btn-delete" title="Supprimer">
@@ -1379,548 +1380,6 @@ window.deleteCourse = async function(courseId) {
         alert('Erreur lors de la suppression du cours');
     }
 };
-
-// ============================================
-// ══════════════════════════════════════════════
-//  GESTION DES MATIÈRES (NOUVEAU)
-// ══════════════════════════════════════════════
-// ============================================
-
-// ── Ouvrir le panel matières d'un cours ──────────────────────────────────────
-window.openMatieresPanel = async function(courseId, courseTitle) {
-    currentCourseId = courseId;
-
-    // Mettre à jour le titre du panel
-    const titleEl = document.getElementById('matieresCourseTitle');
-    if (titleEl) titleEl.textContent = courseTitle;
-
-    switchTab('matieres');
-    await loadMatieres(courseId);
-};
-
-// ── Charger les matières d'un cours ──────────────────────────────────────────
-async function loadMatieres(courseId) {
-    const container = document.getElementById('matieresListContainer');
-    if (!container) return;
-
-    container.innerHTML = `<div style="text-align:center;padding:2rem;color:#94a3b8;">
-        <i class="fas fa-spinner fa-spin" style="font-size:2rem;"></i><p>Chargement…</p></div>`;
-
-    try {
-        const snap = await getDocs(query(
-            collection(db, 'courses', courseId, 'matieres'),
-            orderBy('order', 'asc')
-        ));
-        const matieres = snap.docs.map(d => ({ id: d.id, ...d.data() }));
-        renderMatieresAdmin(courseId, matieres, container);
-    } catch(err) {
-        console.error('[loadMatieres]', err);
-        container.innerHTML = `<p style="color:#ef4444;padding:1rem;">Erreur de chargement : ${err.message}</p>`;
-    }
-}
-
-// ── Afficher la liste des matières ───────────────────────────────────────────
-function renderMatieresAdmin(courseId, matieres, container) {
-    if (matieres.length === 0) {
-        container.innerHTML = `
-            <div style="text-align:center;padding:3rem;color:#94a3b8;">
-                <i class="fas fa-book" style="font-size:3rem;display:block;margin-bottom:1rem;"></i>
-                <p>Aucune matière — ajoutez la première !</p>
-            </div>`;
-        return;
-    }
-
-    const ICONS = ['fa-bolt','fa-microchip','fa-plug','fa-tools','fa-cogs','fa-network-wired',
-                   'fa-wave-square','fa-battery-full','fa-solar-panel','fa-calculator','fa-book-open'];
-
-    container.innerHTML = matieres.map(mat => `
-        <div class="matiere-admin-row" data-id="${mat.id}">
-            <div class="mar-drag"><i class="fas fa-grip-vertical"></i></div>
-            <div class="mar-icon" style="background:#dbeafe;color:#1d4ed8;width:38px;height:38px;border-radius:9px;display:flex;align-items:center;justify-content:center;">
-                <i class="fas ${mat.icon || 'fa-bolt'}"></i>
-            </div>
-            <div class="mar-info" style="flex:1;">
-                <strong style="color:#1e293b;">${escapeHtml(mat.title)}</strong>
-                ${mat.description ? `<small style="display:block;color:#64748b;font-size:.8rem;">${escapeHtml(mat.description)}</small>` : ''}
-            </div>
-            <div class="mar-order" style="color:#94a3b8;font-size:.82rem;">Ordre : ${mat.order || '—'}</div>
-            <div class="mar-actions" style="display:flex;gap:.4rem;">
-                <button onclick="openEditMatiereModal('${courseId}','${mat.id}')"
-                    style="padding:.35rem .7rem;background:#f0f9ff;color:#0369a1;border:1px solid #bae6fd;border-radius:7px;cursor:pointer;font-size:.82rem;">
-                    <i class="fas fa-pen"></i> Modifier
-                </button>
-                <button onclick="openSequencesPanel('${courseId}','${mat.id}','${escapeHtml(mat.title)}')"
-                    style="padding:.35rem .7rem;background:#f0fdf4;color:#15803d;border:1px solid #bbf7d0;border-radius:7px;cursor:pointer;font-size:.82rem;">
-                    <i class="fas fa-list-ol"></i> Séquences
-                </button>
-                <button onclick="deleteMatiereConfirm('${courseId}','${mat.id}','${escapeHtml(mat.title)}')"
-                    style="padding:.35rem .7rem;background:#fff5f5;color:#dc2626;border:1px solid #fecaca;border-radius:7px;cursor:pointer;font-size:.82rem;">
-                    <i class="fas fa-trash"></i>
-                </button>
-            </div>
-        </div>`).join('');
-}
-
-// ── Modal : ajouter une matière ───────────────────────────────────────────────
-window.openAddMatiereModal = function() {
-    if (!currentCourseId) return;
-    showMatiereModal({ courseId: currentCourseId, mode: 'add' });
-};
-
-window.openEditMatiereModal = async function(courseId, matiereId) {
-    try {
-        const snap = await getDoc(doc(db, 'courses', courseId, 'matieres', matiereId));
-        if (!snap.exists()) return alert('Matière introuvable');
-        showMatiereModal({ courseId, matiereId, mode: 'edit', data: snap.data() });
-    } catch(e) { alert('Erreur : ' + e.message); }
-};
-
-function showMatiereModal({ courseId, matiereId, mode, data = {} }) {
-    const existing = document.getElementById('matiereFormModal');
-    if (existing) existing.remove();
-
-    const ICONS = ['fa-bolt','fa-microchip','fa-plug','fa-tools','fa-cogs','fa-network-wired',
-                   'fa-wave-square','fa-battery-full','fa-solar-panel','fa-calculator','fa-book-open','fa-project-diagram'];
-    const currentIcon = data.icon || 'fa-bolt';
-
-    const modal = document.createElement('div');
-    modal.id = 'matiereFormModal';
-    modal.style.cssText = 'position:fixed;inset:0;background:rgba(0,0,0,.5);z-index:9999;display:flex;align-items:center;justify-content:center;';
-    modal.innerHTML = `
-        <div style="background:white;border-radius:16px;padding:2rem;width:90%;max-width:500px;max-height:90vh;overflow-y:auto;">
-            <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:1.5rem;">
-                <h3 style="font-size:1.2rem;font-weight:700;color:#1e293b;margin:0;">
-                    ${mode === 'add' ? '<i class="fas fa-plus"></i> Nouvelle matière' : '<i class="fas fa-pen"></i> Modifier la matière'}
-                </h3>
-                <button onclick="document.getElementById('matiereFormModal').remove()"
-                    style="background:#f1f5f9;border:none;width:32px;height:32px;border-radius:50%;cursor:pointer;font-size:1rem;">✕</button>
-            </div>
-
-            <div class="form-group" style="margin-bottom:1rem;">
-                <label style="font-weight:600;font-size:.9rem;color:#374151;display:block;margin-bottom:.4rem;">Titre *</label>
-                <input id="mfTitle" type="text" value="${escapeHtml(data.title || '')}"
-                    placeholder="Ex: Électrotechnique, Automatisme…"
-                    style="width:100%;padding:.75rem;border:2px solid #e2e8f0;border-radius:9px;font-size:.95rem;box-sizing:border-box;">
-            </div>
-
-            <div class="form-group" style="margin-bottom:1rem;">
-                <label style="font-weight:600;font-size:.9rem;color:#374151;display:block;margin-bottom:.4rem;">Description</label>
-                <textarea id="mfDesc" placeholder="Brève description…" rows="2"
-                    style="width:100%;padding:.75rem;border:2px solid #e2e8f0;border-radius:9px;font-size:.9rem;resize:vertical;box-sizing:border-box;">${escapeHtml(data.description || '')}</textarea>
-            </div>
-
-            <div class="form-group" style="margin-bottom:1rem;">
-                <label style="font-weight:600;font-size:.9rem;color:#374151;display:block;margin-bottom:.4rem;">Icône</label>
-                <div style="display:flex;flex-wrap:wrap;gap:.4rem;">
-                    ${ICONS.map(ic => `
-                        <button type="button" id="mfIcon_${ic.replace('fa-','')}"
-                            onclick="selectMatiereIcon('${ic}')"
-                            style="width:38px;height:38px;border:2px solid ${ic === currentIcon ? '#2563eb' : '#e2e8f0'};border-radius:8px;
-                                   background:${ic === currentIcon ? '#eff6ff' : 'white'};color:${ic === currentIcon ? '#2563eb' : '#64748b'};
-                                   cursor:pointer;display:flex;align-items:center;justify-content:center;">
-                            <i class="fas ${ic}"></i>
-                        </button>`).join('')}
-                </div>
-                <input type="hidden" id="mfIcon" value="${currentIcon}">
-            </div>
-
-            <div class="form-group" style="margin-bottom:1.5rem;">
-                <label style="font-weight:600;font-size:.9rem;color:#374151;display:block;margin-bottom:.4rem;">Ordre d'affichage</label>
-                <input id="mfOrder" type="number" min="1" value="${data.order || 1}"
-                    style="width:120px;padding:.75rem;border:2px solid #e2e8f0;border-radius:9px;font-size:.95rem;">
-            </div>
-
-            <div style="display:flex;gap:.75rem;justify-content:flex-end;">
-                <button onclick="document.getElementById('matiereFormModal').remove()"
-                    style="padding:.7rem 1.4rem;background:#f1f5f9;border:none;border-radius:9px;cursor:pointer;font-weight:600;">Annuler</button>
-                <button onclick="saveMatiere('${courseId}','${matiereId || ''}','${mode}')"
-                    style="padding:.7rem 1.4rem;background:#2563eb;color:white;border:none;border-radius:9px;cursor:pointer;font-weight:600;">
-                    <i class="fas fa-save"></i> ${mode === 'add' ? 'Créer' : 'Enregistrer'}
-                </button>
-            </div>
-        </div>`;
-    document.body.appendChild(modal);
-}
-
-window.selectMatiereIcon = function(icon) {
-    document.getElementById('mfIcon').value = icon;
-    document.querySelectorAll('[id^="mfIcon_"]').forEach(btn => {
-        const isSelected = btn.id === `mfIcon_${icon.replace('fa-','')}`;
-        btn.style.borderColor = isSelected ? '#2563eb' : '#e2e8f0';
-        btn.style.background  = isSelected ? '#eff6ff' : 'white';
-        btn.style.color       = isSelected ? '#2563eb' : '#64748b';
-    });
-};
-
-window.saveMatiere = async function(courseId, matiereId, mode) {
-    const title = document.getElementById('mfTitle')?.value.trim();
-    const desc  = document.getElementById('mfDesc')?.value.trim();
-    const icon  = document.getElementById('mfIcon')?.value || 'fa-bolt';
-    const order = parseInt(document.getElementById('mfOrder')?.value) || 1;
-
-    if (!title || title.length < 2) return alert('Le titre est obligatoire (min. 2 caractères).');
-
-    const btn = document.querySelector('#matiereFormModal button[onclick*="saveMatiere"]');
-    if (btn) { btn.disabled = true; btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i>'; }
-
-    try {
-        const data = { title, description: desc, icon, order, updatedAt: serverTimestamp() };
-
-        if (mode === 'add') {
-            data.createdAt = serverTimestamp();
-            await addDoc(collection(db, 'courses', courseId, 'matieres'), data);
-            showAdminToast('Matière créée !', 'success');
-        } else {
-            await updateDoc(doc(db, 'courses', courseId, 'matieres', matiereId), data);
-            showAdminToast('Matière mise à jour !', 'success');
-        }
-
-        document.getElementById('matiereFormModal')?.remove();
-        await loadMatieres(courseId);
-    } catch(err) {
-        console.error('[saveMatiere]', err);
-        alert('Erreur : ' + err.message);
-        if (btn) { btn.disabled = false; btn.innerHTML = '<i class="fas fa-save"></i> Enregistrer'; }
-    }
-};
-
-window.deleteMatiereConfirm = async function(courseId, matiereId, titre) {
-    if (!confirm(`Supprimer "${titre}" ?\n\n⚠️ Toutes ses séquences et séances seront aussi supprimées.`)) return;
-    try {
-        // Supprimer séquences + séances en cascade
-        const seqSnap = await getDocs(collection(db,'courses',courseId,'matieres',matiereId,'sequences'));
-        for (const seqDoc of seqSnap.docs) {
-            const sSnap = await getDocs(collection(db,'courses',courseId,'matieres',matiereId,'sequences',seqDoc.id,'seances'));
-            for (const s of sSnap.docs) await deleteDoc(s.ref);
-            await deleteDoc(seqDoc.ref);
-        }
-        await deleteDoc(doc(db,'courses',courseId,'matieres',matiereId));
-        showAdminToast('Matière supprimée.', 'success');
-        await loadMatieres(courseId);
-    } catch(err) {
-        alert('Erreur : ' + err.message);
-    }
-};
-
-// ── Panel séquences d'une matière ─────────────────────────────────────────────
-window.openSequencesPanel = async function(courseId, matiereId, matiereTitle) {
-    currentCourseId  = courseId;
-    currentMatiereId = matiereId;
-
-    const panel = document.getElementById('sequencesPanelOverlay');
-    const titleEl = document.getElementById('sequencesPanelTitle');
-    if (!panel) return;
-    if (titleEl) titleEl.textContent = matiereTitle;
-    panel.style.display = 'flex';
-
-    await loadSequences(courseId, matiereId);
-};
-
-window.closeSequencesPanel = function() {
-    const panel = document.getElementById('sequencesPanelOverlay');
-    if (panel) panel.style.display = 'none';
-};
-
-async function loadSequences(courseId, matiereId) {
-    const container = document.getElementById('sequencesPanelList');
-    if (!container) return;
-    container.innerHTML = `<div style="text-align:center;padding:2rem;color:#94a3b8;"><i class="fas fa-spinner fa-spin"></i></div>`;
-
-    try {
-        const snap = await getDocs(query(
-            collection(db,'courses',courseId,'matieres',matiereId,'sequences'),
-            orderBy('order','asc')
-        ));
-        const seqs = snap.docs.map(d => ({ id: d.id, ...d.data() }));
-        renderSequencesPanel(courseId, matiereId, seqs, container);
-    } catch(err) {
-        container.innerHTML = `<p style="color:#ef4444;">Erreur : ${err.message}</p>`;
-    }
-}
-
-function renderSequencesPanel(courseId, matiereId, seqs, container) {
-    if (!seqs.length) {
-        container.innerHTML = `<div style="text-align:center;padding:2rem;color:#94a3b8;"><i class="fas fa-list-ol" style="font-size:2.5rem;display:block;margin-bottom:1rem;"></i><p>Aucune séquence.</p></div>`;
-        return;
-    }
-    container.innerHTML = seqs.map(seq => `
-        <div style="background:white;border:1px solid #e2e8f0;border-radius:10px;padding:1rem;margin-bottom:.75rem;display:flex;align-items:center;gap:.75rem;">
-            <div style="width:30px;height:30px;background:#1d4ed8;color:white;border-radius:50%;display:flex;align-items:center;justify-content:center;font-weight:700;font-size:.8rem;flex-shrink:0;">${seq.order||'?'}</div>
-            <div style="flex:1;">
-                <strong style="color:#1e293b;">${escapeHtml(seq.title)}</strong>
-                ${seq.description ? `<small style="display:block;color:#64748b;font-size:.8rem;">${escapeHtml(seq.description)}</small>` : ''}
-            </div>
-            <div style="display:flex;gap:.4rem;">
-                <button onclick="openEditSequenceModal('${courseId}','${matiereId}','${seq.id}')"
-                    style="padding:.3rem .65rem;background:#f0f9ff;color:#0369a1;border:1px solid #bae6fd;border-radius:7px;cursor:pointer;font-size:.8rem;">
-                    <i class="fas fa-pen"></i>
-                </button>
-                <button onclick="openSeancesPanel('${courseId}','${matiereId}','${seq.id}','${escapeHtml(seq.title)}')"
-                    style="padding:.3rem .65rem;background:#f0fdf4;color:#15803d;border:1px solid #bbf7d0;border-radius:7px;cursor:pointer;font-size:.8rem;">
-                    <i class="fas fa-play-circle"></i> Séances
-                </button>
-                <button onclick="deleteSequenceConfirm('${courseId}','${matiereId}','${seq.id}','${escapeHtml(seq.title)}')"
-                    style="padding:.3rem .65rem;background:#fff5f5;color:#dc2626;border:1px solid #fecaca;border-radius:7px;cursor:pointer;font-size:.8rem;">
-                    <i class="fas fa-trash"></i>
-                </button>
-            </div>
-        </div>`).join('');
-}
-
-window.openAddSequenceModal = function() {
-    showSequenceModal({ courseId: currentCourseId, matiereId: currentMatiereId, mode: 'add' });
-};
-
-window.openEditSequenceModal = async function(courseId, matiereId, seqId) {
-    const snap = await getDoc(doc(db,'courses',courseId,'matieres',matiereId,'sequences',seqId));
-    showSequenceModal({ courseId, matiereId, seqId, mode: 'edit', data: snap.data() || {} });
-};
-
-function showSequenceModal({ courseId, matiereId, seqId, mode, data = {} }) {
-    const existing = document.getElementById('sequenceFormModal');
-    if (existing) existing.remove();
-
-    const modal = document.createElement('div');
-    modal.id = 'sequenceFormModal';
-    modal.style.cssText = 'position:fixed;inset:0;background:rgba(0,0,0,.6);z-index:10000;display:flex;align-items:center;justify-content:center;';
-    modal.innerHTML = `
-        <div style="background:white;border-radius:16px;padding:2rem;width:90%;max-width:460px;">
-            <h3 style="margin:0 0 1.5rem;font-size:1.15rem;font-weight:700;color:#1e293b;">
-                ${mode === 'add' ? '<i class="fas fa-plus"></i> Nouvelle séquence' : '<i class="fas fa-pen"></i> Modifier la séquence'}
-            </h3>
-            <div style="margin-bottom:1rem;">
-                <label style="font-weight:600;font-size:.9rem;display:block;margin-bottom:.4rem;">Titre *</label>
-                <input id="sqTitle" type="text" value="${escapeHtml(data.title||'')}" placeholder="Ex: Séquence 1 — Introduction"
-                    style="width:100%;padding:.75rem;border:2px solid #e2e8f0;border-radius:9px;box-sizing:border-box;">
-            </div>
-            <div style="margin-bottom:1rem;">
-                <label style="font-weight:600;font-size:.9rem;display:block;margin-bottom:.4rem;">Description</label>
-                <textarea id="sqDesc" rows="2" placeholder="Brève description…"
-                    style="width:100%;padding:.75rem;border:2px solid #e2e8f0;border-radius:9px;resize:vertical;box-sizing:border-box;">${escapeHtml(data.description||'')}</textarea>
-            </div>
-            <div style="margin-bottom:1.5rem;">
-                <label style="font-weight:600;font-size:.9rem;display:block;margin-bottom:.4rem;">Ordre</label>
-                <input id="sqOrder" type="number" min="1" value="${data.order||1}"
-                    style="width:100px;padding:.75rem;border:2px solid #e2e8f0;border-radius:9px;">
-            </div>
-            <div style="display:flex;gap:.75rem;justify-content:flex-end;">
-                <button onclick="document.getElementById('sequenceFormModal').remove()"
-                    style="padding:.7rem 1.4rem;background:#f1f5f9;border:none;border-radius:9px;cursor:pointer;font-weight:600;">Annuler</button>
-                <button onclick="saveSequence('${courseId}','${matiereId}','${seqId||''}','${mode}')"
-                    style="padding:.7rem 1.4rem;background:#1d4ed8;color:white;border:none;border-radius:9px;cursor:pointer;font-weight:600;">
-                    <i class="fas fa-save"></i> ${mode === 'add' ? 'Créer' : 'Enregistrer'}
-                </button>
-            </div>
-        </div>`;
-    document.body.appendChild(modal);
-}
-
-window.saveSequence = async function(courseId, matiereId, seqId, mode) {
-    const title = document.getElementById('sqTitle')?.value.trim();
-    const desc  = document.getElementById('sqDesc')?.value.trim();
-    const order = parseInt(document.getElementById('sqOrder')?.value) || 1;
-    if (!title) return alert('Le titre est obligatoire.');
-
-    try {
-        const data = { title, description: desc, order, updatedAt: serverTimestamp() };
-        if (mode === 'add') {
-            data.createdAt = serverTimestamp();
-            await addDoc(collection(db,'courses',courseId,'matieres',matiereId,'sequences'), data);
-            showAdminToast('Séquence créée !', 'success');
-        } else {
-            await updateDoc(doc(db,'courses',courseId,'matieres',matiereId,'sequences',seqId), data);
-            showAdminToast('Séquence mise à jour !', 'success');
-        }
-        document.getElementById('sequenceFormModal')?.remove();
-        await loadSequences(courseId, matiereId);
-    } catch(err) { alert('Erreur : ' + err.message); }
-};
-
-window.deleteSequenceConfirm = async function(courseId, matiereId, seqId, titre) {
-    if (!confirm(`Supprimer la séquence "${titre}" et toutes ses séances ?`)) return;
-    try {
-        const sSnap = await getDocs(collection(db,'courses',courseId,'matieres',matiereId,'sequences',seqId,'seances'));
-        for (const s of sSnap.docs) await deleteDoc(s.ref);
-        await deleteDoc(doc(db,'courses',courseId,'matieres',matiereId,'sequences',seqId));
-        showAdminToast('Séquence supprimée.', 'success');
-        await loadSequences(courseId, matiereId);
-    } catch(err) { alert('Erreur : ' + err.message); }
-};
-
-// ── Panel séances d'une séquence ──────────────────────────────────────────────
-let currentSequenceId = null;
-
-window.openSeancesPanel = async function(courseId, matiereId, seqId, seqTitle) {
-    currentSequenceId = seqId;
-    // Fermer panel séquences et ouvrir séances dans le même overlay
-    const titleEl = document.getElementById('sequencesPanelTitle');
-    if (titleEl) titleEl.textContent = `Séances — ${seqTitle}`;
-
-    const container = document.getElementById('sequencesPanelList');
-    if (!container) return;
-    container.innerHTML = `<div style="text-align:center;padding:2rem;color:#94a3b8;"><i class="fas fa-spinner fa-spin"></i></div>`;
-
-    // Ajouter bouton retour
-    const addBtn = document.getElementById('sequencesAddBtn');
-    if (addBtn) {
-        addBtn.innerHTML = '<i class="fas fa-plus"></i> Ajouter une séance';
-        addBtn.onclick = () => openAddSeanceModal(courseId, matiereId, seqId);
-    }
-    const backBtn = document.getElementById('sequencesBackBtn');
-    if (backBtn) {
-        backBtn.style.display = 'inline-flex';
-        backBtn.onclick = async () => {
-            if (addBtn) { addBtn.innerHTML = '<i class="fas fa-plus"></i> Ajouter une séquence'; addBtn.onclick = () => openAddSequenceModal(); }
-            if (titleEl) titleEl.textContent = document.getElementById('matieresCourseTitle')?.textContent || '';
-            backBtn.style.display = 'none';
-            await loadSequences(courseId, matiereId);
-        };
-    }
-
-    await loadSeances(courseId, matiereId, seqId, container);
-};
-
-async function loadSeances(courseId, matiereId, seqId, container) {
-    try {
-        const snap = await getDocs(query(
-            collection(db,'courses',courseId,'matieres',matiereId,'sequences',seqId,'seances'),
-            orderBy('order','asc')
-        ));
-        const seances = snap.docs.map(d => ({ id: d.id, ...d.data() }));
-        renderSeancesPanel(courseId, matiereId, seqId, seances, container);
-    } catch(err) { container.innerHTML = `<p style="color:#ef4444;">Erreur : ${err.message}</p>`; }
-}
-
-function renderSeancesPanel(courseId, matiereId, seqId, seances, container) {
-    if (!seances.length) {
-        container.innerHTML = `<div style="text-align:center;padding:2rem;color:#94a3b8;"><i class="fas fa-play-circle" style="font-size:2.5rem;display:block;margin-bottom:1rem;"></i><p>Aucune séance.</p></div>`;
-        return;
-    }
-    container.innerHTML = seances.map(s => `
-        <div style="background:white;border:1px solid #e2e8f0;border-radius:10px;padding:1rem;margin-bottom:.75rem;display:flex;align-items:center;gap:.75rem;">
-            <div style="width:28px;height:28px;background:#dbeafe;color:#1d4ed8;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:.75rem;font-weight:700;flex-shrink:0;">${s.order||'?'}</div>
-            <div style="flex:1;">
-                <strong style="color:#1e293b;font-size:.95rem;">${escapeHtml(s.title)}</strong>
-                ${s.pdfUrl ? `<small style="display:block;color:#d97706;font-size:.78rem;"><i class="fas fa-file-pdf"></i> PDF joint</small>` : ''}
-            </div>
-            <div style="display:flex;gap:.4rem;">
-                <button onclick="openEditSeanceModal('${courseId}','${matiereId}','${seqId}','${s.id}')"
-                    style="padding:.3rem .65rem;background:#f0f9ff;color:#0369a1;border:1px solid #bae6fd;border-radius:7px;cursor:pointer;font-size:.8rem;">
-                    <i class="fas fa-pen"></i>
-                </button>
-                <button onclick="deleteSeanceConfirm('${courseId}','${matiereId}','${seqId}','${s.id}','${escapeHtml(s.title)}')"
-                    style="padding:.3rem .65rem;background:#fff5f5;color:#dc2626;border:1px solid #fecaca;border-radius:7px;cursor:pointer;font-size:.8rem;">
-                    <i class="fas fa-trash"></i>
-                </button>
-            </div>
-        </div>`).join('');
-}
-
-window.openAddSeanceModal = function(courseId, matiereId, seqId) {
-    showSeanceModal({ courseId, matiereId, seqId, mode: 'add' });
-};
-
-window.openEditSeanceModal = async function(courseId, matiereId, seqId, seanceId) {
-    const snap = await getDoc(doc(db,'courses',courseId,'matieres',matiereId,'sequences',seqId,'seances',seanceId));
-    showSeanceModal({ courseId, matiereId, seqId, seanceId, mode: 'edit', data: snap.data() || {} });
-};
-
-function showSeanceModal({ courseId, matiereId, seqId, seanceId, mode, data = {} }) {
-    const existing = document.getElementById('seanceFormModal');
-    if (existing) existing.remove();
-
-    const modal = document.createElement('div');
-    modal.id = 'seanceFormModal';
-    modal.style.cssText = 'position:fixed;inset:0;background:rgba(0,0,0,.6);z-index:10001;display:flex;align-items:center;justify-content:center;overflow-y:auto;padding:1rem;';
-    modal.innerHTML = `
-        <div style="background:white;border-radius:16px;padding:2rem;width:100%;max-width:680px;">
-            <h3 style="margin:0 0 1.5rem;font-size:1.15rem;font-weight:700;color:#1e293b;">
-                ${mode === 'add' ? '<i class="fas fa-plus"></i> Nouvelle séance' : '<i class="fas fa-pen"></i> Modifier la séance'}
-            </h3>
-
-            <div style="margin-bottom:1rem;">
-                <label style="font-weight:600;font-size:.9rem;display:block;margin-bottom:.4rem;">Titre *</label>
-                <input id="scTitle" type="text" value="${escapeHtml(data.title||'')}"
-                    placeholder="Ex: Introduction aux circuits électriques"
-                    style="width:100%;padding:.75rem;border:2px solid #e2e8f0;border-radius:9px;box-sizing:border-box;">
-            </div>
-
-            <div style="margin-bottom:1rem;">
-                <label style="font-weight:600;font-size:.9rem;display:block;margin-bottom:.4rem;">Ordre</label>
-                <input id="scOrder" type="number" min="1" value="${data.order||1}"
-                    style="width:100px;padding:.75rem;border:2px solid #e2e8f0;border-radius:9px;">
-            </div>
-
-            <div style="margin-bottom:1rem;">
-                <label style="font-weight:600;font-size:.9rem;display:block;margin-bottom:.4rem;">Contenu HTML</label>
-                <textarea id="scContent" rows="8" placeholder="Contenu HTML de la séance…"
-                    style="width:100%;padding:.75rem;border:2px solid #e2e8f0;border-radius:9px;font-family:monospace;font-size:.85rem;resize:vertical;box-sizing:border-box;">${escapeHtml(data.content||'')}</textarea>
-            </div>
-
-            <div style="margin-bottom:1.5rem;">
-                <label style="font-weight:600;font-size:.9rem;display:block;margin-bottom:.4rem;">URL PDF (optionnel)</label>
-                <input id="scPdf" type="url" value="${escapeHtml(data.pdfUrl||'')}" placeholder="https://…"
-                    style="width:100%;padding:.75rem;border:2px solid #e2e8f0;border-radius:9px;box-sizing:border-box;">
-            </div>
-
-            <div style="display:flex;gap:.75rem;justify-content:flex-end;">
-                <button onclick="document.getElementById('seanceFormModal').remove()"
-                    style="padding:.7rem 1.4rem;background:#f1f5f9;border:none;border-radius:9px;cursor:pointer;font-weight:600;">Annuler</button>
-                <button onclick="saveSeance('${courseId}','${matiereId}','${seqId}','${seanceId||''}','${mode}')"
-                    style="padding:.7rem 1.4rem;background:#1d4ed8;color:white;border:none;border-radius:9px;cursor:pointer;font-weight:600;">
-                    <i class="fas fa-save"></i> ${mode === 'add' ? 'Créer' : 'Enregistrer'}
-                </button>
-            </div>
-        </div>`;
-    document.body.appendChild(modal);
-}
-
-window.saveSeance = async function(courseId, matiereId, seqId, seanceId, mode) {
-    const title   = document.getElementById('scTitle')?.value.trim();
-    const order   = parseInt(document.getElementById('scOrder')?.value) || 1;
-    const content = document.getElementById('scContent')?.value.trim();
-    const pdfUrl  = document.getElementById('scPdf')?.value.trim() || null;
-
-    if (!title) return alert('Le titre est obligatoire.');
-
-    try {
-        const data = { title, order, content: content || '', pdfUrl, updatedAt: serverTimestamp() };
-        if (mode === 'add') {
-            data.createdAt = serverTimestamp();
-            await addDoc(collection(db,'courses',courseId,'matieres',matiereId,'sequences',seqId,'seances'), data);
-            showAdminToast('Séance créée !', 'success');
-        } else {
-            await updateDoc(doc(db,'courses',courseId,'matieres',matiereId,'sequences',seqId,'seances',seanceId), data);
-            showAdminToast('Séance mise à jour !', 'success');
-        }
-        document.getElementById('seanceFormModal')?.remove();
-        const container = document.getElementById('sequencesPanelList');
-        if (container) await loadSeances(courseId, matiereId, seqId, container);
-    } catch(err) { alert('Erreur : ' + err.message); }
-};
-
-window.deleteSeanceConfirm = async function(courseId, matiereId, seqId, seanceId, titre) {
-    if (!confirm(`Supprimer la séance "${titre}" ?`)) return;
-    try {
-        await deleteDoc(doc(db,'courses',courseId,'matieres',matiereId,'sequences',seqId,'seances',seanceId));
-        showAdminToast('Séance supprimée.', 'success');
-        const container = document.getElementById('sequencesPanelList');
-        if (container) await loadSeances(courseId, matiereId, seqId, container);
-    } catch(err) { alert('Erreur : ' + err.message); }
-};
-
-// ── Toast notifications admin ─────────────────────────────────────────────────
-function showAdminToast(msg, type = 'success') {
-    const toast = document.createElement('div');
-    toast.style.cssText = `position:fixed;bottom:1.5rem;right:1.5rem;z-index:99999;padding:.85rem 1.5rem;border-radius:10px;font-weight:600;font-size:.9rem;color:white;background:${type==='success'?'#16a34a':type==='error'?'#dc2626':'#2563eb'};box-shadow:0 4px 16px rgba(0,0,0,.15);animation:fadeIn .3s ease;`;
-    toast.innerHTML = `<i class="fas fa-${type==='success'?'check-circle':'exclamation-circle'}"></i> ${msg}`;
-    document.body.appendChild(toast);
-    setTimeout(() => toast.remove(), 3500);
-}
-
-// ══════════════════════════════════════════════
-//  FIN GESTION DES MATIÈRES
-// ══════════════════════════════════════════════
 
 // ============================================
 // FONCTION UTILITAIRE
