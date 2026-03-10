@@ -26,6 +26,9 @@
         if (segment === 'course') {
             // /course/mon-slug → course-detail.html
             dest = '/course-detail.html';
+        } else if (segment === 'matiere') {
+            // /matiere/{courseId}/{matiereId} → matiere-detail.html  ← NOUVEAU
+            dest = '/matiere-detail.html';
         } else if (segment === 'seance') {
             // /seance/mon-slug/seq-N/seance-N → session-detail.html  ← LE FIX
             dest = '/session-detail.html';
