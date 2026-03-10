@@ -118,12 +118,12 @@
                     
                     <div class="course-stats">
                         <div class="stat-item">
-                            <i class="fas fa-book"></i>
-                            <span><span id="matieresCount">0</span> Matières</span>
+                            <i class="fas fa-list"></i>
+                            <span><span id="sequencesCount">0</span> Séquences</span>
                         </div>
                         <div class="stat-item">
-                            <i class="fas fa-play-circle"></i>
-                            <span><span id="seancesTotalCount">0</span> Séances</span>
+                            <i class="fas fa-clock"></i>
+                            <span><span id="sessionsCount">0</span> Séances</span>
                         </div>
                         <div class="stat-item">
                             <i class="fas fa-calendar"></i>
@@ -137,22 +137,34 @@
         <!-- Course Content -->
         <div class="course-content">
             <div class="container">
+                <div class="content-layout">
+                    <!-- Sidebar Navigation -->
+                    <aside class="course-sidebar">
+                        <div class="sidebar-sticky">
+                            <h3 class="sidebar-title">
+                                <i class="fas fa-stream"></i> Plan du cours
+                            </h3>
+                            <div id="sequencesNav" class="sequences-nav">
+                                <!-- Navigation sera injectée ici -->
+                            </div>
+                        </div>
+                    </aside>
 
-                <!-- Grille des Matières -->
-                <h2 class="matieres-section-title">
-                    <i class="fas fa-book"></i> Matières
-                </h2>
+                    <!-- Main Content Area -->
+                    <div class="course-main">
+                        <!-- Séquences et Séances -->
+                        <div id="sequencesContainer">
+                            <!-- Les séquences seront injectées ici -->
+                        </div>
 
-                <div id="matieresGrid" class="matieres-grid">
-                    <!-- Injecté par courses.js -->
+                        <!-- Empty State -->
+                        <div id="emptySequences" class="empty-state hidden">
+                            <i class="fas fa-inbox"></i>
+                            <h3>Aucune séquence disponible</h3>
+                            <p>Ce cours n'a pas encore de contenu.</p>
+                        </div>
+                    </div>
                 </div>
-
-                <div id="emptyMatieres" class="empty-state hidden">
-                    <i class="fas fa-folder-open"></i>
-                    <h3>Aucune matière disponible</h3>
-                    <p>Ce cours n'a pas encore de contenu.</p>
-                </div>
-
             </div>
         </div>
     </main>
@@ -196,70 +208,50 @@
 
     <!-- Correctifs responsive mobile -->
     <style>
-        /* Stats du header */
-        .course-stats { display:flex; flex-wrap:wrap; gap:.5rem 0; }
-        .stat-item { display:inline-flex; align-items:center; gap:.5rem; margin-right:1.5rem; font-size:.92rem; opacity:.9; white-space:nowrap; }
-
-        /* ── Titre section matières ── */
-        .matieres-section-title {
-            font-size:1.4rem; font-weight:700; color:#1e3a5f;
-            margin:2rem 0 1.25rem; display:flex; align-items:center; gap:.6rem;
-        }
-        .matieres-section-title i { color:#2563eb; }
-
-        /* ── Grille matières ── */
-        .matieres-grid {
-            display:grid;
-            grid-template-columns:repeat(auto-fill, minmax(280px, 1fr));
-            gap:1.25rem;
-            margin-bottom:3rem;
+        /* Stats du header : retour à la ligne sur mobile */
+        .course-stats {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 0.5rem 0;
         }
 
-        /* ── Carte matière ── */
-        .matiere-card {
-            background:white; border:1px solid #e2e8f0; border-radius:14px;
-            padding:1.4rem; text-decoration:none; display:block;
-            position:relative; overflow:hidden;
-            transition:transform .2s, box-shadow .2s, border-color .2s;
+        .stat-item {
+            display: inline-flex;
+            align-items: center;
+            gap: 0.5rem;
+            margin-right: 1.5rem;
+            font-size: 0.92rem;
+            opacity: 0.9;
+            white-space: nowrap;
         }
-        .matiere-card::before {
-            content:''; position:absolute; top:0; left:0; right:0; height:4px;
-            background:linear-gradient(90deg,#2563eb,#1e40af);
-            transform:scaleX(0); transform-origin:left; transition:transform .3s;
-        }
-        .matiere-card:hover { transform:translateY(-4px); box-shadow:0 12px 28px rgba(37,99,235,.12); border-color:#93c5fd; }
-        .matiere-card:hover::before { transform:scaleX(1); }
 
-        .mc-header { display:flex; align-items:flex-start; gap:.9rem; margin-bottom:.85rem; }
-        .mc-icon {
-            width:44px; height:44px; border-radius:11px; flex-shrink:0;
-            background:linear-gradient(135deg,#dbeafe,#bfdbfe);
-            display:flex; align-items:center; justify-content:center;
-            font-size:1.15rem; color:#1d4ed8;
-        }
-        .mc-order { font-size:.75rem; color:#94a3b8; margin:0 0 .15rem; }
-        .mc-title { font-size:1.05rem; font-weight:700; color:#1e293b; margin:0; line-height:1.3; }
-        .mc-desc  { font-size:.88rem; color:#475569; line-height:1.5; margin:.5rem 0 1rem;
-                    display:-webkit-box; -webkit-line-clamp:2; -webkit-box-orient:vertical; overflow:hidden; }
-        .mc-footer { display:flex; align-items:center; gap:1rem; border-top:1px solid #f1f5f9; padding-top:.85rem; }
-        .mc-stat { font-size:.8rem; color:#64748b; display:flex; align-items:center; gap:.3rem; flex:1; }
-        .mc-stat i { color:#2563eb; font-size:.75rem; }
-        .mc-arrow {
-            width:26px; height:26px; border-radius:50%; background:#eff6ff;
-            display:flex; align-items:center; justify-content:center;
-            color:#2563eb; font-size:.72rem;
-            transition:background .2s, transform .2s;
-        }
-        .matiere-card:hover .mc-arrow { background:#2563eb; color:white; transform:translateX(3px); }
+        @media (max-width: 768px) {
+            /* Masquer la sidebar sur mobile */
+            .course-sidebar { display: none; }
 
-        @media (max-width:768px) {
-            .course-title  { font-size:1.6rem !important; }
-            .matieres-grid { grid-template-columns:1fr; }
+            .course-title  { font-size: 1.6rem !important; }
+            .stat-item     { font-size: 0.85rem; margin-right: 1rem; }
+
+            .sequence-block { padding: 1.25rem; }
+            .sequence-title { font-size: 1.2rem !important; }
         }
-        @media (max-width:480px) {
-            .course-title { font-size:1.4rem !important; }
-            .course-stats { display:grid; grid-template-columns:1fr 1fr; gap:.5rem; }
-            .stat-item { margin-right:0; font-size:.82rem; }
+
+        @media (max-width: 480px) {
+            .course-title { font-size: 1.4rem !important; }
+
+            /* Stats en grille 2 colonnes */
+            .course-stats {
+                display: grid;
+                grid-template-columns: 1fr 1fr;
+                gap: 0.5rem;
+            }
+            .stat-item { margin-right: 0; font-size: 0.82rem; }
+
+            .sequence-block { padding: 1rem; border-radius: 10px; }
+
+            .session-item   { padding: 1rem; }
+            .session-icon   { width: 38px; height: 38px; font-size: 1rem; }
+            .session-title  { font-size: 0.95rem !important; }
         }
     </style>
 
