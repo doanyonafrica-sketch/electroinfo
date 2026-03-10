@@ -1080,10 +1080,33 @@ window.editArticle = async function(articleId) {
 
         if (status === 'scheduled' && article.scheduledFor) {
             const scheduledDate = new Date(article.scheduledFor.toDate());
-            const dateStr = scheduledDate.toISOString().split('T')[0];
-            const timeStr = scheduledDate.toTimeString().slice(0, 5);
-            document.getElementById('scheduleDate').value = dateStr;
-            document.getElementById('scheduleTime').value = timeStr;
+            const now = new Date();
+
+            if (scheduledDate <= now) {
+                // ✅ Date passée : reprogrammer automatiquement à demain 09:00
+                const tomorrow = new Date(now);
+                tomorrow.setDate(tomorrow.getDate() + 1);
+                tomorrow.setHours(9, 0, 0, 0);
+
+                const dateStr = tomorrow.getFullYear() + '-' +
+                    String(tomorrow.getMonth() + 1).padStart(2, '0') + '-' +
+                    String(tomorrow.getDate()).padStart(2, '0');
+
+                document.getElementById('scheduleDate').value = dateStr;
+                document.getElementById('scheduleTime').value = '09:00';
+                document.getElementById('publicationStatus').value = 'scheduled';
+
+                showNotification('⚠️ La date programmée est passée. Date réinitialisée à demain 09:00 — veuillez choisir une nouvelle date.', 'error');
+            } else {
+                // ✅ Date future : utiliser date locale (pas UTC)
+                const dateStr = scheduledDate.getFullYear() + '-' +
+                    String(scheduledDate.getMonth() + 1).padStart(2, '0') + '-' +
+                    String(scheduledDate.getDate()).padStart(2, '0');
+                const timeStr = String(scheduledDate.getHours()).padStart(2, '0') + ':' +
+                    String(scheduledDate.getMinutes()).padStart(2, '0');
+                document.getElementById('scheduleDate').value = dateStr;
+                document.getElementById('scheduleTime').value = timeStr;
+            }
         }
 
         if (typeof toggleScheduleFields === 'function') toggleScheduleFields();
