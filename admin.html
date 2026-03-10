@@ -854,7 +854,12 @@
     document.addEventListener('DOMContentLoaded', () => {
         const di = document.getElementById('scheduleDate');
         const ti = document.getElementById('scheduleTime');
-        if (di) { di.addEventListener('change', _updateSchedulePreview); di.min = new Date().toISOString().split('T')[0]; }
+        if (di) { di.addEventListener('change', _updateSchedulePreview); // ✅ Date locale (pas UTC) pour éviter les décalages de fuseau horaire
+                const _now = new Date();
+                const _localDate = _now.getFullYear() + '-' +
+                    String(_now.getMonth() + 1).padStart(2, '0') + '-' +
+                    String(_now.getDate()).padStart(2, '0');
+                di.min = _localDate; }
         if (ti) ti.addEventListener('change', _updateSchedulePreview);
     });
     </script>
