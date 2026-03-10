@@ -154,6 +154,7 @@ onAuthStateChanged(auth, async (user) => {
         currentUser = user;
         showAdminDashboard(user, userData);
         initQuillEditor();
+        await checkAndPublishScheduled(); // ✅ Auto-publication
         loadArticles();
         loadStatistics();
         loadNewsletterSubscribers();
@@ -719,7 +720,9 @@ articleForm?.addEventListener('submit', async (e) => {
 
             scheduledDate = new Date(dateValue + 'T' + timeValue);
 
-            if (scheduledDate <= new Date()) {
+            // ✅ Tolérance de 1 minute pour éviter les blocages sur la même minute
+            const minSchedule = new Date(Date.now() - 60000);
+            if (scheduledDate <= minSchedule) {
                 showNotification('⚠️ La date de publication doit être dans le futur', 'error');
                 return;
             }
@@ -839,6 +842,46 @@ articleForm?.addEventListener('submit', async (e) => {
         showNotification(`❌ ${errorMessage}: ${error.message}`, 'error');
     }
 });
+
+// ============================================
+// AUTO-PUBLIER LES ARTICLES PROGRAMMÉS
+// Vérifie tous les articles "scheduled" dont
+// scheduledFor <= maintenant et les publie
+// ============================================
+async function checkAndPublishScheduled() {
+    try {
+        const now = new Date();
+        const snapshot = await getDocs(
+            query(collection(db, 'articles'), where('status', '==', 'scheduled'))
+        );
+
+        const toPublish = [];
+        snapshot.forEach(docSnap => {
+            const data = docSnap.data();
+            if (data.scheduledFor) {
+                const scheduledDate = data.scheduledFor.toDate ? data.scheduledFor.toDate() : new Date(data.scheduledFor);
+                if (scheduledDate <= now) {
+                    toPublish.push(docSnap.id);
+                }
+            }
+        });
+
+        if (toPublish.length === 0) return;
+
+        await Promise.all(toPublish.map(id =>
+            updateDoc(doc(db, 'articles', id), {
+                status: 'published',
+                publishedAt: serverTimestamp(),
+                scheduledFor: null
+            })
+        ));
+
+        console.log(`✅ ${toPublish.length} article(s) publié(s) automatiquement`);
+        showNotification(`✅ ${toPublish.length} article(s) programmé(s) publié(s) automatiquement`, 'success');
+    } catch (error) {
+        console.error('Erreur auto-publication:', error);
+    }
+}
 
 // ============================================
 // CHARGER ARTICLES DANS LES 3 SECTIONS
