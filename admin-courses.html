@@ -697,8 +697,7 @@
                         <th>Titre</th>
                         <th>Diplôme</th>
                         <th>Niveau</th>
-                        <th>Séquences</th>
-                        <th>Séances</th>
+                        <th>Contenu</th>
                         <th>Date</th>
                         <th>Actions</th>
                     </tr>
@@ -770,9 +769,76 @@
                 </div>
             </form>
         </div>
+
+        <!-- TAB 3 : Panel Matières -->
+        <div id="matieresTab" class="hidden">
+            <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:1.5rem;flex-wrap:wrap;gap:1rem;">
+                <div>
+                    <button onclick="switchTab('list')" style="background:#f1f5f9;border:none;padding:.5rem 1rem;border-radius:8px;cursor:pointer;font-size:.9rem;color:#64748b;margin-bottom:.5rem;">
+                        <i class="fas fa-arrow-left"></i> Retour aux cours
+                    </button>
+                    <h2 style="margin:0;font-size:1.4rem;color:#1e293b;">
+                        <i class="fas fa-book" style="color:#1d4ed8;"></i>
+                        Matières — <span id="matieresCourseTitle" style="color:#1d4ed8;"></span>
+                    </h2>
+                </div>
+                <button onclick="openAddMatiereModal()"
+                    style="padding:.75rem 1.4rem;background:#1d4ed8;color:white;border:none;border-radius:10px;cursor:pointer;font-weight:700;display:inline-flex;align-items:center;gap:.5rem;">
+                    <i class="fas fa-plus"></i> Ajouter une matière
+                </button>
+            </div>
+            <div id="matieresListContainer" style="display:flex;flex-direction:column;gap:.5rem;">
+                <!-- injecté par JS -->
+            </div>
+        </div>
+
+    </div><!-- fin .admin-container -->
+
+    <!-- ══════════════════════════════════════════
+         OVERLAY PANEL : Séquences d'une matière
+    ══════════════════════════════════════════ -->
+    <div id="sequencesPanelOverlay" style="display:none;position:fixed;inset:0;background:rgba(0,0,0,.5);z-index:8000;align-items:flex-end;justify-content:flex-end;">
+        <div style="background:white;width:100%;max-width:620px;height:100vh;overflow-y:auto;box-shadow:-4px 0 32px rgba(0,0,0,.15);display:flex;flex-direction:column;">
+            <!-- Header du panel -->
+            <div style="padding:1.5rem;border-bottom:1px solid #e2e8f0;display:flex;align-items:center;justify-content:space-between;background:white;position:sticky;top:0;z-index:1;">
+                <div style="display:flex;align-items:center;gap:.75rem;">
+                    <button id="sequencesBackBtn" onclick="" style="display:none;background:#f1f5f9;border:none;width:34px;height:34px;border-radius:50%;cursor:pointer;font-size:.95rem;color:#64748b;">
+                        <i class="fas fa-arrow-left"></i>
+                    </button>
+                    <h3 id="sequencesPanelTitle" style="margin:0;font-size:1.1rem;font-weight:700;color:#1e293b;"></h3>
+                </div>
+                <div style="display:flex;gap:.5rem;align-items:center;">
+                    <button id="sequencesAddBtn" onclick="openAddSequenceModal()"
+                        style="padding:.5rem 1rem;background:#1d4ed8;color:white;border:none;border-radius:8px;cursor:pointer;font-size:.85rem;font-weight:600;display:inline-flex;align-items:center;gap:.4rem;">
+                        <i class="fas fa-plus"></i> Ajouter une séquence
+                    </button>
+                    <button onclick="closeSequencesPanel()"
+                        style="background:#f1f5f9;border:none;width:36px;height:36px;border-radius:50%;cursor:pointer;font-size:1.1rem;color:#64748b;">✕</button>
+                </div>
+            </div>
+            <!-- Contenu du panel -->
+            <div id="sequencesPanelList" style="padding:1.25rem;flex:1;">
+                <!-- injecté par JS -->
+            </div>
+        </div>
     </div>
-    
-    <!-- CodeMirror JS -->
+
+    <!-- Styles matières admin -->
+    <style>
+        .matiere-admin-row {
+            display: flex;
+            align-items: center;
+            gap: .75rem;
+            background: white;
+            border: 1px solid #e2e8f0;
+            border-radius: 10px;
+            padding: .85rem 1rem;
+            transition: box-shadow .2s;
+        }
+        .matiere-admin-row:hover { box-shadow: 0 2px 12px rgba(0,0,0,.08); border-color: #bfdbfe; }
+        .mar-drag { color: #cbd5e1; cursor: grab; padding: 0 .25rem; }
+        @keyframes fadeIn { from { opacity:0; transform:translateY(4px); } to { opacity:1; transform:translateY(0); } }
+    </style>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.16/codemirror.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.16/mode/xml/xml.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.16/mode/javascript/javascript.min.js"></script>
