@@ -1,7 +1,8 @@
 // ============================================================
-// courses.js — FICHIER UNIQUE pour 3 pages
+// courses.js — FICHIER UNIQUE pour 4 pages
 //   • courses.html        → liste diplômes + cours
-//   • course-detail.html  → détail cours (séquences + séances)
+//   • course-detail.html  → détail cours (liste des matières)
+//   • matiere-detail.html → séquences + séances d'une matière  ← NOUVEAU
 //   • session-detail.html → lecture plein écran d'une séance
 // ============================================================
 
@@ -28,6 +29,7 @@ const auth = getAuth(app);
 const PAGE = (() => {
     const p = location.pathname;
     if (p.includes('session-detail') || p.startsWith('/seance/')) return 'session';
+    if (p.includes('matiere-detail') || p.startsWith('/matiere/')) return 'matiere'; // ← NOUVEAU
     // Supporte /course-detail?id=XXX ET /course/mon-slug
     if (p.includes('course-detail') || (p.startsWith('/course/') && p.split('/')[2])) return 'course';
     return 'courses';
@@ -97,6 +99,7 @@ window.openCourse = function(id, slug) {
 document.addEventListener('DOMContentLoaded', () => {
     if (PAGE === 'courses') initCoursesPage();
     if (PAGE === 'course')  initCourseDetailPage();
+    if (PAGE === 'matiere') initMatiereDetailPage(); // ← NOUVEAU
     if (PAGE === 'session') initSessionPage();
 });
 
@@ -205,8 +208,8 @@ function renderCoursesList(courses) {
             <div class="ccv2-footer">
                 <div class="ccv2-stats">
                     <span class="ccv2-stat">
-                        <i class="fas fa-layer-group"></i>
-                    ${seqs} s\u00e9q.
+                        <i class="fas fa-book"></i>
+                    ${c.matieresCount || seqs} mat.
                     </span>
                     <span class="ccv2-stat">
                         <i class="fas fa-file-alt"></i>
@@ -222,7 +225,7 @@ function renderCoursesList(courses) {
 }
 
 // ╔══════════════════════════════════════════════════════════╗
-// ║  PAGE 2 — course-detail.html                            ║
+// ║  PAGE 2 — course-detail.html (liste des matières)       ║
 // ╚══════════════════════════════════════════════════════════╝
 let currentCourse = null;
 
@@ -263,109 +266,265 @@ async function loadCourseBySlug(slug) {
     } catch(e) { console.error(e); showErrorDetail(); }
 }
 
-function renderCourseDetail() {
+async function renderCourseDetail() {
     hide('loadingState'); show('courseContainer');
     document.title = `${currentCourse.title} | ElectroInfo`;
     setText('courseDiploma',    currentCourse.diploma || 'BAC PRO');
     setText('courseLevel',      currentCourse.level   || 'Débutant');
     setText('courseTitle',      currentCourse.title);
     setText('courseDescription',currentCourse.description || '');
-
-    const seqs = currentCourse.sequences || [];
-    let   total = 0; seqs.forEach(s => total += s.sessions?.length||0);
-    setText('sequencesCount', seqs.length);
-    setText('sessionsCount',  total);
     const d = currentCourse.createdAt?.toDate?.() || new Date();
     setText('courseDate', d.toLocaleDateString('fr-FR',{day:'numeric',month:'long',year:'numeric'}));
 
-    renderSequences(seqs);
-    renderSequencesNav(seqs);
+    // Charger les matières depuis Firestore (sous-collection)
+    await renderMatieresList();
 }
 
-function renderSequencesNav(seqs) {
-    const nav = $id('sequencesNav');
-    if (!nav) return;
-    if (!seqs.length) { nav.innerHTML = '<p style="color:#6b7280;font-size:.9rem;">Aucune séquence</p>'; return; }
-    nav.innerHTML = seqs.map((s,i) => `
-        <div class="sequence-nav-item" onclick="scrollToSeq(${i})">
-            <i class="fas fa-chevron-right" style="font-size:.7rem;margin-right:.5rem;"></i>
-            ${esc(s.title || `Séquence ${i+1}`)}
-        </div>`).join('');
-}
+async function renderMatieresList() {
+    const grid  = $id('matieresGrid');
+    const empty = $id('emptyMatieres');
+    if (!grid) return;
 
-function renderSequences(seqs) {
-    const box   = $id('sequencesContainer');
-    const empty = $id('emptySequences');
-    if (!seqs.length) { box?.classList.add('hidden'); empty?.classList.remove('hidden'); return; }
-    box?.classList.remove('hidden'); empty?.classList.add('hidden');
+    try {
+        const matRef  = collection(db, 'courses', currentCourse.id, 'matieres');
+        const matSnap = await getDocs(query(matRef, orderBy('order','asc')));
+        const matieres = matSnap.docs.map(d => ({ id: d.id, ...d.data() }));
 
-    box.innerHTML = seqs.map((seq,si) => `
-        <div class="sequence-block" id="sequence-${si}">
-            <div class="sequence-header">
-                <div class="sequence-title-wrapper">
-                    <div class="sequence-number">Séquence ${si+1}</div>
-                    <h2 class="sequence-title">${esc(seq.title||`Séquence ${si+1}`)}</h2>
+        // Mise à jour compteur header
+        setText('matieresCount', matieres.length);
+
+        if (!matieres.length) {
+            grid.style.display = 'none';
+            if (empty) empty.classList.remove('hidden');
+            return;
+        }
+        if (empty) empty.classList.add('hidden');
+
+        // Pour chaque matière, compter séquences et séances
+        let totalSeances = 0;
+        const cards = await Promise.all(matieres.map(async (mat, idx) => {
+            let seqCount = 0, seanceCount = 0;
+            try {
+                const seqSnap = await getDocs(collection(db,'courses',currentCourse.id,'matieres',mat.id,'sequences'));
+                seqCount = seqSnap.size;
+                for (const seqDoc of seqSnap.docs) {
+                    const sSnap = await getDocs(collection(db,'courses',currentCourse.id,'matieres',mat.id,'sequences',seqDoc.id,'seances'));
+                    seanceCount += sSnap.size;
+                }
+            } catch(_) {}
+            totalSeances += seanceCount;
+
+            const icon = mat.icon || 'fa-bolt';
+            const matiereUrl = `/matiere/${currentCourse.id}/${mat.id}`;
+            return `
+            <a class="matiere-card" href="${matiereUrl}">
+                <div class="mc-header">
+                    <div class="mc-icon"><i class="fas ${icon}"></i></div>
+                    <div>
+                        <p class="mc-order">Matière ${mat.order || idx+1}</p>
+                        <h3 class="mc-title">${esc(mat.title)}</h3>
+                    </div>
                 </div>
-                <button class="sequence-toggle" onclick="toggleSeq(${si})">
-                    <i class="fas fa-chevron-up"></i>
-                </button>
-            </div>
-            <div class="sessions-list" id="sessions-${si}">
-                ${renderSessionItems(seq.sessions||[], si)}
-            </div>
-        </div>`).join('');
+                ${mat.description ? `<p class="mc-desc">${esc(mat.description)}</p>` : ''}
+                <div class="mc-footer">
+                    <span class="mc-stat"><i class="fas fa-list-ol"></i> ${seqCount} séquence${seqCount>1?'s':''}</span>
+                    <span class="mc-stat"><i class="fas fa-play-circle"></i> ${seanceCount} séance${seanceCount>1?'s':''}</span>
+                    <span class="mc-arrow"><i class="fas fa-arrow-right"></i></span>
+                </div>
+            </a>`;
+        }));
+
+        grid.innerHTML = cards.join('');
+        setText('seancesTotalCount', totalSeances);
+
+    } catch(err) {
+        console.error('[renderMatieresList]', err);
+        if (empty) {
+            empty.classList.remove('hidden');
+            empty.innerHTML = `<i class="fas fa-exclamation-circle" style="font-size:2.5rem;margin-bottom:1rem;display:block;color:#ef4444;"></i><p>Erreur de chargement des matières.</p>`;
+        }
+    }
 }
-
-function renderSessionItems(sessions, si) {
-    if (!sessions.length) return `
-        <div class="empty-state" style="padding:2rem;">
-            <i class="fas fa-inbox" style="font-size:2rem;color:#9ca3af;margin-bottom:1rem;"></i>
-            <p style="color:#6b7280;">Aucune séance dans cette séquence</p>
-        </div>`;
-    return sessions.map((sess,ssi) => {
-        const url = currentCourse.slug
-            ? `/seance/${currentCourse.slug}/seq-${si+1}/seance-${ssi+1}`
-            : `/session-detail?courseId=${currentCourse.id}&seqIndex=${si}&sessionIndex=${ssi}`;
-        return `
-        <div class="session-item" onclick="location.href='${url}'">
-            <div class="session-icon"><i class="fas fa-play"></i></div>
-            <div class="session-info">
-                <div class="session-number">Séance ${ssi+1}</div>
-                <h4 class="session-title">${esc(sess.title||`Séance ${ssi+1}`)}</h4>
-                ${sess.pdfUrl ? `<div class="session-has-pdf">
-                    <i class="fas fa-file-pdf"></i> PDF disponible</div>` : ''}
-            </div>
-            <i class="fas fa-chevron-right session-arrow"></i>
-        </div>`;
-    }).join('');
-}
-
-window.toggleSeq = function(i) {
-    const block = $id(`sequence-${i}`);
-    const list  = $id(`sessions-${i}`);
-    block?.classList.toggle('collapsed');
-    if (list) list.style.display = list.style.display === 'none' ? 'grid' : 'none';
-};
-
-window.scrollToSeq = function(i) {
-    $id(`sequence-${i}`)?.scrollIntoView({ behavior:'smooth', block:'start' });
-    document.querySelectorAll('.sequence-nav-item').forEach((el,idx) =>
-        el.classList.toggle('active', idx === i));
-};
 
 function showErrorDetail() {
     hide('loadingState'); show('errorState');
 }
 
 // ╔══════════════════════════════════════════════════════════╗
+// ║  PAGE 2b — matiere-detail.html  (séquences + séances)   ║
+// ╚══════════════════════════════════════════════════════════╝
+let currentMatiere  = null;
+let currentMCourse  = null; // cours parent pour le breadcrumb
+
+async function initMatiereDetailPage() {
+    // URL : /matiere/{courseId}/{matiereId}
+    const parts = location.pathname.split('/').filter(Boolean);
+    const courseId  = parts[1];
+    const matiereId = parts[2];
+
+    if (!courseId || !matiereId) { mdShowError('Paramètres manquants dans l\'URL.'); return; }
+
+    try {
+        // 1. Charger le cours (breadcrumb)
+        const courseSnap = await getDoc(doc(db, 'courses', courseId));
+        if (!courseSnap.exists()) { mdShowError('Cours introuvable.'); return; }
+        currentMCourse = { id: courseSnap.id, ...courseSnap.data() };
+
+        // 2. Charger la matière
+        const matSnap = await getDoc(doc(db,'courses',courseId,'matieres',matiereId));
+        if (!matSnap.exists()) { mdShowError('Matière introuvable.'); return; }
+        currentMatiere = { id: matSnap.id, ...matSnap.data() };
+
+        // 3. Mettre à jour l'UI
+        document.title = `${currentMatiere.title} — ${currentMCourse.title} | ElectroInfo`;
+        const breadCourse = $id('breadCourse');
+        if (breadCourse) {
+            breadCourse.textContent = currentMCourse.title;
+            breadCourse.href = currentMCourse.slug ? `/course/${currentMCourse.slug}` : `/course-detail?id=${courseId}`;
+        }
+        setText('breadMatiere',    currentMatiere.title);
+        setText('matiereHeroTitle', currentMatiere.title);
+        setText('matiereHeroDesc',  currentMatiere.description || '');
+
+        // 4. Charger les séquences
+        await renderSequencesWithSeances(courseId, matiereId);
+
+    } catch(err) {
+        console.error('[initMatiereDetailPage]', err);
+        mdShowError('Erreur de chargement.');
+    }
+}
+
+async function renderSequencesWithSeances(courseId, matiereId) {
+    const container = $id('sequencesContainer');
+    const empty     = $id('emptySequences');
+    if (!container) return;
+
+    const seqSnap = await getDocs(query(
+        collection(db,'courses',courseId,'matieres',matiereId,'sequences'),
+        orderBy('order','asc')
+    ));
+    const sequences = seqSnap.docs.map(d => ({ id: d.id, ...d.data() }));
+
+    hide('loadingState'); show('courseContainer');
+
+    if (!sequences.length) {
+        container.classList.add('hidden');
+        empty?.classList.remove('hidden');
+        return;
+    }
+    empty?.classList.add('hidden');
+    container.classList.remove('hidden');
+
+    // Charger toutes les séances de chaque séquence
+    container.innerHTML = '';
+    for (let si = 0; si < sequences.length; si++) {
+        const seq = sequences[si];
+        const seancesSnap = await getDocs(query(
+            collection(db,'courses',courseId,'matieres',matiereId,'sequences',seq.id,'seances'),
+            orderBy('order','asc')
+        ));
+        const seances = seancesSnap.docs.map(d => ({ id: d.id, ...d.data() }));
+
+        const block = document.createElement('div');
+        block.className = 'sequence-block' + (si === 0 ? '' : ' collapsed');
+        block.id = `sequence-${si}`;
+
+        const seanceItems = seances.length ? seances.map((s, ssi) => {
+            // URL séance : query params avec tous les IDs nécessaires
+            const url = `/session-detail?courseId=${courseId}&matiereId=${matiereId}&sequenceId=${seq.id}&seanceId=${s.id}`;
+            return `
+            <div class="session-item" onclick="location.href='${url}'">
+                <div class="session-icon"><i class="fas fa-play"></i></div>
+                <div class="session-info">
+                    <div class="session-number">Séance ${s.order || ssi+1}</div>
+                    <h4 class="session-title">${esc(s.title || `Séance ${ssi+1}`)}</h4>
+                    ${s.pdfUrl ? `<div class="session-has-pdf"><i class="fas fa-file-pdf"></i> PDF disponible</div>` : ''}
+                </div>
+                <i class="fas fa-chevron-right session-arrow"></i>
+            </div>`;
+        }).join('') : `<div class="empty-state" style="padding:2rem;">
+            <i class="fas fa-inbox" style="font-size:2rem;color:#9ca3af;margin-bottom:1rem;"></i>
+            <p style="color:#6b7280;">Aucune séance dans cette séquence</p></div>`;
+
+        block.innerHTML = `
+            <div class="sequence-header">
+                <div class="sequence-title-wrapper">
+                    <div class="sequence-number">Séquence ${seq.order || si+1}</div>
+                    <h2 class="sequence-title">${esc(seq.title || `Séquence ${si+1}`)}</h2>
+                </div>
+                <button class="sequence-toggle" onclick="toggleSeq(${si})">
+                    <i class="fas fa-chevron-${si===0?'up':'down'}"></i>
+                </button>
+            </div>
+            <div class="sessions-list" id="sessions-${si}" style="${si===0?'':'display:none'}">
+                ${seanceItems}
+            </div>`;
+        container.appendChild(block);
+    }
+}
+
+window.toggleSeq = function(i) {
+    const block = $id(`sequence-${i}`);
+    const list  = $id(`sessions-${i}`);
+    if (!block || !list) return;
+    block.classList.toggle('collapsed');
+    const isOpen = !block.classList.contains('collapsed');
+    list.style.display = isOpen ? 'grid' : 'none';
+    const icon = block.querySelector('.sequence-toggle i');
+    if (icon) icon.className = `fas fa-chevron-${isOpen ? 'up' : 'down'}`;
+};
+
+function mdShowError(msg) {
+    hide('loadingState');
+    const ls = $id('loadingState');
+    if (ls) ls.innerHTML = `
+        <i class="fas fa-exclamation-triangle" style="color:#ef4444;font-size:2.5rem;"></i>
+        <p style="font-size:1rem;font-weight:600;margin-top:1rem;">${msg}</p>
+        <a href="/courses" style="margin-top:1rem;padding:.6rem 1.5rem;background:#1d4ed8;color:white;border-radius:7px;text-decoration:none;font-weight:700;display:inline-flex;align-items:center;gap:.5rem;">
+            <i class="fas fa-arrow-left"></i> Retour aux cours</a>`;
+    ls?.classList.remove('hidden');
+}
+
+// ╔══════════════════════════════════════════════════════════╗
 // ║  PAGE 3 — session-detail.html                           ║
 // ╚══════════════════════════════════════════════════════════╝
-let sdCourse  = null;
-let sdSeqIdx  = 0;
-let sdSessIdx = 0;
+let sdCourse    = null;
+let sdSeqIdx    = 0;
+let sdSessIdx   = 0;
+// Nouveaux IDs pour la structure hiérarchique
+let sdMatiereId  = null;
+let sdSequenceId = null;
+let sdSeanceId   = null;
+let sdSeanceData = null; // données de la séance chargée
 
 async function initSessionPage() {
-    // GitHub Pages : récupère le path depuis sessionStorage (priorité absolue)
+    const p      = new URLSearchParams(location.search);
+    const courseId   = p.get('courseId');
+    const matiereId  = p.get('matiereId');
+    const sequenceId = p.get('sequenceId');
+    const seanceId   = p.get('seanceId');
+
+    // ── NOUVELLE STRUCTURE : tous les IDs présents ─────────────────
+    if (courseId && matiereId && sequenceId && seanceId) {
+        sdMatiereId  = matiereId;
+        sdSequenceId = sequenceId;
+        sdSeanceId   = seanceId;
+        try {
+            const [courseSnap, seanceSnap] = await Promise.all([
+                getDoc(doc(db,'courses',courseId)),
+                getDoc(doc(db,'courses',courseId,'matieres',matiereId,'sequences',sequenceId,'seances',seanceId))
+            ]);
+            if (!courseSnap.exists()) { sdShowError('Cours introuvable.'); return; }
+            if (!seanceSnap.exists()) { sdShowError('Séance introuvable.'); return; }
+            sdCourse    = { id: courseSnap.id, ...courseSnap.data() };
+            sdSeanceData = { id: seanceSnap.id, ...seanceSnap.data() };
+            sdRenderNew();
+        } catch(e) { console.error(e); sdShowError('Erreur réseau.'); }
+        return;
+    }
+
+    // ── LEGACY : GitHub Pages sessionStorage ──────────────────────
     const redirectPath = sessionStorage.getItem('redirect_path');
     if (redirectPath) {
         sessionStorage.removeItem('redirect_path');
@@ -384,7 +543,7 @@ async function initSessionPage() {
         }
     }
 
-    // Nouveau format SEO direct : /seance/cours-slug/seq-N/seance-N
+    // ── LEGACY : /seance/cours-slug/seq-N/seance-N ────────────────
     const parts = location.pathname.split('/');
     if (parts[1] === 'seance' && parts[2]) {
         const courseSlug = decodeURIComponent(parts[2]);
@@ -399,12 +558,9 @@ async function initSessionPage() {
         return;
     }
 
-    // Fallback legacy : ?courseId=XXX&seqIndex=N&sessionIndex=N
-    const p = new URLSearchParams(location.search);
-    const courseId = p.get('courseId');
+    // ── LEGACY : ?courseId=XXX&seqIndex=N&sessionIndex=N ──────────
     sdSeqIdx  = parseInt(p.get('seqIndex')     || '0', 10);
     sdSessIdx = parseInt(p.get('sessionIndex') || '0', 10);
-
     if (!courseId) { sdShowError('Aucun cours spécifié.'); return; }
     try {
         const snap = await getDoc(doc(db,'courses',courseId));
@@ -412,6 +568,66 @@ async function initSessionPage() {
         sdCourse = { id: snap.id, ...snap.data() };
         sdRender();
     } catch(e) { sdShowError('Erreur réseau.'); }
+}
+
+// ── Rendu nouvelle structure ──────────────────────────────────────────────────
+async function sdRenderNew() {
+    hide('loadingState'); show('sessionPage');
+
+    const s = sdSeanceData;
+    document.title = `${s.title || 'Séance'} | ElectroInfo`;
+
+    setText('sessionBadge', `Séance ${s.order || ''}`);
+    setText('sessionTitle', s.title || 'Séance');
+
+    const contentEl = $id('sessionContent');
+    if (contentEl) contentEl.innerHTML = s.content || '<p style="text-align:center;padding:3rem;color:#94a3b8;">Aucun contenu disponible.</p>';
+
+    // Bouton retour → page de la matière
+    const bl = $id('backButton');
+    if (bl) bl.href = `/matiere/${sdCourse.id}/${sdMatiereId}`;
+
+    // PDF
+    if (s.pdfUrl) { show('pdfSection'); setAttr('pdfDownloadBtn','href',s.pdfUrl); }
+    else           { hide('pdfSection'); }
+
+    // Navigation prev/next dans la même séquence
+    await sdUpdateNavNew();
+}
+
+async function sdUpdateNavNew() {
+    const prevBtn = $id('prevSessionBtn');
+    const nextBtn = $id('nextSessionBtn');
+
+    try {
+        // Charger toutes les séances de la séquence pour connaître prev/next
+        const seancesSnap = await getDocs(query(
+            collection(db,'courses',sdCourse.id,'matieres',sdMatiereId,'sequences',sdSequenceId,'seances'),
+            orderBy('order','asc')
+        ));
+        const seances = seancesSnap.docs.map(d => ({ id: d.id, ...d.data() }));
+        const idx = seances.findIndex(s => s.id === sdSeanceId);
+
+        const makeUrl = (seanceId) =>
+            `/session-detail?courseId=${sdCourse.id}&matiereId=${sdMatiereId}&sequenceId=${sdSequenceId}&seanceId=${seanceId}`;
+
+        // Précédent
+        const prevId = idx > 0 ? seances[idx-1].id : null;
+        if (prevBtn) {
+            if (prevId) { prevBtn.href = makeUrl(prevId); prevBtn.classList.remove('disabled'); }
+            else        { prevBtn.removeAttribute('href'); prevBtn.classList.add('disabled'); }
+        }
+
+        // Suivant
+        const nextId = idx < seances.length-1 ? seances[idx+1].id : null;
+        if (nextBtn) {
+            if (nextId) { nextBtn.href = makeUrl(nextId); nextBtn.classList.remove('disabled'); }
+            else        { nextBtn.removeAttribute('href'); nextBtn.classList.add('disabled'); }
+        }
+    } catch(_) {
+        prevBtn?.classList.add('disabled');
+        nextBtn?.classList.add('disabled');
+    }
 }
 
 function sdRender() {
