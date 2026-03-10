@@ -2165,7 +2165,7 @@ body,
 }
 
 /* Bouton menu hamburger mobile */
-#mobileMenuToggle {
+#mobileToggle {
     display: none;
     align-items: center;
     justify-content: center;
@@ -2180,12 +2180,12 @@ body,
     flex-shrink: 0;
 }
 
-#mobileMenuToggle:hover {
+#mobileToggle:hover {
     background: rgba(255, 255, 255, 0.2);
     border-color: rgba(255, 255, 255, 0.4);
 }
 
-#mobileMenuToggle i {
+#mobileToggle i {
     font-size: 1.125rem;
     transition: transform 0.3s ease;
 }
@@ -2236,11 +2236,11 @@ body,
     }
 
     /* Afficher hamburger, cacher nav-menu */
-    #mobileMenuToggle {
+    #mobileToggle {
         display: flex;
     }
 
-    #navMenu {
+    #mobileMenu {
         display: none;
         position: fixed;
         top: 60px;
@@ -2255,11 +2255,11 @@ body,
         border-top: 1px solid rgba(255, 255, 255, 0.1);
     }
 
-    #navMenu.active {
+    #mobileMenu.active {
         display: flex;
     }
 
-    [data-theme="dark"] #navMenu {
+    [data-theme="dark"] #mobileMenu {
         background: linear-gradient(135deg, #0f172a 0%, #1e293b 100%);
     }
 
@@ -2459,12 +2459,12 @@ body,
    On force transform:none pour éviter que le menu reste hors-écran. */
 @media (max-width: 768px) {
 
-    #navMenu {
+    #mobileMenu {
         transform: none !important;
         transition: opacity 0.2s ease !important;
     }
 
-    #navMenu.active {
+    #mobileMenu.active {
         transform: none !important;
     }
 
@@ -2524,7 +2524,7 @@ body,
         white-space: nowrap !important;
     }
 
-    #mobileMenuToggle {
+    #mobileToggle {
         display: flex !important;
         flex-shrink: 0 !important;
         width: 36px !important;
@@ -2558,7 +2558,7 @@ body,
 
     #themeToggle,
     .theme-toggle-btn,
-    #mobileMenuToggle {
+    #mobileToggle {
         width: 34px !important;
         height: 34px !important;
     }
