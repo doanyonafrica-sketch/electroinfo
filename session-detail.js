@@ -120,7 +120,7 @@ $('logoutBtn')?.addEventListener('click', async () => {
 // MENU MOBILE
 // ============================================
 const mobileToggle = $('mobileToggle');
-const mobileMenu   = $('mobileMenu'); // ID correct dans session-detail.html
+const mobileMenu   = $('mobileMenu');
 
 function closeMobileMenu() {
     if (!mobileMenu) return;
@@ -143,12 +143,10 @@ if (mobileToggle && mobileMenu) {
         isOpen ? closeMobileMenu() : openMobileMenu();
     });
 
-    // Fermer le menu quand on clique sur un lien de navigation
     document.querySelectorAll('.nav-link').forEach(link => {
         link.addEventListener('click', closeMobileMenu);
     });
 
-    // Fermer le menu quand on clique en dehors
     document.addEventListener('click', (e) => {
         if (mobileMenu.classList.contains('active') &&
             !mobileMenu.contains(e.target) &&
@@ -162,19 +160,47 @@ if (mobileToggle && mobileMenu) {
 // PARAMÈTRES URL
 // ============================================
 function getUrlParams() {
-    // Nouveau format SEO : /seance/cours-slug/seq-N/seance-N
-    const parts = location.pathname.split('/');
-    if (parts[1] === 'seance' && parts[2]) {
-        const redirectPath = sessionStorage.getItem('redirect_path');
-        const src = redirectPath ? redirectPath.split('/') : parts;
-        if (redirectPath) sessionStorage.removeItem('redirect_path');
+    // PRIORITÉ 1 : sessionStorage (GitHub Pages — redirigé via 404.html)
+    // Le 404.html sauvegarde le path original AVANT la redirection.
+    // On doit le lire EN PREMIER, avant de regarder location.pathname
+    // car après la redirection pathname vaut '/session-detail.html'.
+    const redirectPath = sessionStorage.getItem('redirect_path');
+    if (redirectPath) {
+        sessionStorage.removeItem('redirect_path');
+        const parts = redirectPath.split('/').filter(Boolean);
+        // Format SEO : /seance/cours-slug/seq-N/seance-N
+        if (parts[0] === 'seance' && parts[1]) {
+            return {
+                courseSlug:   decodeURIComponent(parts[1]),
+                seqIndex:     parseInt((parts[2] || 'seq-1').replace('seq-', '')) - 1,
+                sessionIndex: parseInt((parts[3] || 'seance-1').replace('seance-', '')) - 1
+            };
+        }
+        // Format legacy dans sessionStorage : /session-detail?courseId=X&seqIndex=N&sessionIndex=N
+        const qIndex = redirectPath.indexOf('?');
+        if (qIndex !== -1) {
+            const p = new URLSearchParams(redirectPath.slice(qIndex));
+            return {
+                courseId:     p.get('courseId'),
+                seqIndex:     parseInt(p.get('seqIndex'))     || 0,
+                sessionIndex: parseInt(p.get('sessionIndex')) || 0
+            };
+        }
+    }
+
+    // PRIORITÉ 2 : pathname direct (Firebase Hosting ou Vite dev)
+    // Sur ces hébergements les rewrites fonctionnent côté serveur,
+    // donc pathname vaut bien '/seance/cours-slug/seq-N/seance-N'.
+    const parts = location.pathname.split('/').filter(Boolean);
+    if (parts[0] === 'seance' && parts[1]) {
         return {
-            courseSlug:   decodeURIComponent(src[2]),
-            seqIndex:     parseInt((src[3] || 'seq-1').replace('seq-', '')) - 1,
-            sessionIndex: parseInt((src[4] || 'seance-1').replace('seance-', '')) - 1
+            courseSlug:   decodeURIComponent(parts[1]),
+            seqIndex:     parseInt((parts[2] || 'seq-1').replace('seq-', '')) - 1,
+            sessionIndex: parseInt((parts[3] || 'seance-1').replace('seance-', '')) - 1
         };
     }
-    // Fallback legacy : ?courseId=XXX&seqIndex=N&sessionIndex=N
+
+    // PRIORITÉ 3 : query params legacy ?courseId=X&seqIndex=N&sessionIndex=N
     const p = new URLSearchParams(window.location.search);
     return {
         courseId:     p.get('courseId'),
@@ -222,10 +248,6 @@ async function loadSession() {
 // ============================================
 // INJECTION HTML + RÉEXÉCUTION DES SCRIPTS
 // ============================================
-// Les <script> injectés via innerHTML ne s'exécutent jamais (règle HTML5).
-// On clone chaque script dans un nouvel élément pour forcer l'exécution.
-// Le setTimeout(0) garantit que le DOM est peint avant que le script tourne,
-// ce qui règle le problème où getElementById('simBtn') retournait null.
 function setInnerHTMLWithScripts(container, html) {
     container.innerHTML = html;
     const scripts = container.querySelectorAll('script');
@@ -290,7 +312,6 @@ function setupNavigation(sequences, sessions) {
     const nextBtn = $('nextSessionBtn');
     const { course, seqIndex, sessionIndex } = state;
 
-    // Génère URL selon slug ou fallback ID
     const makeUrl = (si, ssi) => course.slug
         ? `/seance/${course.slug}/seq-${si+1}/seance-${ssi+1}`
         : `/session-detail?courseId=${course.id}&seqIndex=${si}&sessionIndex=${ssi}`;
@@ -316,7 +337,6 @@ function setupNavigation(sequences, sessions) {
     setNavBtn(nextBtn, nextHref);
 }
 
-// Active ou désactive un bouton de nav proprement
 function setNavBtn(btn, href) {
     if (href) {
         btn.href = href;
@@ -327,7 +347,6 @@ function setNavBtn(btn, href) {
     }
 }
 
-// Redirige vers la page du cours en cas d'erreur de séquence/séance
 function redirectToCourse() {
     alert('Séance introuvable');
     window.location.href = state.course.slug
