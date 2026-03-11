@@ -182,7 +182,7 @@ function renderCoursesList(courses) {
         const initials = (c.title||'?').split(' ').slice(0,2).map(w=>w[0]?.toUpperCase()||'').join('');
 
         return `
-        <div class="course-card-v2" onclick="openCourse('${c.id}','${c.slug||''}')">
+        <div class="course-card-v2" data-course-id="${esc(c.id)}" data-course-slug="${esc(c.slug||'')}" style="cursor:pointer;">
 
             <!-- COVER -->
             <div class="ccv2-cover" style="background:${cover};">
@@ -219,6 +219,15 @@ function renderCoursesList(courses) {
             </div>
         </div>`;
     }).join('');
+
+    // Délégation d'événement — évite les bugs avec apostrophes dans les slugs/IDs
+    grid.addEventListener('click', (e) => {
+        const card = e.target.closest('.course-card-v2');
+        if (!card) return;
+        const id   = card.dataset.courseId;
+        const slug = card.dataset.courseSlug;
+        window.openCourse(id, slug);
+    });
 }
 
 // ╔══════════════════════════════════════════════════════════╗
