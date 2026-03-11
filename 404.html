@@ -7,27 +7,22 @@
 <body>
 <script>
     // 404.html — GitHub Pages Router
-    // Intercepte toutes les URLs propres et redirige vers la bonne page .html
-    // tout en sauvegardant le path original dans sessionStorage pour que
-    // le script JS cible puisse le relire.
-
     (function () {
         var path = window.location.pathname;
         var search = window.location.search || '';
-
         // Sauvegarde le path complet (avec query string si présent)
         sessionStorage.setItem('redirect_path', path + search);
-
         var parts = path.split('/').filter(Boolean);
         var segment = parts[0] || '';
-
         var dest;
-
         if (segment === 'course') {
             // /course/mon-slug → course-detail.html
             dest = '/course-detail.html';
         } else if (segment === 'seance') {
-            // /seance/mon-slug/seq-N/seance-N → session-detail.html  ← LE FIX
+            // /seance/mon-slug/seq-N/seance-N → session-detail.html
+            dest = '/session-detail.html';
+        } else if (segment === 'session-detail') {
+            // /session-detail?courseId=X&seqIndex=N&sessionIndex=N → session-detail.html
             dest = '/session-detail.html';
         } else if (segment === 'article') {
             // /article/mon-slug → article-detail.html
@@ -36,7 +31,6 @@
             // Fallback : retour à l'accueil
             dest = '/';
         }
-
         window.location.replace(dest);
     })();
 </script>
