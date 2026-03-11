@@ -1,15 +1,21 @@
 // ============================================================
-// courses.js — FICHIER UNIQUE pour 3 pages
-//   • courses.html        → liste diplômes + cours
-//   • course-detail.html  → détail cours (séquences + séances)
-//   • session-detail.html → lecture plein écran d'une séance
+// courses.js — FICHIER UNIQUE pour 3 pages publiques
+//   • courses.html   → sélection diplôme + liste matières
+//   • matiere.html   → détail matière (séquences + séances)
+//   • seance.html    → lecture plein écran d'une séance
+//
+// Structure Firestore :
+//   matieres/{id} {
+//     titre, diplome, niveau, description, slug,
+//     sequences: [{ titre, seances: [{ titre, contenu, pdfUrl }] }]
+//   }
 // ============================================================
 
 import { initializeApp, getApps } from 'https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js';
 import { getAuth, onAuthStateChanged, signOut }
-                                  from 'https://www.gstatic.com/firebasejs/10.7.1/firebase-auth.js';
+    from 'https://www.gstatic.com/firebasejs/10.7.1/firebase-auth.js';
 import { getFirestore, collection, getDocs, query, orderBy, where, doc, getDoc }
-                                  from 'https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js';
+    from 'https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js';
 
 // ── Firebase ──────────────────────────────────────────────
 const firebaseConfig = {
@@ -27,575 +33,452 @@ const auth = getAuth(app);
 // ── Détection de page ─────────────────────────────────────
 const PAGE = (() => {
     const p = location.pathname;
-    if (p.includes('session-detail') || p.startsWith('/seance/')) return 'session';
-    // Supporte /course-detail?id=XXX ET /course/mon-slug
-    if (p.includes('course-detail') || (p.startsWith('/course/') && p.split('/')[2])) return 'course';
+    if (p.includes('seance.html') || p.startsWith('/seance/')) return 'seance';
+    if (p.includes('matiere.html') || p.startsWith('/matiere/')) return 'matiere';
     return 'courses';
 })();
 
-// ── Utilitaires ───────────────────────────────────────────
-function esc(t) {
-    if (!t) return '';
-    const d = document.createElement('div');
-    d.textContent = t; return d.innerHTML;
+// ── Utilitaires DOM ───────────────────────────────────────
+const $    = id => document.getElementById(id);
+const esc  = t  => { if (!t) return ''; const d = document.createElement('div'); d.textContent = t; return d.innerHTML; };
+const show = id => $(id)?.classList.remove('hidden');
+const hide = id => $(id)?.classList.add('hidden');
+const setText = (id, v) => { const e = $(id); if (e) e.textContent = v; };
+const setAttr = (id, a, v) => { const e = $(id); if (e) e[a] = v; };
+
+// ── Cache localStorage ─────────────────────────────────────
+const CACHE_KEY = 'electroinfo_matieres_v1';
+const CACHE_TTL = 10 * 60 * 1000;
+
+function saveCache(data) {
+    try { localStorage.setItem(CACHE_KEY, JSON.stringify({ data, ts: Date.now() })); } catch(_) {}
 }
-function $id(id)          { return document.getElementById(id); }
-function setText(id, val) { const el = $id(id); if (el) el.textContent = val; }
-function setAttr(id, a, v){ const el = $id(id); if (el) el[a] = v; }
-function show(id)         { $id(id)?.classList.remove('hidden'); }
-function hide(id)         { $id(id)?.classList.add('hidden'); }
+function loadCache() {
+    try {
+        const r = localStorage.getItem(CACHE_KEY);
+        if (!r) return null;
+        const { data, ts } = JSON.parse(r);
+        return Date.now() - ts < CACHE_TTL ? data : null;
+    } catch(_) { return null; }
+}
 
 // ============================================================
 // NAVBAR AUTH — commune aux 3 pages
 // ============================================================
-onAuthStateChanged(auth, async (user) => {
+onAuthStateChanged(auth, async user => {
     if (user) {
         hide('loginBtn'); show('userMenu');
         const name   = user.displayName || user.email.split('@')[0];
-        const avatar = user.photoURL ||
-            `https://ui-avatars.com/api/?name=${encodeURIComponent(name)}&background=1e40af&color=fff`;
+        const avatar = user.photoURL || `https://ui-avatars.com/api/?name=${encodeURIComponent(name)}&background=1e40af&color=fff`;
         ['userName','userNameDropdown'].forEach(id => setText(id, name));
         setText('userEmailDropdown', user.email);
-        ['userAvatar','userAvatarDropdown'].forEach(id => setAttr(id,'src',avatar));
+        ['userAvatar','userAvatarDropdown'].forEach(id => setAttr(id, 'src', avatar));
         try {
-            const ud = await getDoc(doc(db,'users',user.uid));
-            if (ud.exists() && ud.data().role === 'admin') {
+            const ud = await getDoc(doc(db, 'users', user.uid));
+            if (ud.exists() && ['admin','superadmin'].includes(ud.data().role)) {
                 show('adminLink'); show('adminDivider');
             }
         } catch(_) {}
     } else {
         show('loginBtn'); hide('userMenu');
-        hide('adminLink'); hide('adminDivider');
     }
 });
 
-$id('logoutBtn')?.addEventListener('click', async () => {
-    await signOut(auth); window.location.href = '/';
-});
-$id('mobileToggle')?.addEventListener('click', () => {
-    $id('mobileMenu')?.classList.toggle('open');
-    $id('navMenu')?.classList.toggle('active');
-});
-$id('userMenuToggle')?.addEventListener('click', e => {
-    e.stopPropagation();
-    $id('userDropdown')?.classList.toggle('hidden');
-});
+$('logoutBtn')?.addEventListener('click', async () => { await signOut(auth); location.href = '/'; });
+$('userMenuToggle')?.addEventListener('click', e => { e.stopPropagation(); $('userDropdown')?.classList.toggle('hidden'); });
 document.addEventListener('click', e => {
-    const dd = $id('userDropdown');
-    if (dd && !dd.contains(e.target) && e.target !== $id('userMenuToggle'))
-        dd.classList.add('hidden');
+    const dd = $('userDropdown');
+    if (dd && !dd.contains(e.target) && e.target !== $('userMenuToggle')) dd.classList.add('hidden');
 });
+$('mobileToggle')?.addEventListener('click', () => $('mobileMenu')?.classList.toggle('open'));
 
 // ============================================================
 // INIT selon la page
 // ============================================================
-// Ouvrir un cours (slug SEO ou fallback id)
-window.openCourse = function(id, slug) {
-    location.href = slug ? '/course/' + slug : '/course-detail?id=' + id;
-};
-
 document.addEventListener('DOMContentLoaded', () => {
     if (PAGE === 'courses') initCoursesPage();
-    if (PAGE === 'course')  initCourseDetailPage();
-    if (PAGE === 'session') initSessionPage();
+    if (PAGE === 'matiere') initMatierePage();
+    if (PAGE === 'seance')  initSeancePage();
 });
 
-// ╔══════════════════════════════════════════════════════════╗
-// ║  CACHE localStorage — courses                           ║
-// ╚══════════════════════════════════════════════════════════╝
-const CACHE_KEY = 'electroinfo_courses_cache';
-const CACHE_TTL = 10 * 60 * 1000; // 10 minutes
-
-function saveCoursesCache(courses) {
-    try {
-        localStorage.setItem(CACHE_KEY, JSON.stringify({
-            data: courses,
-            ts: Date.now()
-        }));
-    } catch(_) {}
-}
-
-function loadCoursesCache() {
-    try {
-        const raw = localStorage.getItem(CACHE_KEY);
-        if (!raw) return null;
-        const { data, ts } = JSON.parse(raw);
-        if (Date.now() - ts > CACHE_TTL) return null;
-        return data;
-    } catch(_) { return null; }
-}
-
-// ╔══════════════════════════════════════════════════════════╗
-// ║  PAGE 1 — courses.html                                  ║
-// ╚══════════════════════════════════════════════════════════╝
-let allCourses = [];
+// ============================================================
+// PAGE 1 — courses.html
+// ============================================================
+let allMatieres = [];
 
 async function initCoursesPage() {
-    // Affiche le cache immédiatement si disponible
-    const cached = loadCoursesCache();
-    if (cached && cached.length > 0) {
-        allCourses = cached;
-        console.log(`📦 ${allCourses.length} cours affichés depuis le cache`);
-    }
+    const cached = loadCache();
+    if (cached) { allMatieres = cached; }
 
-    // Tente la mise à jour depuis Firebase (avec timeout 8s)
     try {
-        const timeout = new Promise((_, reject) =>
-            setTimeout(() => reject(new Error('Timeout Firebase')), 8000));
+        const timeout = new Promise((_, r) => setTimeout(() => r(new Error('timeout')), 8000));
         const snap = await Promise.race([
-            getDocs(query(collection(db,'courses'), orderBy('createdAt','desc'))),
+            getDocs(query(collection(db, 'matieres'), orderBy('createdAt', 'desc'))),
             timeout
         ]);
-        allCourses = snap.docs.map(d => ({ id: d.id, ...d.data() }));
-        saveCoursesCache(allCourses);
-        console.log(`✅ ${allCourses.length} cours chargés depuis Firebase`);
+        allMatieres = snap.docs.map(d => ({ id: d.id, ...d.data() }));
+        saveCache(allMatieres);
+        console.log(`\u2705 ${allMatieres.length} mati\u00e8res charg\u00e9es`);
     } catch(e) {
-        if (cached && cached.length > 0) {
-            console.warn('⚠️ Firebase inaccessible — affichage du cache');
-        } else {
-            console.error('❌ Erreur chargement cours:', e);
-            allCourses = [];
-        }
+        console.warn('\u26a0\ufe0f Firebase inaccessible, cache utilis\u00e9.');
     }
 
-    document.querySelectorAll('.diploma-card').forEach(card => {
-        card.addEventListener('click', () => showCoursesByDiploma(card.dataset.diploma));
+    document.querySelectorAll('.diplome-card').forEach(card => {
+        card.addEventListener('click', () => showMatieres(card.dataset.diplome));
     });
-    $id('backToHome')?.addEventListener('click', () => showView('view-home'));
-    document.querySelector('.back-btn-empty')?.addEventListener('click', () => showView('view-home'));
+    $('backToDiplomes')?.addEventListener('click', () => showView('view-diplomes'));
+    $('backFromEmpty')?.addEventListener('click',  () => showView('view-diplomes'));
 }
 
 function showView(id) {
-    document.querySelectorAll('.view').forEach(v => v.classList.remove('active-view'));
-    $id(id)?.classList.add('active-view');
+    document.querySelectorAll('.courses-view').forEach(v => v.classList.remove('active-view'));
+    $(id)?.classList.add('active-view');
 }
 
-function showCoursesByDiploma(diploma) {
-    showView('view-courses');
-    const labels = { all:'📚 Tous les cours', 'BAC PRO':'🎓 BAC PRO',
-        BEP:'📘 BEP', CAP:'🏅 CAP', BTS:'🎓 BTS', LICENCE:'🏛️ Licence' };
-    setText('coursesViewTitle', labels[diploma] || diploma);
-    const list = diploma === 'all' ? allCourses
-        : allCourses.filter(c => (c.diploma||'') === diploma);
-    renderCoursesList(list);
+function showMatieres(diplome) {
+    showView('view-matieres');
+    setText('matieres-title', `Mati\u00e8res \u2014 ${diplome}`);
+    const list = allMatieres.filter(m => m.diplome === diplome);
+    renderMatieres(list);
 }
 
-function renderCoursesList(courses) {
-    const grid = $id('coursesGrid');
-    if (!grid) return;
-    hide('coursesLoading');
+function renderMatieres(matieres) {
+    hide('matieres-loading');
+    if (!matieres.length) {
+        hide('matieres-grid');
+        show('matieres-empty');
+        return;
+    }
+    hide('matieres-empty');
+    show('matieres-grid');
 
-    if (!courses.length) { hide('coursesGrid'); show('noCourses'); return; }
-    hide('noCourses'); show('coursesGrid');
-
-    const lvlColors = {
-        'Débutant':      { bg:'#d1fae5', tx:'#065f46' },
-        'Intermédiaire': { bg:'#fef3c7', tx:'#92400e' },
-        'Avancé':        { bg:'#fee2e2', tx:'#991b1b' }
+    const niveauColors = {
+        'D\u00e9butant':      { bg:'#d1fae5', tx:'#065f46' },
+        'Interm\u00e9diaire': { bg:'#fef3c7', tx:'#92400e' },
+        'Avanc\u00e9':        { bg:'#fee2e2', tx:'#991b1b' }
     };
+    const covers = [
+        'linear-gradient(135deg,#1e3a5f,#1e40af,#3b82f6)',
+        'linear-gradient(135deg,#064e3b,#065f46,#059669)',
+        'linear-gradient(135deg,#4c1d95,#5b21b6,#7c3aed)',
+        'linear-gradient(135deg,#7c2d12,#9a3412,#ea580c)',
+        'linear-gradient(135deg,#0f172a,#1e293b,#334155)',
+        'linear-gradient(135deg,#831843,#9d174d,#db2777)',
+    ];
 
-    grid.innerHTML = courses.map((c, idx) => {
-        const seqs = c.sequences?.length || 0;
-        let   sess = 0; c.sequences?.forEach(s => sess += s.sessions?.length||0);
-
-        // Palettes de couleurs selon le niveau
-        const levelColors = {
-            'Débutant':     { badge:'#dcfce7', badgeTx:'#15803d', accent:'#22c55e' },
-            'Intermédiaire': { badge:'#fef3c7', badgeTx:'#b45309', accent:'#f59e0b' },
-            'Avancé':       { badge:'#fee2e2', badgeTx:'#dc2626', accent:'#ef4444' },
-        };
-        const lv = levelColors[c.level] || { badge:'#f3f4f6', badgeTx:'#374151', accent:'#6b7280' };
-
-        // Gradients de couverture selon l'index (rotation cyclique)
-        const covers = [
-            'linear-gradient(135deg,#1e3a5f 0%,#1e40af 50%,#3b82f6 100%)',
-            'linear-gradient(135deg,#064e3b 0%,#065f46 50%,#059669 100%)',
-            'linear-gradient(135deg,#4c1d95 0%,#5b21b6 50%,#7c3aed 100%)',
-            'linear-gradient(135deg,#7c2d12 0%,#9a3412 50%,#ea580c 100%)',
-            'linear-gradient(135deg,#0f172a 0%,#1e293b 50%,#334155 100%)',
-            'linear-gradient(135deg,#831843 0%,#9d174d 50%,#db2777 100%)',
-        ];
-        const cover = covers[idx % covers.length];
-
-        // Icone selon le diplome
-        const diplomaIcon = {
-            'BAC PRO': 'fa-graduation-cap',
-            'BTS':     'fa-university',
-            'CAP':     'fa-certificate',
-            'Licence': 'fa-award',
-        }[c.diploma] || 'fa-bolt';
-
-        // Initiales pour le placeholder visuel
-        const initials = (c.title||'?').split(' ').slice(0,2).map(w=>w[0]?.toUpperCase()||'').join('');
+    $('matieres-grid').innerHTML = matieres.map((m, i) => {
+        const seqs  = m.sequences?.length || 0;
+        let seances = 0;
+        m.sequences?.forEach(s => seances += s.seances?.length || 0);
+        const nv    = niveauColors[m.niveau] || { bg:'#f3f4f6', tx:'#374151' };
+        const cover = covers[i % covers.length];
+        const initials = (m.titre||'?').split(' ').slice(0,2).map(w=>w[0]?.toUpperCase()||'').join('');
 
         return `
-        <div class="course-card-v2" data-course-id="${esc(c.id)}" data-course-slug="${esc(c.slug||'')}" style="cursor:pointer;">
-
-            <!-- COVER -->
-            <div class="ccv2-cover" style="background:${cover};">
-                <div class="ccv2-cover-pattern"></div>
-                <div class="ccv2-cover-icon">
-                    <i class="fas ${diplomaIcon}"></i>
-                </div>
-                <div class="ccv2-cover-initials">${initials}</div>
-                ${c.diploma ? `<span class="ccv2-diploma">${esc(c.diploma)}</span>` : ''}
+        <div class="matiere-card" onclick="location.href='/matiere/${esc(m.slug||m.id)}'">
+            <div class="mc-cover" style="background:${cover}">
+                <div class="mc-initials">${initials}</div>
+                <span class="mc-diplome">${esc(m.diplome)}</span>
             </div>
-
-            <!-- BODY -->
-            <div class="ccv2-body">
-                ${c.level ? `<span class="ccv2-level" style="background:${lv.badge};color:${lv.badgeTx};">${esc(c.level)}</span>` : ''}
-                <h3 class="ccv2-title">${esc(c.title)}</h3>
-                ${c.description ? `<p class="ccv2-desc">${esc(c.description)}</p>` : ''}
+            <div class="mc-body">
+                ${m.niveau ? `<span class="mc-niveau" style="background:${nv.bg};color:${nv.tx}">${esc(m.niveau)}</span>` : ''}
+                <h3 class="mc-titre">${esc(m.titre)}</h3>
+                ${m.description ? `<p class="mc-desc">${esc(m.description)}</p>` : ''}
             </div>
-
-            <!-- FOOTER -->
-            <div class="ccv2-footer">
-                <div class="ccv2-stats">
-                    <span class="ccv2-stat">
-                        <i class="fas fa-layer-group"></i>
-                    ${seqs} s\u00e9q.
-                    </span>
-                    <span class="ccv2-stat">
-                        <i class="fas fa-file-alt"></i>
-                        ${sess} s\u00e9ance${sess>1?'s':''}
-                    </span>
-                </div>
-                <span class="ccv2-cta">
-                    Ouvrir <i class="fas fa-arrow-right"></i>
-                </span>
+            <div class="mc-footer">
+                <span><i class="fas fa-layer-group"></i> ${seqs} s\u00e9q.</span>
+                <span><i class="fas fa-file-alt"></i> ${seances} s\u00e9ance${seances>1?'s':''}</span>
+                <span class="mc-cta">Ouvrir <i class="fas fa-arrow-right"></i></span>
             </div>
         </div>`;
     }).join('');
-
-    // Délégation d'événement — évite les bugs avec apostrophes dans les slugs/IDs
-    grid.onclick = (e) => {
-        const card = e.target.closest('.course-card-v2');
-        if (!card) return;
-        window.openCourse(card.dataset.courseId, card.dataset.courseSlug);
-    };
 }
 
-// ╔══════════════════════════════════════════════════════════╗
-// ║  PAGE 2 — course-detail.html                            ║
-// ╚══════════════════════════════════════════════════════════╝
-let currentCourse = null;
+// ============================================================
+// PAGE 2 — matiere.html
+// ============================================================
+let currentMatiere = null;
 
-async function initCourseDetailPage() {
-    // Format 1 : /course/mon-slug (Firebase Hosting)
-    const pathParts = location.pathname.split('/');
-    if (pathParts[1] === 'course' && pathParts[2]) {
-        return loadCourseBySlug(decodeURIComponent(pathParts[2]));
-    }
+async function initMatierePage() {
+    const param = getMatiereParam();
+    if (!param) { showErrMatiere(); return; }
 
-    // Format 2 : GitHub Pages — slug sauvegardé dans sessionStorage par 404.html
-    const redirectPath = sessionStorage.getItem('redirect_path');
-    if (redirectPath) {
-        sessionStorage.removeItem('redirect_path');
-        const parts = redirectPath.split('/');
-        if (parts[1] === 'course' && parts[2]) {
-            return loadCourseBySlug(decodeURIComponent(parts[2]));
+    try {
+        let snap = null;
+        if (param.type === 'slug') {
+            const q = await getDocs(query(collection(db,'matieres'), where('slug','==',param.value)));
+            if (q.empty) { showErrMatiere(); return; }
+            snap = q.docs[0];
+        } else {
+            const d = await getDoc(doc(db,'matieres',param.value));
+            if (!d.exists()) { showErrMatiere(); return; }
+            snap = d;
         }
+        currentMatiere = { id: snap.id, ...snap.data() };
+        renderMatiere();
+    } catch(e) { console.error(e); showErrMatiere(); }
+}
+
+function getMatiereParam() {
+    const rp = sessionStorage.getItem('redirect_path');
+    if (rp) {
+        sessionStorage.removeItem('redirect_path');
+        const parts = rp.split('/').filter(Boolean);
+        if (parts[0] === 'matiere' && parts[1]) return { type:'slug', value: decodeURIComponent(parts[1]) };
     }
-
-    // Format 3 (fallback legacy) : /course-detail?id=XXX
+    const parts = location.pathname.split('/').filter(Boolean);
+    if (parts[0] === 'matiere' && parts[1]) return { type:'slug', value: decodeURIComponent(parts[1]) };
     const id = new URLSearchParams(location.search).get('id');
-    if (!id) { showErrorDetail(); return; }
-    try {
-        const snap = await getDoc(doc(db,'courses',id));
-        if (!snap.exists()) { showErrorDetail(); return; }
-        currentCourse = { id: snap.id, ...snap.data() };
-        renderCourseDetail();
-    } catch(e) { console.error(e); showErrorDetail(); }
+    if (id) return { type:'id', value: id };
+    return null;
 }
 
-async function loadCourseBySlug(slug) {
-    try {
-        const snap = await getDocs(query(collection(db, 'courses'), where('slug', '==', slug)));
-        if (snap.empty) { showErrorDetail(); return; }
-        currentCourse = { id: snap.docs[0].id, ...snap.docs[0].data() };
-        renderCourseDetail();
-    } catch(e) { console.error(e); showErrorDetail(); }
-}
+function renderMatiere() {
+    hide('loadingState');
+    show('matiereContainer');
+    document.title = `${currentMatiere.titre} | ElectroInfo`;
 
-function renderCourseDetail() {
-    hide('loadingState'); show('courseContainer');
-    document.title = `${currentCourse.title} | ElectroInfo`;
-    setText('courseDiploma',    currentCourse.diploma || 'BAC PRO');
-    setText('courseLevel',      currentCourse.level   || 'Débutant');
-    setText('courseTitle',      currentCourse.title);
-    setText('courseDescription',currentCourse.description || '');
+    setText('matiereDiplome',     currentMatiere.diplome || '');
+    setText('matiereNiveau',      currentMatiere.niveau  || '');
+    setText('matiereTitle',       currentMatiere.titre   || '');
+    setText('matiereDescription', currentMatiere.description || '');
 
-    const seqs = currentCourse.sequences || [];
-    let   total = 0; seqs.forEach(s => total += s.sessions?.length||0);
-    setText('sequencesCount', seqs.length);
-    setText('sessionsCount',  total);
-    const d = currentCourse.createdAt?.toDate?.() || new Date();
-    setText('courseDate', d.toLocaleDateString('fr-FR',{day:'numeric',month:'long',year:'numeric'}));
+    const seqs  = currentMatiere.sequences || [];
+    let seances = 0;
+    seqs.forEach(s => seances += s.seances?.length || 0);
+    setText('seqCount',    seqs.length);
+    setText('seanceCount', seances);
 
-    renderSequences(seqs);
     renderSequencesNav(seqs);
+    renderSequences(seqs);
 }
 
 function renderSequencesNav(seqs) {
-    const nav = $id('sequencesNav');
+    const nav = $('sequencesNav');
     if (!nav) return;
-    if (!seqs.length) { nav.innerHTML = '<p style="color:#6b7280;font-size:.9rem;">Aucune séquence</p>'; return; }
+    if (!seqs.length) { nav.innerHTML = '<p style="color:#9ca3af;font-size:.9rem;padding:1rem;">Aucune s\u00e9quence</p>'; return; }
     nav.innerHTML = seqs.map((s,i) => `
-        <div class="sequence-nav-item" onclick="scrollToSeq(${i})">
-            <i class="fas fa-chevron-right" style="font-size:.7rem;margin-right:.5rem;"></i>
-            ${esc(s.title || `Séquence ${i+1}`)}
+        <div class="seq-nav-item" onclick="scrollToSeq(${i})">
+            <i class="fas fa-chevron-right"></i>
+            ${esc(s.titre || `S\u00e9quence ${i+1}`)}
         </div>`).join('');
 }
 
 function renderSequences(seqs) {
-    const box   = $id('sequencesContainer');
-    const empty = $id('emptySequences');
-    if (!seqs.length) { box?.classList.add('hidden'); empty?.classList.remove('hidden'); return; }
-    box?.classList.remove('hidden'); empty?.classList.add('hidden');
+    const box = $('sequencesContainer');
+    if (!seqs.length) { show('emptySequences'); return; }
+    hide('emptySequences');
 
-    box.innerHTML = seqs.map((seq,si) => `
-        <div class="sequence-block" id="sequence-${si}">
-            <div class="sequence-header">
-                <div class="sequence-title-wrapper">
-                    <div class="sequence-number">Séquence ${si+1}</div>
-                    <h2 class="sequence-title">${esc(seq.title||`Séquence ${si+1}`)}</h2>
+    box.innerHTML = seqs.map((seq, si) => `
+        <div class="sequence-block" id="seq-${si}">
+            <div class="sequence-header" onclick="toggleSeq(${si})">
+                <div class="seq-info">
+                    <span class="seq-num">S\u00e9quence ${si+1}</span>
+                    <h2 class="seq-title">${esc(seq.titre || `S\u00e9quence ${si+1}`)}</h2>
                 </div>
-                <button class="sequence-toggle" onclick="toggleSeq(${si})">
+                <button class="seq-toggle-btn" id="seq-toggle-${si}">
                     <i class="fas fa-chevron-up"></i>
                 </button>
             </div>
-            <div class="sessions-list" id="sessions-${si}">
-                ${renderSessionItems(seq.sessions||[], si)}
+            <div class="seances-list" id="seances-${si}">
+                ${renderSeanceItems(seq.seances || [], si)}
             </div>
         </div>`).join('');
 }
 
-function renderSessionItems(sessions, si) {
-    if (!sessions.length) return `
-        <div class="empty-state" style="padding:2rem;">
-            <i class="fas fa-inbox" style="font-size:2rem;color:#9ca3af;margin-bottom:1rem;"></i>
-            <p style="color:#6b7280;">Aucune séance dans cette séquence</p>
+function renderSeanceItems(seances, si) {
+    if (!seances.length) return `
+        <div class="empty-seances">
+            <i class="fas fa-inbox"></i>
+            <p>Aucune s\u00e9ance dans cette s\u00e9quence</p>
         </div>`;
-    return sessions.map((sess,ssi) => {
-        const url = currentCourse.slug
-            ? `/seance/${currentCourse.slug}/seq-${si+1}/seance-${ssi+1}`
-            : `/session-detail?courseId=${currentCourse.id}&seqIndex=${si}&sessionIndex=${ssi}`;
+
+    return seances.map((sc, ssi) => {
+        const url = currentMatiere.slug
+            ? `/seance/${currentMatiere.slug}/seq-${si+1}/s-${ssi+1}`
+            : `/seance.html?matiereId=${currentMatiere.id}&seqIndex=${si}&seanceIndex=${ssi}`;
         return `
-        <div class="session-item" onclick="location.href='${url}'">
-            <div class="session-icon"><i class="fas fa-play"></i></div>
-            <div class="session-info">
-                <div class="session-number">Séance ${ssi+1}</div>
-                <h4 class="session-title">${esc(sess.title||`Séance ${ssi+1}`)}</h4>
-                ${sess.pdfUrl ? `<div class="session-has-pdf">
-                    <i class="fas fa-file-pdf"></i> PDF disponible</div>` : ''}
+        <div class="seance-item" onclick="location.href='${url}'">
+            <div class="seance-item-icon"><i class="fas fa-play"></i></div>
+            <div class="seance-item-info">
+                <span class="seance-num">S\u00e9ance ${ssi+1}</span>
+                <h4>${esc(sc.titre || `S\u00e9ance ${ssi+1}`)}</h4>
+                ${sc.pdfUrl ? `<span class="has-pdf"><i class="fas fa-file-pdf"></i> PDF</span>` : ''}
             </div>
-            <i class="fas fa-chevron-right session-arrow"></i>
+            <i class="fas fa-chevron-right seance-arrow"></i>
         </div>`;
     }).join('');
 }
 
 window.toggleSeq = function(i) {
-    const block = $id(`sequence-${i}`);
-    const list  = $id(`sessions-${i}`);
-    block?.classList.toggle('collapsed');
-    if (list) list.style.display = list.style.display === 'none' ? 'grid' : 'none';
+    const list = $(`seances-${i}`);
+    const btn  = $(`seq-toggle-${i}`);
+    if (!list) return;
+    const open = list.style.display !== 'none';
+    list.style.display = open ? 'none' : 'block';
+    if (btn) btn.querySelector('i').className = open ? 'fas fa-chevron-down' : 'fas fa-chevron-up';
 };
 
 window.scrollToSeq = function(i) {
-    $id(`sequence-${i}`)?.scrollIntoView({ behavior:'smooth', block:'start' });
-    document.querySelectorAll('.sequence-nav-item').forEach((el,idx) =>
+    $(`seq-${i}`)?.scrollIntoView({ behavior:'smooth', block:'start' });
+    document.querySelectorAll('.seq-nav-item').forEach((el, idx) =>
         el.classList.toggle('active', idx === i));
 };
 
-function showErrorDetail() {
-    hide('loadingState'); show('errorState');
+function showErrMatiere() {
+    hide('loadingState');
+    show('errorState');
 }
 
-// ╔══════════════════════════════════════════════════════════╗
-// ║  PAGE 3 — session-detail.html                           ║
-// ╚══════════════════════════════════════════════════════════╝
-let sdCourse  = null;
-let sdSeqIdx  = 0;
-let sdSessIdx = 0;
+// ============================================================
+// PAGE 3 — seance.html
+// ============================================================
+let sdMatiere   = null;
+let sdSeqIdx    = 0;
+let sdSeanceIdx = 0;
 
-async function initSessionPage() {
-    // GitHub Pages : récupère le path depuis sessionStorage (priorité absolue)
-    const redirectPath = sessionStorage.getItem('redirect_path');
-    if (redirectPath) {
+async function initSeancePage() {
+    const params = getSeanceParams();
+    if (!params) { sdShowError('Param\u00e8tres manquants.'); return; }
+
+    sdSeqIdx    = params.seqIndex;
+    sdSeanceIdx = params.seanceIndex;
+
+    try {
+        let snap = null;
+        if (params.slug) {
+            const q = await getDocs(query(collection(db,'matieres'), where('slug','==',params.slug)));
+            if (q.empty) { sdShowError('Mati\u00e8re introuvable.'); return; }
+            snap = q.docs[0];
+        } else if (params.matiereId) {
+            const d = await getDoc(doc(db,'matieres',params.matiereId));
+            if (!d.exists()) { sdShowError('Mati\u00e8re introuvable.'); return; }
+            snap = d;
+        } else { sdShowError('Mati\u00e8re non sp\u00e9cifi\u00e9e.'); return; }
+
+        sdMatiere = { id: snap.id, ...snap.data() };
+        sdRender();
+    } catch(e) { console.error(e); sdShowError('Erreur r\u00e9seau.'); }
+}
+
+function getSeanceParams() {
+    const rp = sessionStorage.getItem('redirect_path');
+    if (rp) {
         sessionStorage.removeItem('redirect_path');
-        const rParts = redirectPath.split('/');
-        if (rParts[1] === 'seance' && rParts[2]) {
-            const courseSlug = decodeURIComponent(rParts[2]);
-            sdSeqIdx  = parseInt((rParts[3] || 'seq-1').replace('seq-', '')) - 1;
-            sdSessIdx = parseInt((rParts[4] || 'seance-1').replace('seance-', '')) - 1;
-            try {
-                const snap = await getDocs(query(collection(db,'courses'), where('slug','==',courseSlug)));
-                if (snap.empty) { sdShowError('Cours introuvable.'); return; }
-                sdCourse = { id: snap.docs[0].id, ...snap.docs[0].data() };
-                sdRender();
-            } catch(e) { console.error(e); sdShowError('Erreur réseau.'); }
-            return;
+        const parts = rp.split('/').filter(Boolean);
+        if (parts[0] === 'seance' && parts[1]) {
+            return {
+                slug:       decodeURIComponent(parts[1]),
+                seqIndex:   parseInt((parts[2]||'seq-1').replace('seq-','')) - 1,
+                seanceIndex:parseInt((parts[3]||'s-1').replace('s-','')) - 1
+            };
+        }
+        const qi = rp.indexOf('?');
+        if (qi !== -1) {
+            const p = new URLSearchParams(rp.slice(qi));
+            return {
+                matiereId:  p.get('matiereId'),
+                seqIndex:   parseInt(p.get('seqIndex'))   || 0,
+                seanceIndex:parseInt(p.get('seanceIndex')) || 0
+            };
         }
     }
 
-    // Nouveau format SEO direct : /seance/cours-slug/seq-N/seance-N
-    const parts = location.pathname.split('/');
-    if (parts[1] === 'seance' && parts[2]) {
-        const courseSlug = decodeURIComponent(parts[2]);
-        sdSeqIdx  = parseInt((parts[3] || 'seq-1').replace('seq-', '')) - 1;
-        sdSessIdx = parseInt((parts[4] || 'seance-1').replace('seance-', '')) - 1;
-        try {
-            const snap = await getDocs(query(collection(db,'courses'), where('slug','==',courseSlug)));
-            if (snap.empty) { sdShowError('Cours introuvable.'); return; }
-            sdCourse = { id: snap.docs[0].id, ...snap.docs[0].data() };
-            sdRender();
-        } catch(e) { console.error(e); sdShowError('Erreur réseau.'); }
-        return;
+    const parts = location.pathname.split('/').filter(Boolean);
+    if (parts[0] === 'seance' && parts[1]) {
+        return {
+            slug:       decodeURIComponent(parts[1]),
+            seqIndex:   parseInt((parts[2]||'seq-1').replace('seq-','')) - 1,
+            seanceIndex:parseInt((parts[3]||'s-1').replace('s-','')) - 1
+        };
     }
 
-    // Fallback legacy : ?courseId=XXX&seqIndex=N&sessionIndex=N
     const p = new URLSearchParams(location.search);
-    const courseId = p.get('courseId');
-    sdSeqIdx  = parseInt(p.get('seqIndex')     || '0', 10);
-    sdSessIdx = parseInt(p.get('sessionIndex') || '0', 10);
-
-    if (!courseId) { sdShowError('Aucun cours spécifié.'); return; }
-    try {
-        const snap = await getDoc(doc(db,'courses',courseId));
-        if (!snap.exists()) { sdShowError('Cours introuvable.'); return; }
-        sdCourse = { id: snap.id, ...snap.data() };
-        sdRender();
-    } catch(e) { sdShowError('Erreur réseau.'); }
+    const matiereId = p.get('matiereId');
+    if (!matiereId) return null;
+    return {
+        matiereId,
+        seqIndex:    parseInt(p.get('seqIndex'))   || 0,
+        seanceIndex: parseInt(p.get('seanceIndex')) || 0
+    };
 }
 
 function sdRender() {
-    // IDs correspondant à session-detail.html
     hide('loadingState');
-    show('sessionPage');
-
-    const bl = $id('backButton');
-    if (bl) bl.href = sdCourse.slug ? `/course/${sdCourse.slug}` : `/course-detail?id=${sdCourse.id}`;
-
-    sdRenderSession();
+    show('seancePage');
+    const backUrl = sdMatiere.slug ? `/matiere/${sdMatiere.slug}` : `/matiere.html?id=${sdMatiere.id}`;
+    setAttr('backButton', 'href', backUrl);
+    sdRenderSeance();
 }
 
-// (sidebar supprimée — session-detail.html n'a pas de sidebarNav)
+function sdRenderSeance() {
+    const seqs   = sdMatiere.sequences || [];
+    const seq    = seqs[sdSeqIdx];
+    const seance = seq?.seances?.[sdSeanceIdx];
 
-function sdRenderSession() {
-    const seqs = sdCourse.sequences || [];
-    const seq  = seqs[sdSeqIdx];
-    const sess = seq?.sessions?.[sdSessIdx];
+    document.title = `${seance?.titre || 'S\u00e9ance'} | ElectroInfo`;
+    setText('seanceBadge', `S\u00e9ance ${sdSeanceIdx + 1}`);
+    setText('seqBadge',    `S\u00e9quence ${sdSeqIdx + 1}`);
+    setText('seanceTitle', seance?.titre || `S\u00e9ance ${sdSeanceIdx + 1}`);
 
-    document.title = `${sess?.title||'Séance'} | ElectroInfo`;
-
-    // IDs du HTML actuel : sessionBadge, sessionTitle, sessionContent
-    setText('sessionBadge', `Séance ${sdSessIdx + 1}`);
-    setText('sessionTitle', sess?.title || `Séance ${sdSessIdx + 1}`);
-
-    const contentEl = $id('sessionContent');
-    if (contentEl) {
-        contentEl.innerHTML = sess?.content
-            ? sess.content
-            : `<div style="text-align:center;padding:4rem;color:#94a3b8;">
-                   <i class="fas fa-inbox" style="font-size:3rem;margin-bottom:1rem;display:block;"></i>
-                   <p>Aucun contenu disponible pour cette séance.</p>
-               </div>`;
+    const content = $('seanceContent');
+    if (content) {
+        content.innerHTML = seance?.contenu ||
+            `<div style="text-align:center;padding:4rem;color:#94a3b8;">
+                <i class="fas fa-inbox" style="font-size:3rem;display:block;margin-bottom:1rem;"></i>
+                <p>Aucun contenu pour cette s\u00e9ance.</p>
+            </div>`;
     }
 
-    // PDF — IDs du HTML actuel : pdfSection, pdfDownloadBtn
-    if (sess?.pdfUrl) {
+    if (seance?.pdfUrl) {
         show('pdfSection');
-        setAttr('pdfDownloadBtn', 'href', sess.pdfUrl);
+        setAttr('pdfDownloadBtn', 'href', seance.pdfUrl);
     } else {
         hide('pdfSection');
     }
 
-    // Bouton retour
-    const bl = $id('backButton');
-    if (bl) bl.href = sdCourse.slug ? `/course/${sdCourse.slug}` : `/course-detail?id=${sdCourse.id}`;
-
     sdUpdateNav();
-    const reader = $id('sessionContent');
-    if (reader) reader.scrollTop = 0;
 }
 
 function sdUpdateNav() {
-    const seqs = sdCourse.sequences || [];
-    const sess = seqs[sdSeqIdx]?.sessions?.[sdSessIdx];
+    const seqs    = sdMatiere.sequences || [];
+    const prevBtn = $('prevSeanceBtn');
+    const nextBtn = $('nextSeanceBtn');
 
-    // Bouton précédent — ID : prevSessionBtn
-    const prevBtn = $id('prevSessionBtn');
-    const nextBtn = $id('nextSessionBtn');
+    const makeUrl = (si, ssi) => sdMatiere.slug
+        ? `/seance/${sdMatiere.slug}/seq-${si+1}/s-${ssi+1}`
+        : `/seance.html?matiereId=${sdMatiere.id}&seqIndex=${si}&seanceIndex=${ssi}`;
 
-    let prevHref = null, nextHref = null;
-    const makeUrl = (si, ssi) => sdCourse.slug
-        ? `/seance/${sdCourse.slug}/seq-${si+1}/seance-${ssi+1}`
-        : `/session-detail?courseId=${sdCourse.id}&seqIndex=${si}&sessionIndex=${ssi}`;
-
-    if (sdSessIdx > 0) {
-        prevHref = makeUrl(sdSeqIdx, sdSessIdx - 1);
+    let prevHref = null;
+    if (sdSeanceIdx > 0) {
+        prevHref = makeUrl(sdSeqIdx, sdSeanceIdx - 1);
     } else if (sdSeqIdx > 0) {
-        const prevLen = seqs[sdSeqIdx - 1]?.sessions?.length || 0;
+        const prevLen = seqs[sdSeqIdx - 1]?.seances?.length || 0;
         if (prevLen > 0) prevHref = makeUrl(sdSeqIdx - 1, prevLen - 1);
     }
 
-    const curLen = seqs[sdSeqIdx]?.sessions?.length || 0;
-    if (sdSessIdx < curLen - 1) {
-        nextHref = makeUrl(sdSeqIdx, sdSessIdx + 1);
+    let nextHref = null;
+    const curLen = seqs[sdSeqIdx]?.seances?.length || 0;
+    if (sdSeanceIdx < curLen - 1) {
+        nextHref = makeUrl(sdSeqIdx, sdSeanceIdx + 1);
     } else if (sdSeqIdx < seqs.length - 1) {
-        if ((seqs[sdSeqIdx + 1]?.sessions?.length || 0) > 0) nextHref = makeUrl(sdSeqIdx + 1, 0);
+        if ((seqs[sdSeqIdx + 1]?.seances?.length || 0) > 0) nextHref = makeUrl(sdSeqIdx + 1, 0);
     }
 
-    if (prevBtn) {
-        if (prevHref) { prevBtn.href = prevHref; prevBtn.classList.remove('disabled'); }
-        else { prevBtn.removeAttribute('href'); prevBtn.classList.add('disabled'); }
-    }
-    if (nextBtn) {
-        if (nextHref) { nextBtn.href = nextHref; nextBtn.classList.remove('disabled'); }
-        else { nextBtn.removeAttribute('href'); nextBtn.classList.add('disabled'); }
-    }
+    if (prevBtn) { prevBtn.href = prevHref || '#'; prevBtn.classList.toggle('disabled', !prevHref); }
+    if (nextBtn) { nextBtn.href = nextHref || '#'; nextBtn.classList.toggle('disabled', !nextHref); }
 }
-
-window.navigate = function(dir) {
-    const seqs = sdCourse.sequences || [];
-    if (dir === -1) {
-        if (sdSessIdx > 0) sdSessIdx--;
-        else if (sdSeqIdx > 0) { sdSeqIdx--; sdSessIdx = (seqs[sdSeqIdx]?.sessions?.length||1)-1; }
-    } else {
-        const len = seqs[sdSeqIdx]?.sessions?.length || 0;
-        if (sdSessIdx < len-1) sdSessIdx++;
-        else if (sdSeqIdx < seqs.length-1) { sdSeqIdx++; sdSessIdx = 0; }
-    }
-    sdPushUrl(); sdRenderSession();
-};
-
-function sdPushUrl() {
-    if (sdCourse.slug) {
-        // Nouveau format SEO
-        const newUrl = `/seance/${sdCourse.slug}/seq-${sdSeqIdx+1}/seance-${sdSessIdx+1}`;
-        history.pushState({}, '', newUrl);
-    } else {
-        // Fallback legacy
-        const url = new URL(location.href);
-        url.searchParams.set('seqIndex',     sdSeqIdx);
-        url.searchParams.set('sessionIndex', sdSessIdx);
-        history.pushState({}, '', url);
-    }
-}
-
-// (highlight sidebar supprimé — session-detail.html n'a pas de sidebar)
 
 function sdShowError(msg) {
-    const ls = $id('loadingState');
+    const ls = $('loadingState');
     if (ls) ls.innerHTML = `
         <i class="fas fa-exclamation-triangle" style="color:#ef4444;font-size:2.5rem;"></i>
-        <p style="font-size:1rem;font-weight:600;margin-top:1rem;">${msg}</p>
-        <a href="/courses"
-           style="margin-top:1rem;padding:.6rem 1.5rem;background:#1d4ed8;color:white;
-                  border-radius:7px;text-decoration:none;font-weight:700;
-                  display:inline-flex;align-items:center;gap:.5rem;">
+        <p style="font-weight:600;margin-top:1rem;">${msg}</p>
+        <a href="/courses" style="margin-top:1rem;padding:.6rem 1.5rem;background:#1d4ed8;
+           color:white;border-radius:7px;text-decoration:none;font-weight:700;
+           display:inline-flex;align-items:center;gap:.5rem;">
             <i class="fas fa-arrow-left"></i> Retour aux cours
         </a>`;
 }
 
-console.log(`✅ courses.js chargé — page: ${PAGE}`);
+console.log(`\u2705 courses.js charg\u00e9 \u2014 page: ${PAGE}`);

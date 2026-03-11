@@ -6,36 +6,29 @@
 </head>
 <body>
 <script>
-    // 404.html — GitHub Pages Router
     (function () {
-        var path = window.location.pathname;
+        var path   = window.location.pathname;
         var search = window.location.search || '';
-        // Sauvegarde le path complet (avec query string si présent)
         sessionStorage.setItem('redirect_path', path + search);
-        var parts = path.split('/').filter(Boolean);
+        var parts   = path.split('/').filter(Boolean);
         var segment = parts[0] || '';
         var dest;
-        if (segment === 'course') {
-            // /course/mon-slug → course-detail.html
-            dest = '/course-detail.html';
+        if (segment === 'matiere') {
+            dest = '/matiere.html';
         } else if (segment === 'seance') {
-            // /seance/mon-slug/seq-N/seance-N → session-detail.html
-            dest = '/session-detail.html';
-        } else if (segment === 'session-detail') {
-            // /session-detail?courseId=X&seqIndex=N&sessionIndex=N → session-detail.html
-            dest = '/session-detail.html';
+            dest = '/seance.html';
         } else if (segment === 'article') {
-            // /article/mon-slug → article-detail.html
             dest = '/article-detail.html';
+        } else if (segment === 'course' || segment === 'course-detail') {
+            dest = '/matiere.html';
+        } else if (segment === 'session-detail') {
+            dest = '/seance.html';
         } else {
-            // Fallback : retour à l'accueil
             dest = '/';
         }
         window.location.replace(dest);
     })();
 </script>
-<noscript>
-    <p>Redirection en cours… <a href="/">Retour à l'accueil</a></p>
-</noscript>
+<noscript><p>Redirection… <a href="/">Retour à l'accueil</a></p></noscript>
 </body>
 </html>
