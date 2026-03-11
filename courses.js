@@ -184,7 +184,7 @@ function showNiveaux(diplome) {
 }
 
 // VUE 3 : afficher les matières pour un diplôme + niveau
-function showMatieres(niveau) {
+window.showMatieres = function(niveau) {
     currentNiveau = niveau;
     showView('view-matieres');
     setText('matieres-title', `${currentDiplome} · ${niveau}`);
