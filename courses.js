@@ -118,66 +118,79 @@ async function initCoursesPage() {
         ]);
         allMatieres = snap.docs.map(d => ({ id: d.id, ...d.data() }));
         saveCache(allMatieres);
-        console.log(`\u2705 ${allMatieres.length} mati\u00e8res charg\u00e9es`);
+        console.log(`✅ ${allMatieres.length} matières chargées`);
     } catch(e) {
-        console.warn('\u26a0\ufe0f Firebase inaccessible, cache utilis\u00e9.');
+        console.warn('⚠️ Firebase inaccessible, cache utilisé.');
     }
 
     document.querySelectorAll('.diplome-card').forEach(card => {
-        card.addEventListener('click', () => showMatieres(card.dataset.diplome));
+        card.addEventListener('click', () => showNiveaux(card.dataset.diplome));
     });
-    $('backToDiplomes')?.addEventListener('click', () => showView('view-diplomes'));
-    $('backFromEmpty')?.addEventListener('click',  () => showView('view-diplomes'));
-
-    // Filtre niveau
-    document.querySelectorAll('.niveau-btn').forEach(btn => {
-        btn.addEventListener('click', () => {
-            document.querySelectorAll('.niveau-btn').forEach(b => b.classList.remove('active'));
-            btn.classList.add('active');
-            const niveau = btn.dataset.niveau;
-            const list   = niveau === 'all'
-                ? allMatieres.filter(m => m.diplome === currentDiplome)
-                : allMatieres.filter(m => m.diplome === currentDiplome && m.niveau === niveau);
-            renderMatieres(list);
-        });
-    });
+    $('backToDiplomesFromNiveaux')?.addEventListener('click', () => showView('view-diplomes'));
+    $('backToNiveaux')?.addEventListener('click', () => showView('view-niveaux'));
+    $('backFromEmpty')?.addEventListener('click',  () => showView('view-niveaux'));
 }
 
 let currentDiplome = '';
+let currentNiveau  = '';
 
 function showView(id) {
     document.querySelectorAll('.courses-view').forEach(v => v.classList.remove('active-view'));
     $(id)?.classList.add('active-view');
+    window.scrollTo(0, 0);
 }
 
-function showMatieres(diplome) {
+// VUE 2 : afficher les niveaux disponibles pour un diplôme
+function showNiveaux(diplome) {
     currentDiplome = diplome;
-    showView('view-matieres');
-    setText('matieres-title', `Matières — ${diplome}`);
+    showView('view-niveaux');
+    setText('niveaux-title', `Choisir un niveau — ${diplome}`);
 
-    // Reset filtre niveau sur "Tous"
-    document.querySelectorAll('.niveau-btn').forEach(b => b.classList.remove('active'));
-    document.querySelector('.niveau-btn[data-niveau="all"]')?.classList.add('active');
+    const NIVEAUX = [
+        { id: 'Débutant',      icon: 'fas fa-seedling',   color: '#065f46', bg: '#d1fae5', desc: 'Bases et fondamentaux' },
+        { id: 'Intermédiaire', icon: 'fas fa-chart-line', color: '#92400e', bg: '#fef3c7', desc: 'Approfondissement des connaissances' },
+        { id: 'Avancé',        icon: 'fas fa-fire',        color: '#991b1b', bg: '#fee2e2', desc: 'Maîtrise et expertise' },
+    ];
 
-    // Compter matières par niveau et afficher/masquer les boutons
     const matieresDiplome = allMatieres.filter(m => m.diplome === diplome);
-    const niveaux = ['Débutant','Intermédiaire','Avancé'];
-    niveaux.forEach(nv => {
-        const count = matieresDiplome.filter(m => m.niveau === nv).length;
-        const btn   = document.querySelector(`.niveau-btn[data-niveau="${nv}"]`);
-        if (btn) {
-            const badge = btn.querySelector('.nv-count');
-            if (badge) badge.textContent = count;
-            btn.style.display = count > 0 ? '' : 'none';
-        }
-    });
+    const niveauxDispos   = NIVEAUX.filter(nv => matieresDiplome.some(m => m.niveau === nv.id));
 
-    // Barre visible seulement si plusieurs niveaux présents
-    const niveauxPresents = niveaux.filter(nv => matieresDiplome.some(m => m.niveau === nv));
-    const bar = $('niveau-filter-bar');
-    if (bar) bar.style.display = niveauxPresents.length > 1 ? 'flex' : 'none';
+    const grid = $('niveaux-grid');
+    if (!grid) return;
 
-    renderMatieres(matieresDiplome);
+    if (!niveauxDispos.length) {
+        grid.innerHTML = '<p style="text-align:center;color:#94a3b8;padding:3rem;">Aucune matière disponible pour ce diplôme.</p>';
+        return;
+    }
+
+    grid.innerHTML = niveauxDispos.map(nv => {
+        const count = matieresDiplome.filter(m => m.niveau === nv.id).length;
+        return `
+        <div class="niveau-card" onclick="showMatieres('${nv.id}')"
+             style="border-top:4px solid ${nv.color};">
+            <div class="nc-icon" style="background:${nv.bg};color:${nv.color};">
+                <i class="${nv.icon}"></i>
+            </div>
+            <div class="nc-body">
+                <h3 class="nc-titre" style="color:${nv.color};">${nv.id}</h3>
+                <p class="nc-desc">${nv.desc}</p>
+                <span class="nc-count">${count} matière${count > 1 ? 's' : ''}</span>
+            </div>
+            <div class="nc-arrow" style="color:${nv.color};">
+                <i class="fas fa-arrow-right"></i>
+            </div>
+        </div>`;
+    }).join('');
+}
+
+// VUE 3 : afficher les matières pour un diplôme + niveau
+function showMatieres(niveau) {
+    currentNiveau = niveau;
+    showView('view-matieres');
+    setText('matieres-title', `${currentDiplome} · ${niveau}`);
+
+    const list = allMatieres.filter(m => m.diplome === currentDiplome && m.niveau === niveau);
+    renderMatieres(list);
 }
 
 function renderMatieres(matieres) {
@@ -191,9 +204,9 @@ function renderMatieres(matieres) {
     show('matieres-grid');
 
     const niveauColors = {
-        'D\u00e9butant':      { bg:'#d1fae5', tx:'#065f46' },
-        'Interm\u00e9diaire': { bg:'#fef3c7', tx:'#92400e' },
-        'Avanc\u00e9':        { bg:'#fee2e2', tx:'#991b1b' }
+        'Débutant':      { bg:'#d1fae5', tx:'#065f46' },
+        'Intermédiaire': { bg:'#fef3c7', tx:'#92400e' },
+        'Avancé':        { bg:'#fee2e2', tx:'#991b1b' }
     };
     const covers = [
         'linear-gradient(135deg,#1e3a5f,#1e40af,#3b82f6)',
@@ -224,8 +237,8 @@ function renderMatieres(matieres) {
                 ${m.description ? `<p class="mc-desc">${esc(m.description)}</p>` : ''}
             </div>
             <div class="mc-footer">
-                <span><i class="fas fa-layer-group"></i> ${seqs} s\u00e9q.</span>
-                <span><i class="fas fa-file-alt"></i> ${seances} s\u00e9ance${seances>1?'s':''}</span>
+                <span><i class="fas fa-layer-group"></i> ${seqs} séq.</span>
+                <span><i class="fas fa-file-alt"></i> ${seances} séance${seances>1?'s':''}</span>
                 <span class="mc-cta">Ouvrir <i class="fas fa-arrow-right"></i></span>
             </div>
         </div>`;

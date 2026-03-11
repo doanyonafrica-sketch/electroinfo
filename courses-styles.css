@@ -545,3 +545,57 @@
     padding: .1rem .45rem; border-radius: 10px; font-size: .75rem; font-weight: 800;
 }
 .niveau-btn:not(.active) .nv-count { background: #f1f5f9; color: #64748b; }
+
+/* ── Vue Niveaux ─────────────────────────────────────────── */
+.niveaux-container {
+    max-width: 860px;
+    margin: 0 auto;
+    padding: 2rem 1.5rem;
+}
+.niveaux-subtitle {
+    text-align: center;
+    color: #64748b;
+    font-size: 1rem;
+    margin-bottom: 2rem;
+}
+.niveaux-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+    gap: 1.25rem;
+}
+.niveau-card {
+    background: white;
+    border-radius: 14px;
+    box-shadow: 0 4px 16px rgba(0,0,0,.08);
+    padding: 1.75rem 1.5rem;
+    display: flex;
+    align-items: center;
+    gap: 1.25rem;
+    cursor: pointer;
+    transition: transform .2s, box-shadow .2s;
+    border-top: 4px solid #1e40af;
+}
+.niveau-card:hover {
+    transform: translateY(-4px);
+    box-shadow: 0 10px 30px rgba(0,0,0,.14);
+}
+.nc-icon {
+    width: 56px; height: 56px; border-radius: 14px;
+    display: flex; align-items: center; justify-content: center;
+    font-size: 1.5rem; flex-shrink: 0;
+}
+.nc-body { flex: 1; }
+.nc-titre { font-size: 1.15rem; font-weight: 800; margin: 0 0 .25rem; }
+.nc-desc  { font-size: .82rem; color: #64748b; margin: 0 0 .5rem; }
+.nc-count {
+    font-size: .75rem; font-weight: 700; background: #f1f5f9;
+    color: #64748b; padding: .2rem .65rem; border-radius: 20px;
+}
+.nc-arrow { font-size: 1.1rem; flex-shrink: 0; opacity: .6; }
+.niveau-card:hover .nc-arrow { opacity: 1; }
+
+@media (max-width: 600px) {
+    .niveaux-grid { grid-template-columns: 1fr; }
+}
+
+/* Retirer les anciens styles niveau-btn devenus inutiles */
