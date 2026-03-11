@@ -101,15 +101,62 @@ document.addEventListener('DOMContentLoaded', () => {
 });
 
 // ╔══════════════════════════════════════════════════════════╗
+// ║  CACHE localStorage — courses                           ║
+// ╚══════════════════════════════════════════════════════════╝
+const CACHE_KEY = 'electroinfo_courses_cache';
+const CACHE_TTL = 10 * 60 * 1000; // 10 minutes
+
+function saveCoursesCache(courses) {
+    try {
+        localStorage.setItem(CACHE_KEY, JSON.stringify({
+            data: courses,
+            ts: Date.now()
+        }));
+    } catch(_) {}
+}
+
+function loadCoursesCache() {
+    try {
+        const raw = localStorage.getItem(CACHE_KEY);
+        if (!raw) return null;
+        const { data, ts } = JSON.parse(raw);
+        if (Date.now() - ts > CACHE_TTL) return null;
+        return data;
+    } catch(_) { return null; }
+}
+
+// ╔══════════════════════════════════════════════════════════╗
 // ║  PAGE 1 — courses.html                                  ║
 // ╚══════════════════════════════════════════════════════════╝
 let allCourses = [];
 
 async function initCoursesPage() {
+    // Affiche le cache immédiatement si disponible
+    const cached = loadCoursesCache();
+    if (cached && cached.length > 0) {
+        allCourses = cached;
+        console.log(`📦 ${allCourses.length} cours affichés depuis le cache`);
+    }
+
+    // Tente la mise à jour depuis Firebase (avec timeout 8s)
     try {
-        const snap = await getDocs(query(collection(db,'courses'), orderBy('createdAt','desc')));
+        const timeout = new Promise((_, reject) =>
+            setTimeout(() => reject(new Error('Timeout Firebase')), 8000));
+        const snap = await Promise.race([
+            getDocs(query(collection(db,'courses'), orderBy('createdAt','desc'))),
+            timeout
+        ]);
         allCourses = snap.docs.map(d => ({ id: d.id, ...d.data() }));
-    } catch(e) { console.error(e); allCourses = []; }
+        saveCoursesCache(allCourses);
+        console.log(`✅ ${allCourses.length} cours chargés depuis Firebase`);
+    } catch(e) {
+        if (cached && cached.length > 0) {
+            console.warn('⚠️ Firebase inaccessible — affichage du cache');
+        } else {
+            console.error('❌ Erreur chargement cours:', e);
+            allCourses = [];
+        }
+    }
 
     document.querySelectorAll('.diploma-card').forEach(card => {
         card.addEventListener('click', () => showCoursesByDiploma(card.dataset.diploma));
