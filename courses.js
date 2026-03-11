@@ -128,7 +128,22 @@ async function initCoursesPage() {
     });
     $('backToDiplomes')?.addEventListener('click', () => showView('view-diplomes'));
     $('backFromEmpty')?.addEventListener('click',  () => showView('view-diplomes'));
+
+    // Filtre niveau
+    document.querySelectorAll('.niveau-btn').forEach(btn => {
+        btn.addEventListener('click', () => {
+            document.querySelectorAll('.niveau-btn').forEach(b => b.classList.remove('active'));
+            btn.classList.add('active');
+            const niveau = btn.dataset.niveau;
+            const list   = niveau === 'all'
+                ? allMatieres.filter(m => m.diplome === currentDiplome)
+                : allMatieres.filter(m => m.diplome === currentDiplome && m.niveau === niveau);
+            renderMatieres(list);
+        });
+    });
 }
+
+let currentDiplome = '';
 
 function showView(id) {
     document.querySelectorAll('.courses-view').forEach(v => v.classList.remove('active-view'));
@@ -136,10 +151,33 @@ function showView(id) {
 }
 
 function showMatieres(diplome) {
+    currentDiplome = diplome;
     showView('view-matieres');
-    setText('matieres-title', `Mati\u00e8res \u2014 ${diplome}`);
-    const list = allMatieres.filter(m => m.diplome === diplome);
-    renderMatieres(list);
+    setText('matieres-title', `Matières — ${diplome}`);
+
+    // Reset filtre niveau sur "Tous"
+    document.querySelectorAll('.niveau-btn').forEach(b => b.classList.remove('active'));
+    document.querySelector('.niveau-btn[data-niveau="all"]')?.classList.add('active');
+
+    // Compter matières par niveau et afficher/masquer les boutons
+    const matieresDiplome = allMatieres.filter(m => m.diplome === diplome);
+    const niveaux = ['Débutant','Intermédiaire','Avancé'];
+    niveaux.forEach(nv => {
+        const count = matieresDiplome.filter(m => m.niveau === nv).length;
+        const btn   = document.querySelector(`.niveau-btn[data-niveau="${nv}"]`);
+        if (btn) {
+            const badge = btn.querySelector('.nv-count');
+            if (badge) badge.textContent = count;
+            btn.style.display = count > 0 ? '' : 'none';
+        }
+    });
+
+    // Barre visible seulement si plusieurs niveaux présents
+    const niveauxPresents = niveaux.filter(nv => matieresDiplome.some(m => m.niveau === nv));
+    const bar = $('niveau-filter-bar');
+    if (bar) bar.style.display = niveauxPresents.length > 1 ? 'flex' : 'none';
+
+    renderMatieres(matieresDiplome);
 }
 
 function renderMatieres(matieres) {

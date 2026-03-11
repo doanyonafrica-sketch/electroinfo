@@ -117,9 +117,11 @@ function renderTable(list) {
 // Filtrage
 window.filterMatieres = function() {
     const dip = document.getElementById('filterDiplome').value;
+    const niv = document.getElementById('filterNiveau').value;
     const q   = document.getElementById('searchInput').value.toLowerCase();
     const filtered = allMatieres.filter(m =>
         (!dip || m.diplome === dip) &&
+        (!niv || m.niveau  === niv) &&
         (!q   || (m.titre||'').toLowerCase().includes(q))
     );
     renderTable(filtered);

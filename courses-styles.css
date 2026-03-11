@@ -527,3 +527,21 @@
     .pdf-card { flex-direction: column; text-align: center; }
     .pdf-btn { width: 100%; justify-content: center; }
 }
+
+/* ── Filtre par niveau ───────────────────────────────────── */
+.niveau-btn {
+    display: inline-flex; align-items: center; gap: .45rem;
+    padding: .5rem 1.1rem; border: 2px solid #e2e8f0; border-radius: 30px;
+    background: white; color: #374151; font-weight: 700; font-size: .82rem;
+    cursor: pointer; transition: all .2s; white-space: nowrap;
+}
+.niveau-btn:hover { border-color: #3b82f6; color: #1e40af; background: #eff6ff; }
+.niveau-btn.active { background: #1e40af; color: white; border-color: #1e40af; }
+.niveau-btn[data-niveau="Débutant"].active     { background: #065f46; border-color: #065f46; }
+.niveau-btn[data-niveau="Intermédiaire"].active { background: #92400e; border-color: #92400e; }
+.niveau-btn[data-niveau="Avancé"].active        { background: #991b1b; border-color: #991b1b; }
+.nv-count {
+    background: rgba(255,255,255,.3); color: inherit;
+    padding: .1rem .45rem; border-radius: 10px; font-size: .75rem; font-weight: 800;
+}
+.niveau-btn:not(.active) .nv-count { background: #f1f5f9; color: #64748b; }

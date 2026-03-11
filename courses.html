@@ -119,6 +119,15 @@
         <h2 id="matieres-title">Matières — BAC PRO</h2>
     </div>
 
+    <!-- Filtre par niveau -->
+    <div id="niveau-filter-bar" style="display:none; gap:.75rem; flex-wrap:wrap; margin-bottom:1.5rem; align-items:center;">
+        <span style="font-weight:700; color:#64748b; font-size:.85rem; text-transform:uppercase; letter-spacing:.05em;"><i class="fas fa-sliders-h"></i> Niveau :</span>
+        <button class="niveau-btn active" data-niveau="all"><i class="fas fa-th-large"></i> Tous</button>
+        <button class="niveau-btn" data-niveau="Débutant" style="display:none;"><i class="fas fa-seedling"></i> Débutant <span class="nv-count">0</span></button>
+        <button class="niveau-btn" data-niveau="Intermédiaire" style="display:none;"><i class="fas fa-chart-line"></i> Intermédiaire <span class="nv-count">0</span></button>
+        <button class="niveau-btn" data-niveau="Avancé" style="display:none;"><i class="fas fa-fire"></i> Avancé <span class="nv-count">0</span></button>
+    </div>
+
     <div class="matieres-container">
         <div id="matieres-loading" class="loading-state">
             <i class="fas fa-spinner fa-spin"></i>

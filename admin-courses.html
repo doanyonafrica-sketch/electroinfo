@@ -297,6 +297,12 @@
                     <option value="BTS">BTS</option>
                     <option value="LICENCE">LICENCE</option>
                 </select>
+                <select id="filterNiveau" onchange="filterMatieres()" style="padding:.5rem 1rem;border:1px solid #d1d5db;border-radius:6px;">
+                    <option value="">Tous les niveaux</option>
+                    <option value="Débutant">🟢 Débutant</option>
+                    <option value="Intermédiaire">🟡 Intermédiaire</option>
+                    <option value="Avancé">🔴 Avancé</option>
+                </select>
                 <input type="text" id="searchInput" oninput="filterMatieres()" placeholder="Rechercher..." style="padding:.5rem 1rem;border:1px solid #d1d5db;border-radius:6px;flex:1;min-width:150px;">
             </div>
 
