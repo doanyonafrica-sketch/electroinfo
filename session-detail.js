@@ -80,8 +80,8 @@ onAuthStateChanged(auth, async (user) => {
     } else {
         loginBtn?.classList.remove('hidden');
         userMenu?.classList.add('hidden');
-        adminLink.classList.add('hidden');
-        adminDivider.classList.add('hidden');
+        adminLink?.classList.add('hidden');
+        adminDivider?.classList.add('hidden');
     }
 });
 
