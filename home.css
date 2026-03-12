@@ -7,6 +7,30 @@
 /* ============================================================
    HERO
    ============================================================ */
+/* ============================================================
+   RESET LARGEUR — corrige les espaces blancs sur les côtés
+   ============================================================ */
+html, body {
+    margin: 0;
+    padding: 0;
+    width: 100%;
+    overflow-x: hidden;
+    box-sizing: border-box;
+}
+
+*, *::before, *::after {
+    box-sizing: border-box;
+}
+
+/* Navbar pleine largeur */
+.navbar {
+    width: 100% !important;
+    max-width: 100% !important;
+    left: 0 !important;
+    right: 0 !important;
+    box-sizing: border-box !important;
+}
+
 .hero-home {
     background: linear-gradient(135deg, #1e40af 0%, #4f46e5 50%, #7c3aed 100%);
     min-height: 88vh;
@@ -18,13 +42,6 @@
     padding: 6rem 1.5rem 4rem;
     position: relative;
     overflow: hidden;
-    width: 100%;
-    box-sizing: border-box;
-    margin: 0;
-    /* Déborde hors de tout container parent */
-    margin-left: calc(-50vw + 50%);
-    margin-right: calc(-50vw + 50%);
-    width: 100vw;
 }
 
 /* Cercles décoratifs en arrière-plan */
