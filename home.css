@@ -18,6 +18,13 @@
     padding: 6rem 1.5rem 4rem;
     position: relative;
     overflow: hidden;
+    width: 100%;
+    box-sizing: border-box;
+    margin: 0;
+    /* Déborde hors de tout container parent */
+    margin-left: calc(-50vw + 50%);
+    margin-right: calc(-50vw + 50%);
+    width: 100vw;
 }
 
 /* Cercles décoratifs en arrière-plan */

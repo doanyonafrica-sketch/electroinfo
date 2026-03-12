@@ -75,17 +75,17 @@
             </div>
 
             <div class="nav-actions">
-            <!-- 🌍 Sélecteur de langue -->
-            <div id="langSwitcher" class="lang-switcher">
-                <button id="langCurrentBtn" class="lang-current-btn" onclick="toggleLangDropdown()" aria-label="Changer la langue">
-                    🌍 Eʋe
-                </button>
-                <div class="lang-dropdown" id="langDropdown">
-                    <button class="lang-option lang-active" data-lang="ewe" onclick="setLang('ewe')">🌍 Eʋegbe</button>
-                    <button class="lang-option" data-lang="fr" onclick="setLang('fr')">🇫🇷 Français</button>
-                    <button class="lang-option" data-lang="en" onclick="setLang('en')">🇬🇧 English</button>
+                <!-- 🌍 Sélecteur de langue -->
+                <div id="langSwitcher" class="lang-switcher">
+                    <button id="langCurrentBtn" class="lang-current-btn" onclick="toggleLangDropdown()" aria-label="Changer la langue">
+                        🌍 Eʋe
+                    </button>
+                    <div class="lang-dropdown" id="langDropdown">
+                        <button class="lang-option lang-active" data-lang="ewe" onclick="setLang('ewe')">🌍 Eʋegbe</button>
+                        <button class="lang-option" data-lang="fr" onclick="setLang('fr')">🇫🇷 Français</button>
+                        <button class="lang-option" data-lang="en" onclick="setLang('en')">🇬🇧 English</button>
+                    </div>
                 </div>
-            </div>
 
                 <!-- Bouton thème -->
                 <button id="themeToggle" class="theme-toggle-btn" aria-label="Changer le thème" title="Changer le thème">
@@ -95,7 +95,11 @@
 
                 <!-- Bouton langue FR/EN requis par article-detail.js -->
                 <button id="langToggle" class="theme-toggle-btn" aria-label="Langue" onclick="toggleLanguage()" title="Changer la langue FR / EN" style="display:none;"></button>
-                
+
+                <!-- Séparateur visuel -->
+                <div class="nav-separator"></div>
+
+                <!-- Hamburger — toujours à droite, isolé -->
                 <button id="mobileMenuToggle" class="mobile-toggle" aria-label="Menu">
                     <i class="fas fa-bars"></i>
                 </button>

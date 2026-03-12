@@ -1369,3 +1369,71 @@ body {
     .article-footer { flex-direction: column; align-items: flex-start; }
     .btn-read-more { width: 100%; justify-content: center; }
 }
+
+/* ============================================================
+   NAVBAR — CORRECTIFS article-detail
+   ============================================================ */
+
+/* Conteneur des actions : bien espacé, aligné */
+.nav-actions {
+    display: flex !important;
+    align-items: center !important;
+    gap: .5rem !important;
+    flex-wrap: nowrap !important;
+}
+
+/* Séparateur vertical entre thème et hamburger */
+.nav-separator {
+    width: 1px;
+    height: 24px;
+    background: rgba(255,255,255,.25);
+    margin: 0 .25rem;
+    flex-shrink: 0;
+}
+
+/* Bouton hamburger — taille fixe, jamais écrasé */
+.mobile-toggle {
+    flex-shrink: 0 !important;
+    width: 40px !important;
+    height: 40px !important;
+    display: flex !important;
+    align-items: center !important;
+    justify-content: center !important;
+    border-radius: 8px !important;
+    background: rgba(255,255,255,.12) !important;
+    border: 1px solid rgba(255,255,255,.2) !important;
+    color: white !important;
+    font-size: 1.1rem !important;
+    cursor: pointer !important;
+    transition: background .2s !important;
+}
+.mobile-toggle:hover {
+    background: rgba(255,255,255,.22) !important;
+}
+
+/* Bouton thème — compact sur mobile */
+.theme-toggle-btn {
+    display: flex !important;
+    align-items: center !important;
+    gap: .35rem !important;
+    padding: .45rem .75rem !important;
+    border-radius: 8px !important;
+    background: rgba(255,255,255,.12) !important;
+    border: 1px solid rgba(255,255,255,.2) !important;
+    color: white !important;
+    font-size: .8rem !important;
+    font-weight: 600 !important;
+    cursor: pointer !important;
+    white-space: nowrap !important;
+    transition: background .2s !important;
+}
+.theme-toggle-btn:hover {
+    background: rgba(255,255,255,.22) !important;
+}
+
+/* Sur très petit écran : masquer le texte du thème */
+@media (max-width: 420px) {
+    .theme-text { display: none !important; }
+    .theme-toggle-btn { padding: .45rem .55rem !important; }
+    .nav-separator { display: none; }
+}
