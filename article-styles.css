@@ -1439,22 +1439,36 @@ body {
 }
 
 /* ============================================================
-   CONTENU MIROIR — CORRECTION LARGEUR MOBILE
-   Corrige le rétrécissement du contenu injecté via innerHTML
-   sur les petits écrans (padding cumulé trop important)
+   CONTENU MIROIR — PLEINE LARGEUR PC + MOBILE
+   Override le max-width:900px et les paddings de styles.css
+   pour que le contenu utilise toute la largeur disponible
    ============================================================ */
+
+/* PC — supprime la contrainte 900px, garde 1rem de marge */
+.article-main-content-full {
+    max-width: 100% !important;
+    padding: 0 1rem !important;
+}
+
+/* Div racine injectée par le contenu miroir */
+.article-body > div {
+    max-width: 100% !important;
+    width: 100% !important;
+    padding-left: 0 !important;
+    padding-right: 0 !important;
+    box-sizing: border-box !important;
+}
+
+/* Mobile ≤ 768px */
 @media (max-width: 768px) {
     .article-main-content-full {
-        padding: 0 0.5rem;
+        padding: 0 0.5rem !important;
     }
 
-    /* Div racine du contenu miroir */
     .article-body > div {
-        padding: 6px !important;
-        box-sizing: border-box !important;
+        padding: 4px !important;
     }
 
-    /* Sommaire du tutoriel */
     .article-body nav {
         padding: 10px 8px !important;
     }
@@ -1463,7 +1477,7 @@ body {
         padding-left: 14px !important;
     }
 
-    /* Tableaux — permettre le scroll horizontal */
+    /* Tableaux scrollables horizontalement */
     .article-body table {
         display: block;
         overflow-x: auto;
@@ -1471,12 +1485,9 @@ body {
     }
 }
 
+/* Très petit écran ≤ 480px */
 @media (max-width: 480px) {
     .article-main-content-full {
-        padding: 0 0.25rem;
-    }
-
-    .article-body > div {
-        padding: 4px !important;
+        padding: 0 0.25rem !important;
     }
 }
