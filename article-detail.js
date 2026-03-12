@@ -1190,44 +1190,41 @@ document.addEventListener('DOMContentLoaded', () => {
         console.warn('⚠️ Bouton #langToggle non trouvé dans le HTML — ajoutez-le dans la navbar');
     }
 
-    // Menu mobile
-    const mobileMenuToggle = document.getElementById('mobileMenuToggle');
-    const navMenu          = document.getElementById('navMenu');
+    // Menu mobile — compatible nouvelle structure navbar
+    const mobileMenuToggle = document.getElementById('mobileToggle') || document.getElementById('mobileMenuToggle');
+    const navMenu          = document.getElementById('mobileMenu')   || document.getElementById('navMenu');
 
     if (mobileMenuToggle && navMenu) {
         mobileMenuToggle.addEventListener('click', (e) => {
             e.preventDefault();
             e.stopPropagation();
 
-            navMenu.classList.toggle('active');
+            navMenu.classList.toggle('open');
             mobileMenuToggle.classList.toggle('active');
             document.body.classList.toggle('menu-open');
 
             const icon = mobileMenuToggle.querySelector('i');
             if (icon) {
-                icon.classList.toggle('fa-bars',  !navMenu.classList.contains('active'));
-                icon.classList.toggle('fa-times',  navMenu.classList.contains('active'));
+                icon.classList.toggle('fa-bars',  !navMenu.classList.contains('open'));
+                icon.classList.toggle('fa-times',  navMenu.classList.contains('open'));
             }
         });
 
         navMenu.querySelectorAll('.nav-link').forEach(link => {
             link.addEventListener('click', () => {
-                navMenu.classList.remove('active');
+                navMenu.classList.remove('open');
                 mobileMenuToggle.classList.remove('active');
                 document.body.classList.remove('menu-open');
                 const icon = mobileMenuToggle.querySelector('i');
-                if (icon) {
-                    icon.classList.remove('fa-times');
-                    icon.classList.add('fa-bars');
-                }
+                if (icon) { icon.classList.remove('fa-times'); icon.classList.add('fa-bars'); }
             });
         });
 
         document.addEventListener('click', (e) => {
-            if (navMenu.classList.contains('active') &&
+            if (navMenu.classList.contains('open') &&
                 !navMenu.contains(e.target) &&
                 !mobileMenuToggle.contains(e.target)) {
-                navMenu.classList.remove('active');
+                navMenu.classList.remove('open');
                 mobileMenuToggle.classList.remove('active');
                 document.body.classList.remove('menu-open');
                 const icon = mobileMenuToggle.querySelector('i');
