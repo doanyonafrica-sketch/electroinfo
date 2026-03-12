@@ -377,17 +377,35 @@ async function loadArticle() {
 
     // ✅ GitHub Pages — ÉTAPE 1 : 404.html sauvegarde redirect_path dans sessionStorage
     // On lit le slug et on le re-sauvegarde dans une clé persistante (survit au refresh)
+
+    // 🛡️ Validation : un slug valide ne contient PAS de < > ou espaces
+    // Cela évite qu'un iframe HTML corrompu soit sauvegardé comme slug
+    function isValidSlug(s) {
+        return typeof s === 'string' && s.length > 0 && s.length < 200
+            && /^[a-z0-9À-ɏ.-]+$/i.test(s);
+    }
+
+    // 🧹 Nettoyer tout slug corrompu déjà en sessionStorage
+    const existingSlug = sessionStorage.getItem('current_article_slug');
+    if (existingSlug && !isValidSlug(existingSlug)) {
+        console.warn('🧹 Slug corrompu détecté et supprimé:', existingSlug.substring(0, 50));
+        sessionStorage.removeItem('current_article_slug');
+    }
+
     if (!slug && !articleId) {
         const redirectPath = sessionStorage.getItem('redirect_path');
         if (redirectPath) {
             sessionStorage.removeItem('redirect_path');
             const redirectParts = redirectPath.split('/');
             if (redirectParts[1] === 'article' && redirectParts[2]) {
-                slug = decodeURIComponent(redirectParts[2]);
-                // 🔑 Sauvegarder dans une clé persistante pour que le refresh fonctionne
-                // sessionStorage survit aux rafraîchissements mais pas à la fermeture du tab
-                sessionStorage.setItem('current_article_slug', slug);
-                console.log('📦 Slug récupéré depuis sessionStorage (GitHub Pages):', slug);
+                const rawSlug = decodeURIComponent(redirectParts[2]);
+                if (isValidSlug(rawSlug)) {
+                    slug = rawSlug;
+                    sessionStorage.setItem('current_article_slug', slug);
+                    console.log('📦 Slug récupéré depuis sessionStorage (GitHub Pages):', slug);
+                } else {
+                    console.warn('⚠️ Slug invalide ignoré depuis redirect_path:', rawSlug.substring(0, 50));
+                }
             }
         }
     }
@@ -396,9 +414,12 @@ async function loadArticle() {
     // redirect_path est vide mais current_article_slug est toujours là
     if (!slug && !articleId) {
         const savedSlug = sessionStorage.getItem('current_article_slug');
-        if (savedSlug) {
+        if (savedSlug && isValidSlug(savedSlug)) {
             slug = savedSlug;
             console.log('🔄 Slug récupéré depuis sessionStorage (refresh):', slug);
+        } else if (savedSlug) {
+            console.warn('⚠️ Slug invalide ignoré depuis sessionStorage:', savedSlug.substring(0, 50));
+            sessionStorage.removeItem('current_article_slug');
         }
     }
 
@@ -544,45 +565,55 @@ function setInnerHTMLWithScripts(container, html) {
 }
 
 // ============================================
-// 🎥 CONVERSION AUTOMATIQUE LIENS YOUTUBE → IFRAME
-// Détecte les liens YouTube collés en texte brut et les remplace par des iframes.
+// CONVERSION AUTOMATIQUE LIENS YOUTUBE → IFRAME
+// Détecte les liens YouTube en texte brut et les convertit en iframes intégrées.
+// Gère : youtu.be, youtube.com/watch, /embed, /shorts, liens dans <a>, <p>, texte brut
 // ============================================
 function convertYouTubeLinksToIframes(html) {
     if (!html) return html;
 
     function extractYouTubeID(url) {
         let m;
-        m = url.match(/[?&]v=([a-zA-Z0-9_-]{11})/);       if (m) return m[1];
-        m = url.match(/youtu\.be\/([a-zA-Z0-9_-]{11})/);   if (m) return m[1];
-        m = url.match(/\/embed\/([a-zA-Z0-9_-]{11})/);     if (m) return m[1];
-        m = url.match(/\/shorts\/([a-zA-Z0-9_-]{11})/);    if (m) return m[1];
+        m = url.match(/[?&]v=([a-zA-Z0-9_-]{11})/);      if (m) return m[1];
+        m = url.match(/youtu\.be\/([a-zA-Z0-9_-]{11})/);  if (m) return m[1];
+        m = url.match(/\/embed\/([a-zA-Z0-9_-]{11})/);    if (m) return m[1];
+        m = url.match(/\/shorts\/([a-zA-Z0-9_-]{11})/);   if (m) return m[1];
         return null;
     }
 
     function makeIframe(videoId) {
-        return '<div class="video-wrapper" style="position:relative;padding-bottom:56.25%;height:0;margin:2rem 0;">' +
-               '<iframe src="https://www.youtube.com/embed/' + videoId + '" ' +
-               'frameborder="0" allowfullscreen ' +
-               'allow="accelerometer;autoplay;clipboard-write;encrypted-media;gyroscope;picture-in-picture" ' +
-               'style="position:absolute;top:0;left:0;width:100%;height:100%;"></iframe></div>';
+        return '<div class="video-wrapper" style="position:relative;padding-bottom:56.25%;height:0;margin:2rem 0;">'
+             + '<iframe src="https://www.youtube.com/embed/' + videoId + '" '
+             + 'frameborder="0" allowfullscreen '
+             + 'allow="accelerometer;autoplay;clipboard-write;encrypted-media;gyroscope;picture-in-picture" '
+             + 'style="position:absolute;top:0;left:0;width:100%;height:100%;"></iframe></div>';
     }
 
-    // Cas 1 : lien dans un <a href="...">
+    // Cas 1 : lien YouTube dans un <a href="...">texte</a>
     html = html.replace(
-        /<a\s[^>]*href="(https?:\/\/(?:www\.)?(?:youtube\.com|youtu\.be)[^"]*)"[^>]*>[\s\S]*?<\/a>/gi,
-        (fullTag, url) => { const id = extractYouTubeID(url); return id ? makeIframe(id) : fullTag; }
+        /<a[^>]+href="(https?:\/\/(?:www\.)?(?:youtube\.com|youtu\.be)[^"]*)"[^>]*>[\s\S]*?<\/a>/gi,
+        function(fullTag, url) {
+            var id = extractYouTubeID(url);
+            return id ? makeIframe(id) : fullTag;
+        }
     );
 
-    // Cas 2 : lien seul dans un <p>
+    // Cas 2 : lien YouTube seul dans un <p> (ex: <p>https://youtu.be/xxx</p>)
     html = html.replace(
-        /<p[^>]*>\s*(https?:\/\/(?:www\.)?(?:youtube\.com|youtu\.be)[^\s<""]*)\s*<\/p>/gi,
-        (fullTag, url) => { const id = extractYouTubeID(url); return id ? makeIframe(id) : fullTag; }
+        /<p[^>]*>\s*(https?:\/\/(?:www\.)?(?:youtube\.com|youtu\.be)[^\s<"]*)[^<]*<\/p>/gi,
+        function(fullTag, url) {
+            var id = extractYouTubeID(url);
+            return id ? makeIframe(id) : fullTag;
+        }
     );
 
-    // Cas 3 : lien brut inline dans du texte
+    // Cas 3 : lien YouTube brut dans du texte courant
     html = html.replace(
-        /(https?:\/\/(?:www\.)?(?:youtube\.com|youtu\.be)[^\s<""]*)/gi,
-        (url) => { const id = extractYouTubeID(url); return id ? makeIframe(id) : url; }
+        /(https?:\/\/(?:www\.)?(?:youtube\.com|youtu\.be)[^\s<"]*)/gi,
+        function(url) {
+            var id = extractYouTubeID(url);
+            return id ? makeIframe(id) : url;
+        }
     );
 
     return html;
