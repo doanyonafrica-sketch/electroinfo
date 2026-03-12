@@ -376,36 +376,22 @@ async function loadArticle() {
         : urlParams.get('slug');
 
     // ✅ GitHub Pages — ÉTAPE 1 : 404.html sauvegarde redirect_path dans sessionStorage
-    // On lit le slug et on le re-sauvegarde dans une clé persistante (survit au refresh)
-
-    // 🛡️ Validation : un slug valide ne contient PAS de < > ou espaces
-    // Cela évite qu'un iframe HTML corrompu soit sauvegardé comme slug
     function isValidSlug(s) {
-        return typeof s === 'string' && s.length > 0 && s.length < 200
-            && /^[a-z0-9À-ɏ.-]+$/i.test(s);
+        return typeof s === 'string' && s.length > 0 && s.length < 200 && !/[<>"{}]/.test(s);
     }
-
-    // 🧹 Nettoyer tout slug corrompu déjà en sessionStorage
-    const existingSlug = sessionStorage.getItem('current_article_slug');
-    if (existingSlug && !isValidSlug(existingSlug)) {
-        console.warn('🧹 Slug corrompu détecté et supprimé:', existingSlug.substring(0, 50));
-        sessionStorage.removeItem('current_article_slug');
-    }
-
+    var _ss = sessionStorage.getItem('current_article_slug');
+    if (_ss && !isValidSlug(_ss)) { sessionStorage.removeItem('current_article_slug'); }
     if (!slug && !articleId) {
         const redirectPath = sessionStorage.getItem('redirect_path');
         if (redirectPath) {
             sessionStorage.removeItem('redirect_path');
             const redirectParts = redirectPath.split('/');
             if (redirectParts[1] === 'article' && redirectParts[2]) {
-                const rawSlug = decodeURIComponent(redirectParts[2]);
-                if (isValidSlug(rawSlug)) {
-                    slug = rawSlug;
-                    sessionStorage.setItem('current_article_slug', slug);
-                    console.log('📦 Slug récupéré depuis sessionStorage (GitHub Pages):', slug);
-                } else {
-                    console.warn('⚠️ Slug invalide ignoré depuis redirect_path:', rawSlug.substring(0, 50));
-                }
+                slug = decodeURIComponent(redirectParts[2]);
+                // 🔑 Sauvegarder dans une clé persistante pour que le refresh fonctionne
+                // sessionStorage survit aux rafraîchissements mais pas à la fermeture du tab
+                if (isValidSlug(slug)) sessionStorage.setItem('current_article_slug', slug);
+                console.log('📦 Slug récupéré depuis sessionStorage (GitHub Pages):', slug);
             }
         }
     }
@@ -414,12 +400,9 @@ async function loadArticle() {
     // redirect_path est vide mais current_article_slug est toujours là
     if (!slug && !articleId) {
         const savedSlug = sessionStorage.getItem('current_article_slug');
-        if (savedSlug && isValidSlug(savedSlug)) {
+        if (savedSlug) {
             slug = savedSlug;
             console.log('🔄 Slug récupéré depuis sessionStorage (refresh):', slug);
-        } else if (savedSlug) {
-            console.warn('⚠️ Slug invalide ignoré depuis sessionStorage:', savedSlug.substring(0, 50));
-            sessionStorage.removeItem('current_article_slug');
         }
     }
 
@@ -564,60 +547,74 @@ function setInnerHTMLWithScripts(container, html) {
     });
 }
 
+
 // ============================================
-// CONVERSION AUTOMATIQUE LIENS YOUTUBE → IFRAME
-// Détecte les liens YouTube en texte brut et les convertit en iframes intégrées.
-// Gère : youtu.be, youtube.com/watch, /embed, /shorts, liens dans <a>, <p>, texte brut
+// 🎥 CONVERSION LIENS YOUTUBE → LECTEUR CLIQUABLE
+// GitHub Pages bloque les iframes YouTube (X-Frame-Options).
+// Solution : vignette HD cliquable qui ouvre YouTube dans un nouvel onglet.
+// Fonctionne pour : youtu.be, youtube.com/watch, /shorts, /embed
 // ============================================
 function convertYouTubeLinksToIframes(html) {
     if (!html) return html;
 
-    function extractYouTubeID(url) {
-        let m;
+    function getYouTubeID(url) {
+        var m;
         m = url.match(/[?&]v=([a-zA-Z0-9_-]{11})/);      if (m) return m[1];
-        m = url.match(/youtu\.be\/([a-zA-Z0-9_-]{11})/);  if (m) return m[1];
-        m = url.match(/\/embed\/([a-zA-Z0-9_-]{11})/);    if (m) return m[1];
-        m = url.match(/\/shorts\/([a-zA-Z0-9_-]{11})/);   if (m) return m[1];
+        m = url.match(/youtu\.be\/([a-zA-Z0-9_-]{11})/); if (m) return m[1];
+        m = url.match(/\/embed\/([a-zA-Z0-9_-]{11})/);   if (m) return m[1];
+        m = url.match(/\/shorts\/([a-zA-Z0-9_-]{11})/);  if (m) return m[1];
         return null;
     }
 
-    function makeIframe(videoId) {
-        return '<div class="video-wrapper" style="position:relative;padding-bottom:56.25%;height:0;margin:2rem 0;">'
-             + '<iframe src="https://www.youtube.com/embed/' + videoId + '" '
-             + 'frameborder="0" allowfullscreen '
-             + 'allow="accelerometer;autoplay;clipboard-write;encrypted-media;gyroscope;picture-in-picture" '
-             + 'style="position:absolute;top:0;left:0;width:100%;height:100%;"></iframe></div>';
+    function buildPlayer(id) {
+        var thumb  = 'https://img.youtube.com/vi/' + id + '/hqdefault.jpg';
+        var watchUrl = 'https://www.youtube.com/watch?v=' + id;
+        return '<div class="yt-player" data-id="' + id + '" onclick="window.__ytPlay(this)" style="'
+             + 'position:relative;padding-bottom:56.25%;height:0;overflow:hidden;'
+             + 'margin:2rem 0;cursor:pointer;border-radius:10px;background:#000;">'
+             + '<img src="' + thumb + '" alt="Vidéo YouTube" style="'
+             + 'position:absolute;top:0;left:0;width:100%;height:100%;'
+             + 'object-fit:cover;border-radius:10px;transition:opacity .2s;" />'
+             + '<div style="position:absolute;top:50%;left:50%;transform:translate(-50%,-50%);">'
+             + '<svg width="80" height="80" viewBox="0 0 68 48" style="filter:drop-shadow(0 2px 8px #000a);">'
+             + '<path d="M66.5 7.7c-.8-2.9-3-5.2-5.9-6C55.8.5 34 .5 34 .5S12.2.5 7.4 1.6C4.6 2.4 2.3 4.7 1.5 7.7 .5 12.4.5 24 .5 24s0 11.6 1 16.3c.8 2.9 3 5.2 5.9 6C12.2 47.5 34 47.5 34 47.5s21.8 0 26.6-1.2c2.9-.8 5.1-3.1 5.9-6 1-4.7 1-16.3 1-16.3s0-11.6-1-16.3z" fill="#ff0000"/>'
+             + '<path d="M45 24 27 14v20z" fill="#fff"/>'
+             + '</svg></div>'
+             + '<a href="' + watchUrl + '" target="_blank" rel="noopener noreferrer" '
+             + 'style="position:absolute;bottom:10px;right:12px;background:rgba(0,0,0,.6);'
+             + 'color:#fff;font-size:.75rem;padding:4px 10px;border-radius:20px;text-decoration:none;">'
+             + '▶ Ouvrir sur YouTube</a>'
+             + '</div>';
     }
 
-    // Cas 1 : lien YouTube dans un <a href="...">texte</a>
+    // Cas 1 : <a href="https://youtu.be/...">...</a>
     html = html.replace(
         /<a[^>]+href="(https?:\/\/(?:www\.)?(?:youtube\.com|youtu\.be)[^"]*)"[^>]*>[\s\S]*?<\/a>/gi,
-        function(fullTag, url) {
-            var id = extractYouTubeID(url);
-            return id ? makeIframe(id) : fullTag;
-        }
+        function(tag, url) { var id = getYouTubeID(url); return id ? buildPlayer(id) : tag; }
     );
-
-    // Cas 2 : lien YouTube seul dans un <p> (ex: <p>https://youtu.be/xxx</p>)
+    // Cas 2 : <p>https://youtu.be/xxx</p>
     html = html.replace(
         /<p[^>]*>\s*(https?:\/\/(?:www\.)?(?:youtube\.com|youtu\.be)[^\s<"]*)[^<]*<\/p>/gi,
-        function(fullTag, url) {
-            var id = extractYouTubeID(url);
-            return id ? makeIframe(id) : fullTag;
-        }
+        function(tag, url) { var id = getYouTubeID(url); return id ? buildPlayer(id) : tag; }
     );
-
-    // Cas 3 : lien YouTube brut dans du texte courant
+    // Cas 3 : lien YouTube brut dans du texte
     html = html.replace(
         /(https?:\/\/(?:www\.)?(?:youtube\.com|youtu\.be)[^\s<"]*)/gi,
-        function(url) {
-            var id = extractYouTubeID(url);
-            return id ? makeIframe(id) : url;
-        }
+        function(url) { var id = getYouTubeID(url); return id ? buildPlayer(id) : url; }
     );
 
     return html;
 }
+
+// Quand on clique sur la vignette → charge l'iframe YouTube dans le même bloc
+window.__ytPlay = function(el) {
+    var id = el.getAttribute('data-id');
+    if (!id) return;
+    el.innerHTML = '<iframe src="https://www.youtube-nocookie.com/embed/' + id
+        + '?autoplay=1&rel=0" frameborder="0" allowfullscreen allow="autoplay;encrypted-media" '
+        + 'style="position:absolute;top:0;left:0;width:100%;height:100%;border-radius:10px;"></iframe>';
+    el.style.cursor = 'default';
+};
 
 // ============================================
 // RENDU DE L'ARTICLE — AVEC TRADUCTIONS
