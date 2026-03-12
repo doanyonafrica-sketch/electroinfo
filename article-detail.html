@@ -55,19 +55,47 @@
         .lang-option.lang-active { background:#eff6ff; color:#1e40af; font-weight:700; }
 
         /* ===== LECTEUR VIDÉO YOUTUBE ===== */
-        .yt-player { position:relative; padding-bottom:56.25%; height:0;
-            overflow:hidden; margin:2rem 0; cursor:pointer;
-            border-radius:10px; background:#000; }
-        .yt-player img { position:absolute; top:0; left:0;
-            width:100%; height:100%; object-fit:cover;
-            border-radius:10px; transition:opacity .2s; }
-        .yt-player:hover img { opacity:.85; }
-        .yt-player iframe { position:absolute; top:0; left:0;
-            width:100%; height:100%; border:0; border-radius:10px; }
-        /* Fallback : iframe YouTube injectée sans wrapper */
+        .yt-player {
+            position: relative;
+            padding-bottom: 56.25%;
+            height: 0;
+            overflow: hidden;
+            margin: 2rem 0;
+            cursor: pointer;
+            border-radius: 10px;
+            background: #000;
+        }
+        .yt-player img {
+            position: absolute;
+            top: 0; left: 0;
+            width: 100%; height: 100%;
+            object-fit: cover;
+            border-radius: 10px;
+            transition: opacity .2s;
+        }
+        .yt-player:hover img { opacity: .85; }
+        .yt-play-btn {
+            position: absolute;
+            top: 50%; left: 50%;
+            transform: translate(-50%, -50%);
+            pointer-events: none;
+            filter: drop-shadow(0 2px 8px rgba(0,0,0,.6));
+            transition: transform .15s;
+        }
+        .yt-player:hover .yt-play-btn { transform: translate(-50%, -50%) scale(1.12); }
+        .yt-player iframe {
+            position: absolute;
+            top: 0; left: 0;
+            width: 100%; height: 100%;
+            border: 0;
+            border-radius: 10px;
+        }
+        /* Fallback iframe directe */
         .article-body iframe[src*="youtube"] {
-            display:block; width:100%; min-height:360px;
-            border:0; border-radius:10px; margin:2rem 0; }
+            display: block; width: 100%;
+            min-height: 200px; border: 0;
+            border-radius: 10px; margin: 2rem 0;
+        }
     </style>
 </head>
 <body>

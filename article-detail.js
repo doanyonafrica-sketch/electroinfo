@@ -376,11 +376,9 @@ async function loadArticle() {
         : urlParams.get('slug');
 
     // ✅ GitHub Pages — ÉTAPE 1 : 404.html sauvegarde redirect_path dans sessionStorage
-    function isValidSlug(s) {
-        return typeof s === 'string' && s.length > 0 && s.length < 200 && !/[<>"{}]/.test(s);
-    }
+    function isValidSlug(s) { return typeof s === 'string' && s.length > 0 && s.length < 200 && !/[<>"{}]/.test(s); }
     var _ss = sessionStorage.getItem('current_article_slug');
-    if (_ss && !isValidSlug(_ss)) { sessionStorage.removeItem('current_article_slug'); }
+    if (_ss && !isValidSlug(_ss)) { sessionStorage.removeItem('current_article_slug'); console.warn('🧹 Slug corrompu nettoyé'); }
     if (!slug && !articleId) {
         const redirectPath = sessionStorage.getItem('redirect_path');
         if (redirectPath) {
@@ -547,17 +545,15 @@ function setInnerHTMLWithScripts(container, html) {
     });
 }
 
-
 // ============================================
-// 🎥 CONVERSION LIENS YOUTUBE → LECTEUR CLIQUABLE
-// GitHub Pages bloque les iframes YouTube (X-Frame-Options).
-// Solution : vignette HD cliquable qui ouvre YouTube dans un nouvel onglet.
-// Fonctionne pour : youtu.be, youtube.com/watch, /shorts, /embed
+// 🎥 CONVERSION LIENS YOUTUBE → LECTEUR VIGNETTE CLIQUABLE
+// Fiable sur mobile et GitHub Pages (pas de blocage iframe au chargement)
+// Clic sur la vignette → charge l'iframe avec autoplay
 // ============================================
 function convertYouTubeLinksToIframes(html) {
     if (!html) return html;
 
-    function getYouTubeID(url) {
+    function getID(url) {
         var m;
         m = url.match(/[?&]v=([a-zA-Z0-9_-]{11})/);      if (m) return m[1];
         m = url.match(/youtu\.be\/([a-zA-Z0-9_-]{11})/); if (m) return m[1];
@@ -566,54 +562,42 @@ function convertYouTubeLinksToIframes(html) {
         return null;
     }
 
-    function buildPlayer(id) {
-        var thumb  = 'https://img.youtube.com/vi/' + id + '/hqdefault.jpg';
-        var watchUrl = 'https://www.youtube.com/watch?v=' + id;
-        return '<div class="yt-player" data-id="' + id + '" onclick="window.__ytPlay(this)" style="'
-             + 'position:relative;padding-bottom:56.25%;height:0;overflow:hidden;'
-             + 'margin:2rem 0;cursor:pointer;border-radius:10px;background:#000;">'
-             + '<img src="' + thumb + '" alt="Vidéo YouTube" style="'
-             + 'position:absolute;top:0;left:0;width:100%;height:100%;'
-             + 'object-fit:cover;border-radius:10px;transition:opacity .2s;" />'
-             + '<div style="position:absolute;top:50%;left:50%;transform:translate(-50%,-50%);">'
-             + '<svg width="80" height="80" viewBox="0 0 68 48" style="filter:drop-shadow(0 2px 8px #000a);">'
-             + '<path d="M66.5 7.7c-.8-2.9-3-5.2-5.9-6C55.8.5 34 .5 34 .5S12.2.5 7.4 1.6C4.6 2.4 2.3 4.7 1.5 7.7 .5 12.4.5 24 .5 24s0 11.6 1 16.3c.8 2.9 3 5.2 5.9 6C12.2 47.5 34 47.5 34 47.5s21.8 0 26.6-1.2c2.9-.8 5.1-3.1 5.9-6 1-4.7 1-16.3 1-16.3s0-11.6-1-16.3z" fill="#ff0000"/>'
-             + '<path d="M45 24 27 14v20z" fill="#fff"/>'
-             + '</svg></div>'
-             + '<a href="' + watchUrl + '" target="_blank" rel="noopener noreferrer" '
-             + 'style="position:absolute;bottom:10px;right:12px;background:rgba(0,0,0,.6);'
-             + 'color:#fff;font-size:.75rem;padding:4px 10px;border-radius:20px;text-decoration:none;">'
-             + '▶ Ouvrir sur YouTube</a>'
+    function player(id) {
+        return '<div class="yt-player" data-id="' + id + '" onclick="window.__ytPlay(this)">'
+             + '<img src="https://img.youtube.com/vi/' + id + '/hqdefault.jpg" alt="Vidéo YouTube" loading="lazy">'
+             + '<div class="yt-play-btn"><svg viewBox="0 0 68 48" width="68" height="48">'
+             + '<path d="M66.5 7.7c-.8-2.9-3-5.2-5.9-6C55.8.5 34 .5 34 .5S12.2.5 7.4 1.6C4.6 2.4 2.3 4.7 1.5 7.7.5 12.4.5 24 .5 24s0 11.6 1 16.3c.8 2.9 3 5.2 5.9 6C12.2 47.5 34 47.5 34 47.5s21.8 0 26.6-1.2c2.9-.8 5.1-3.1 5.9-6 1-4.7 1-16.3 1-16.3s0-11.6-1-16.3z" fill="#f00"/>'
+             + '<path d="M45 24 27 14v20z" fill="#fff"/></svg></div>'
              + '</div>';
     }
 
-    // Cas 1 : <a href="https://youtu.be/...">...</a>
+    // Cas 1 : lien dans <a href>
     html = html.replace(
         /<a[^>]+href="(https?:\/\/(?:www\.)?(?:youtube\.com|youtu\.be)[^"]*)"[^>]*>[\s\S]*?<\/a>/gi,
-        function(tag, url) { var id = getYouTubeID(url); return id ? buildPlayer(id) : tag; }
+        function(t, u) { var id = getID(u); return id ? player(id) : t; }
     );
-    // Cas 2 : <p>https://youtu.be/xxx</p>
+    // Cas 2 : lien seul dans <p>
     html = html.replace(
         /<p[^>]*>\s*(https?:\/\/(?:www\.)?(?:youtube\.com|youtu\.be)[^\s<"]*)[^<]*<\/p>/gi,
-        function(tag, url) { var id = getYouTubeID(url); return id ? buildPlayer(id) : tag; }
+        function(t, u) { var id = getID(u); return id ? player(id) : t; }
     );
-    // Cas 3 : lien YouTube brut dans du texte
+    // Cas 3 : lien brut dans le texte
     html = html.replace(
         /(https?:\/\/(?:www\.)?(?:youtube\.com|youtu\.be)[^\s<"]*)/gi,
-        function(url) { var id = getYouTubeID(url); return id ? buildPlayer(id) : url; }
+        function(u) { var id = getID(u); return id ? player(id) : u; }
     );
-
     return html;
 }
 
-// Quand on clique sur la vignette → charge l'iframe YouTube dans le même bloc
 window.__ytPlay = function(el) {
     var id = el.getAttribute('data-id');
     if (!id) return;
     el.innerHTML = '<iframe src="https://www.youtube-nocookie.com/embed/' + id
-        + '?autoplay=1&rel=0" frameborder="0" allowfullscreen allow="autoplay;encrypted-media" '
-        + 'style="position:absolute;top:0;left:0;width:100%;height:100%;border-radius:10px;"></iframe>';
-    el.style.cursor = 'default';
+        + '?autoplay=1&rel=0" frameborder="0" allowfullscreen '
+        + 'allow="autoplay; encrypted-media; picture-in-picture" '
+        + 'style="position:absolute;top:0;left:0;width:100%;height:100%;border:0;border-radius:10px;">'
+        + '</iframe>';
+    el.onclick = null;
 };
 
 // ============================================
@@ -890,14 +874,21 @@ async function loadComments(articleId) {
             return;
         }
 
+        // ✅ FIX : Suppression du orderBy('createdAt') qui exige un index Firestore composite
+        // On trie côté client après récupération — évite l'erreur FirebaseError: index required
         const q = query(
             collection(db, 'comments'),
-            where('articleId', '==', articleId),
-            orderBy('createdAt', 'desc')
+            where('articleId', '==', articleId)
         );
 
         const snapshot = await getDocs(q);
-        const comments = snapshot.docs.map(d => ({ id: d.id, ...d.data() }));
+        const comments = snapshot.docs
+            .map(d => ({ id: d.id, ...d.data() }))
+            .sort((a, b) => {
+                const tA = a.createdAt?.seconds || a.createdAt?.toDate?.()?.getTime()/1000 || 0;
+                const tB = b.createdAt?.seconds || b.createdAt?.toDate?.()?.getTime()/1000 || 0;
+                return tB - tA; // desc : plus récent en premier
+            });
         currentCommentsCache = comments;
         renderComments(comments);
 

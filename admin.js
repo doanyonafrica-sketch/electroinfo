@@ -39,28 +39,7 @@ const newsletterList = document.getElementById('newsletterList');
 // ⚠️  Ne jamais appeler sur du HTML brut CodeMirror
 // ============================================
 function cleanQuillHTML(html) {
-    // ✅ FIX YOUTUBE : Extraire et protéger les blocs iframe/video avant tout nettoyage
-    // Le replace(\s+) écrasait le HTML interne des iframes et cassait les vidéos
-    const iframeBlocks = [];
-    let protected_html = html.replace(
-        /<div[^>]*class="video-wrapper"[^>]*>[\s\S]*?<\/div>\s*<\/div>/gi,
-        (match) => {
-            const placeholder = `__IFRAME_BLOCK_${iframeBlocks.length}__`;
-            iframeBlocks.push(match);
-            return placeholder;
-        }
-    );
-    // Protéger aussi les iframes seules (sans wrapper)
-    protected_html = protected_html.replace(
-        /<iframe[\s\S]*?<\/iframe>/gi,
-        (match) => {
-            const placeholder = `__IFRAME_BLOCK_${iframeBlocks.length}__`;
-            iframeBlocks.push(match);
-            return placeholder;
-        }
-    );
-
-    let cleaned = protected_html
+    let cleaned = html
         // Supprimer les attributs inutiles ajoutés par Quill
         .replace(/class="ql-[^"]*"/g, '')
         // Supprimer les <p> vides avec seulement <br> ou espaces
@@ -71,16 +50,11 @@ function cleanQuillHTML(html) {
         .replace(/<br\s*\/?>\s*<\/p>/gi, '</p>')
         // Supprimer plusieurs <br> consécutifs (max 1)
         .replace(/(<br\s*\/?>){2,}/gi, '<br>')
-        // Réduire espaces multiples (seulement hors iframes, déjà protégées)
+        // Réduire espaces multiples
         .replace(/\s+/g, ' ')
         // Supprimer espaces entre balises
         .replace(/>\s+</g, '><')
         .trim();
-
-    // ✅ Réinjecter les blocs iframe protégés
-    iframeBlocks.forEach((block, i) => {
-        cleaned = cleaned.replace(`__IFRAME_BLOCK_${i}__`, block);
-    });
 
     return cleaned;
 }
@@ -547,28 +521,6 @@ function showImageOptions(img) {
 
 function initQuillEditor() {
     if (typeof Quill !== 'undefined') {
-
-        // ✅ FIX YOUTUBE : Enregistrer un blot personnalisé pour autoriser les <iframe>
-        // Sans ça, Quill supprime les iframes quand il récupère le HTML
-        if (!Quill.imports['formats/video-iframe']) {
-            const BlockEmbed = Quill.import('blots/block/embed');
-            class VideoIframe extends BlockEmbed {
-                static create(value) {
-                    const node = super.create();
-                    node.setAttribute('src', value.src || value);
-                    node.setAttribute('frameborder', '0');
-                    node.setAttribute('allowfullscreen', true);
-                    node.setAttribute('allow', 'accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share');
-                    node.setAttribute('style', 'position: absolute; top: 0; left: 0; width: 100%; height: 100%;');
-                    return node;
-                }
-                static value(node) { return node.getAttribute('src'); }
-            }
-            VideoIframe.blotName = 'video-iframe';
-            VideoIframe.tagName  = 'iframe';
-            Quill.register(VideoIframe, true);
-        }
-
         quillEditor = new Quill('#editor', {
             theme: 'snow',
             modules: {
@@ -838,9 +790,15 @@ articleForm?.addEventListener('submit', async (e) => {
             return;
         }
 
-        if (editMode && currentEditId) {
-            console.log('🔄 Modification de l\'article:', currentEditId);
-            await updateDoc(doc(db, 'articles', currentEditId), {
+        // ✅ FIX : Lire editMode et currentEditId UNE SEULE FOIS ici
+        // pour éviter qu'un event asynchrone les réinitialise entre-temps
+        const _isEdit = editMode;
+        const _editId = currentEditId;
+        console.log('📋 Mode soumission:', _isEdit ? `MODIFICATION (${_editId})` : 'CRÉATION');
+
+        if (_isEdit && _editId) {
+            console.log('🔄 Modification de l\'article:', _editId);
+            await updateDoc(doc(db, 'articles', _editId), {
                 ...articleData,
                 updatedAt: serverTimestamp()
             });
@@ -1191,7 +1149,17 @@ window.editArticle = async function(articleId) {
                     document.getElementById('content').value = article.content || '';
                 }
             } else {
-                if (quillEditor) quillEditor.root.innerHTML = article.content || '';
+                if (quillEditor) {
+                    // ✅ FIX : Écriture directe dans le DOM Quill
+                    // quillEditor.root.innerHTML = ... repasse par le parser interne
+                    // qui peut déclencher un text-change et corrompre editMode
+                    quillEditor.root.innerHTML = '';
+                    const _tmp = document.createElement('div');
+                    _tmp.innerHTML = article.content || '';
+                    while (_tmp.firstChild) quillEditor.root.appendChild(_tmp.firstChild);
+                    // Forcer la mise à jour interne sans déclencher d'événements
+                    quillEditor.history.clear();
+                }
             }
         }, 150);
 
