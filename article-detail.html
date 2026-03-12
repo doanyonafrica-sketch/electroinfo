@@ -65,44 +65,68 @@
                 <span>ELECTROINFO</span>
             </div>
 
-            <div class="nav-menu" id="navMenu">
-                <a href="/" class="nav-link"><i class="fas fa-home"></i> <span data-i18n="nav_home">Accueil</span></a>
-                <a href="/articles" class="nav-link"><i class="fas fa-newspaper"></i> <span data-i18n="nav_articles">Articles</span></a>
-                <a href="/courses" class="nav-link"><i class="fas fa-graduation-cap"></i> <span data-i18n="nav_courses">Cours</span></a>
-                <a href="/about" class="nav-link"><i class="fas fa-info-circle"></i> <span data-i18n="nav_about">À propos</span></a>
-                <a href="/contact" class="nav-link"><i class="fas fa-envelope"></i> <span data-i18n="nav_contact">Contact</span></a>
-                <a href="/auth" class="nav-link"><i class="fas fa-user"></i> <span data-i18n="nav_login">Connexion</span></a>
+            <!-- 🌍 Sélecteur de langue -->
+            <div id="langSwitcher" class="lang-switcher">
+                <button id="langCurrentBtn" class="lang-current-btn" onclick="toggleLangDropdown()" aria-label="Changer la langue">
+                    🌍 Eʋe
+                </button>
+                <div class="lang-dropdown" id="langDropdown">
+                    <button class="lang-option lang-active" data-lang="ewe" onclick="setLang('ewe')">🌍 Eʋegbe</button>
+                    <button class="lang-option" data-lang="fr" onclick="setLang('fr')">🇫🇷 Français</button>
+                    <button class="lang-option" data-lang="en" onclick="setLang('en')">🇬🇧 English</button>
+                </div>
             </div>
 
-            <div class="nav-actions">
-                <!-- 🌍 Sélecteur de langue -->
-                <div id="langSwitcher" class="lang-switcher">
-                    <button id="langCurrentBtn" class="lang-current-btn" onclick="toggleLangDropdown()" aria-label="Changer la langue">
-                        🌍 Eʋe
-                    </button>
-                    <div class="lang-dropdown" id="langDropdown">
-                        <button class="lang-option lang-active" data-lang="ewe" onclick="setLang('ewe')">🌍 Eʋegbe</button>
-                        <button class="lang-option" data-lang="fr" onclick="setLang('fr')">🇫🇷 Français</button>
-                        <button class="lang-option" data-lang="en" onclick="setLang('en')">🇬🇧 English</button>
+            <!-- Bouton thème -->
+            <button id="themeToggle" class="theme-toggle-btn" aria-label="Changer le thème" title="Changer le thème">
+                <i class="fas fa-moon" id="themeIcon"></i>
+                <span class="theme-text" id="themeText" data-i18n="theme_dark">Sombre</span>
+            </button>
+
+            <!-- Bouton langue FR/EN requis par article-detail.js -->
+            <button id="langToggle" class="theme-toggle-btn" aria-label="Langue" onclick="toggleLanguage()" title="Changer la langue FR / EN" style="display:none;"></button>
+
+            <!-- Hamburger — même ID que styles.css attend -->
+            <button class="mobile-toggle" id="mobileToggle" aria-label="Menu">
+                <i class="fas fa-bars"></i>
+            </button>
+
+            <div class="nav-menu" id="mobileMenu">
+                <div class="nav-links">
+                    <a href="/" class="nav-link" data-i18n="nav_home">Accueil</a>
+                    <a href="/articles" class="nav-link active" data-i18n="nav_articles">Articles</a>
+                    <a href="/courses" class="nav-link" data-i18n="nav_courses">Cours</a>
+                    <a href="/about" class="nav-link" data-i18n="nav_about">À propos</a>
+                    <a href="/contact" class="nav-link" data-i18n="nav_contact">Contact</a>
+                </div>
+                <div class="nav-actions">
+                    <a href="/auth" id="loginBtn" class="btn btn-primary">
+                        <i class="fas fa-sign-in-alt"></i>
+                        <span class="btn-text" data-i18n="nav_login">Connexion</span>
+                    </a>
+                    <div id="userMenu" class="user-menu hidden">
+                        <button class="user-btn" id="userMenuToggle">
+                            <img id="userAvatar" src="" alt="Avatar" class="avatar">
+                            <span id="userName" class="user-name"></span>
+                            <i class="fas fa-chevron-down"></i>
+                        </button>
+                        <div class="dropdown hidden" id="userDropdown">
+                            <div class="dropdown-header">
+                                <img id="userAvatarDropdown" src="" alt="Avatar" class="avatar-large">
+                                <div>
+                                    <strong id="userNameDropdown"></strong>
+                                    <p id="userEmailDropdown"></p>
+                                </div>
+                            </div>
+                            <div class="dropdown-divider"></div>
+                            <a href="/profile" class="dropdown-item"><i class="fas fa-user"></i> Mon Profil</a>
+                            <div class="dropdown-divider" id="adminDivider" style="display:none;"></div>
+                            <a href="/admin" id="adminLink" class="dropdown-item" style="display:none;"><i class="fas fa-cog"></i> Administration</a>
+                            <div class="dropdown-divider"></div>
+                            <button id="logoutBtn" class="dropdown-item logout"><i class="fas fa-sign-out-alt"></i> Déconnexion</button>
+                        </div>
                     </div>
                 </div>
-
-                <!-- Bouton thème -->
-                <button id="themeToggle" class="theme-toggle-btn" aria-label="Changer le thème" title="Changer le thème">
-                    <i class="fas fa-moon" id="themeIcon"></i>
-                    <span class="theme-text" id="themeText" data-i18n="theme_dark">Sombre</span>
-                </button>
-
-                <!-- Bouton langue FR/EN requis par article-detail.js -->
-                <button id="langToggle" class="theme-toggle-btn" aria-label="Langue" onclick="toggleLanguage()" title="Changer la langue FR / EN" style="display:none;"></button>
-
-                <!-- Séparateur visuel -->
-                <div class="nav-separator"></div>
-
-                <!-- Hamburger — toujours à droite, isolé -->
-                <button id="mobileMenuToggle" class="mobile-toggle" aria-label="Menu">
-                    <i class="fas fa-bars"></i>
-                </button>
             </div>
         </div>
     </nav>
