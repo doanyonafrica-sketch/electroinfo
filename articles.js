@@ -1,5 +1,6 @@
 // articles.js — Page liste des articles (Firebase v9 modulaire) + OFFLINE SUPPORT COMPLET
 
+import { initSmartSearch, smartFilter, addToHistory } from '/smart-search.js';
 import { initializeApp } from 'https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js';
 const firebaseConfig = {
     apiKey: "AIzaSyCuFgzytJXD6jt4HUW9LVSD_VpGuFfcEAk",
@@ -673,18 +674,47 @@ function debounce(fn, delay = 300) {
     };
 }
 
-searchInput?.addEventListener('input', debounce((e) => {
-    const q = e.target.value.toLowerCase().trim();
-    filteredArticles = q
-        ? allArticles.filter(a =>
-            a.title.toLowerCase().includes(q) ||
-            a.summary?.toLowerCase().includes(q) ||
-            a.category.toLowerCase().includes(q)
-          )
-        : [...allArticles];
-    currentPage = 1;
-    displayArticles();
-}));
+// ============================================
+//  RECHERCHE INTELLIGENTE
+// ============================================
+if (searchInput) {
+    initSmartSearch({
+        inputEl: searchInput,
+        getArticles: () => allArticles,
+
+        onSearch: (query, results) => {
+            filteredArticles = results;
+            currentPage = 1;
+            displayArticles();
+        },
+
+        onSelectArticle: (article) => {
+            addToHistory(article.title);
+            const url = article.slug
+                ? `/article/${article.slug}`
+                : `/article-detail.html?id=${article.id}`;
+            window.location.href = url;
+        },
+
+        onSelectCategory: (category) => {
+            filterBtns.forEach(b => {
+                b.classList.toggle('active', b.dataset.category === category);
+            });
+            filteredArticles = allArticles.filter(a => a.category === category);
+            currentPage = 1;
+            displayArticles();
+            const url = new URL(window.location);
+            url.searchParams.set('category', category);
+            window.history.pushState({}, '', url);
+        },
+
+        onSelectTag: (tag) => {
+            filteredArticles = allArticles.filter(a => (a.tags || []).includes(tag));
+            currentPage = 1;
+            displayArticles();
+        },
+    });
+}
 
 filterBtns.forEach(btn => {
     btn.addEventListener('click', () => {

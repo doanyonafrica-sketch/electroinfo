@@ -1,4 +1,5 @@
 // admin.js - Script d'administration SÉCURISÉ AVEC SLUGS
+import { initSmartSearch, smartFilter, addToHistory } from '/smart-search.js';
 import { initializeApp } from 'https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js';
 import { getAuth, onAuthStateChanged, signOut } from 'https://www.gstatic.com/firebasejs/10.7.1/firebase-auth.js';
 import { getFirestore, collection, addDoc, getDocs, doc, getDoc, updateDoc, deleteDoc, query, orderBy, serverTimestamp, where } from 'https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js';
@@ -929,6 +930,14 @@ async function loadArticles() {
         displayArticlesInSection('scheduledArticlesList', scheduledArticles, 'programmé');
         displayArticlesInSection('draftsArticlesList', draftArticles, 'brouillon');
 
+        // Stocker tous les articles pour la recherche intelligente
+        window.__allAdminArticles = [
+            ...publishedArticles.map(i => ({ ...i.data, id: i.id })),
+            ...scheduledArticles.map(i => ({ ...i.data, id: i.id })),
+            ...draftArticles.map(i => ({ ...i.data, id: i.id })),
+        ];
+        initAdminSmartSearch();
+
     } catch (error) {
         console.error('Erreur chargement articles:', error);
         document.getElementById('publishedArticlesList').innerHTML = '<div class="empty-state"><i class="fas fa-exclamation-triangle"></i><p>Erreur de chargement</p></div>';
@@ -1475,4 +1484,82 @@ function showNotification(message, type = 'info') {
 // ============================================
 window.getTranslationsData = function() {
     return window.__translations || {};
+};
+
+// ============================================================
+//  RECHERCHE INTELLIGENTE ADMIN
+// ============================================================
+let _adminSearchInited = false;
+
+function initAdminSmartSearch() {
+    const searchInput = document.getElementById('adminSearchInput');
+    const clearBtn    = document.getElementById('clearSearch');
+    const countEl     = document.getElementById('searchResultsCount');
+
+    if (!searchInput || _adminSearchInited) return;
+    _adminSearchInited = true;
+
+    initSmartSearch({
+        inputEl: searchInput,
+        getArticles: () => window.__allAdminArticles || [],
+
+        onSearch: (query, results) => {
+            // Afficher/masquer le bouton clear
+            if (clearBtn) clearBtn.classList.toggle('hidden', !query);
+
+            // Afficher le compteur
+            if (countEl) {
+                if (query) {
+                    const total = (window.__allAdminArticles || []).length;
+                    countEl.textContent = `${results.length} résultat${results.length > 1 ? 's' : ''} sur ${total} articles`;
+                    countEl.classList.remove('hidden');
+                } else {
+                    countEl.classList.add('hidden');
+                }
+            }
+
+            // Filtrer et afficher dans chaque section
+            const published = results.filter(a => (a.status || 'published') === 'published');
+            const scheduled = results.filter(a => a.status === 'scheduled');
+            const drafts    = results.filter(a => a.status === 'draft');
+
+            if (query) {
+                displayArticlesInSection('publishedArticlesList',
+                    published.map(a => ({ id: a.id, data: a })), 'publié');
+                displayArticlesInSection('scheduledArticlesList',
+                    scheduled.map(a => ({ id: a.id, data: a })), 'programmé');
+                displayArticlesInSection('draftsArticlesList',
+                    drafts.map(a => ({ id: a.id, data: a })), 'brouillon');
+            } else {
+                // Réafficher tout si query vide
+                const all = window.__allAdminArticles || [];
+                displayArticlesInSection('publishedArticlesList',
+                    all.filter(a => (a.status || 'published') === 'published').map(a => ({ id: a.id, data: a })), 'publié');
+                displayArticlesInSection('scheduledArticlesList',
+                    all.filter(a => a.status === 'scheduled').map(a => ({ id: a.id, data: a })), 'programmé');
+                displayArticlesInSection('draftsArticlesList',
+                    all.filter(a => a.status === 'draft').map(a => ({ id: a.id, data: a })), 'brouillon');
+            }
+        },
+    });
+}
+
+// Exposer clearAdminSearch sur window (appelé par le bouton HTML)
+window.clearAdminSearch = function() {
+    const searchInput = document.getElementById('adminSearchInput');
+    const clearBtn    = document.getElementById('clearSearch');
+    const countEl     = document.getElementById('searchResultsCount');
+    if (searchInput) searchInput.value = '';
+    if (clearBtn) clearBtn.classList.add('hidden');
+    if (countEl) countEl.classList.add('hidden');
+    // Réafficher tous les articles
+    const all = window.__allAdminArticles || [];
+    if (all.length) {
+        displayArticlesInSection('publishedArticlesList',
+            all.filter(a => (a.status || 'published') === 'published').map(a => ({ id: a.id, data: a })), 'publié');
+        displayArticlesInSection('scheduledArticlesList',
+            all.filter(a => a.status === 'scheduled').map(a => ({ id: a.id, data: a })), 'programmé');
+        displayArticlesInSection('draftsArticlesList',
+            all.filter(a => a.status === 'draft').map(a => ({ id: a.id, data: a })), 'brouillon');
+    }
 };
