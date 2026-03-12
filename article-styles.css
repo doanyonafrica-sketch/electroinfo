@@ -1437,3 +1437,46 @@ body {
     .theme-toggle-btn { padding: .45rem .55rem !important; }
     .nav-separator { display: none; }
 }
+
+/* ============================================================
+   CONTENU MIROIR — CORRECTION LARGEUR MOBILE
+   Corrige le rétrécissement du contenu injecté via innerHTML
+   sur les petits écrans (padding cumulé trop important)
+   ============================================================ */
+@media (max-width: 768px) {
+    .article-main-content-full {
+        padding: 0 0.5rem;
+    }
+
+    /* Div racine du contenu miroir */
+    .article-body > div {
+        padding: 6px !important;
+        box-sizing: border-box !important;
+    }
+
+    /* Sommaire du tutoriel */
+    .article-body nav {
+        padding: 10px 8px !important;
+    }
+
+    .article-body nav ol {
+        padding-left: 14px !important;
+    }
+
+    /* Tableaux — permettre le scroll horizontal */
+    .article-body table {
+        display: block;
+        overflow-x: auto;
+        -webkit-overflow-scrolling: touch;
+    }
+}
+
+@media (max-width: 480px) {
+    .article-main-content-full {
+        padding: 0 0.25rem;
+    }
+
+    .article-body > div {
+        padding: 4px !important;
+    }
+}
