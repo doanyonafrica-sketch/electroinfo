@@ -544,6 +544,51 @@ function setInnerHTMLWithScripts(container, html) {
 }
 
 // ============================================
+// 🎥 CONVERSION AUTOMATIQUE LIENS YOUTUBE → IFRAME
+// Détecte les liens YouTube collés en texte brut et les remplace par des iframes.
+// ============================================
+function convertYouTubeLinksToIframes(html) {
+    if (!html) return html;
+
+    function extractYouTubeID(url) {
+        let m;
+        m = url.match(/[?&]v=([a-zA-Z0-9_-]{11})/);       if (m) return m[1];
+        m = url.match(/youtu\.be\/([a-zA-Z0-9_-]{11})/);   if (m) return m[1];
+        m = url.match(/\/embed\/([a-zA-Z0-9_-]{11})/);     if (m) return m[1];
+        m = url.match(/\/shorts\/([a-zA-Z0-9_-]{11})/);    if (m) return m[1];
+        return null;
+    }
+
+    function makeIframe(videoId) {
+        return '<div class="video-wrapper" style="position:relative;padding-bottom:56.25%;height:0;margin:2rem 0;">' +
+               '<iframe src="https://www.youtube.com/embed/' + videoId + '" ' +
+               'frameborder="0" allowfullscreen ' +
+               'allow="accelerometer;autoplay;clipboard-write;encrypted-media;gyroscope;picture-in-picture" ' +
+               'style="position:absolute;top:0;left:0;width:100%;height:100%;"></iframe></div>';
+    }
+
+    // Cas 1 : lien dans un <a href="...">
+    html = html.replace(
+        /<a\s[^>]*href="(https?:\/\/(?:www\.)?(?:youtube\.com|youtu\.be)[^"]*)"[^>]*>[\s\S]*?<\/a>/gi,
+        (fullTag, url) => { const id = extractYouTubeID(url); return id ? makeIframe(id) : fullTag; }
+    );
+
+    // Cas 2 : lien seul dans un <p>
+    html = html.replace(
+        /<p[^>]*>\s*(https?:\/\/(?:www\.)?(?:youtube\.com|youtu\.be)[^\s<""]*)\s*<\/p>/gi,
+        (fullTag, url) => { const id = extractYouTubeID(url); return id ? makeIframe(id) : fullTag; }
+    );
+
+    // Cas 3 : lien brut inline dans du texte
+    html = html.replace(
+        /(https?:\/\/(?:www\.)?(?:youtube\.com|youtu\.be)[^\s<""]*)/gi,
+        (url) => { const id = extractYouTubeID(url); return id ? makeIframe(id) : url; }
+    );
+
+    return html;
+}
+
+// ============================================
 // RENDU DE L'ARTICLE — AVEC TRADUCTIONS
 // ============================================
 function renderArticle(article) {
@@ -641,7 +686,7 @@ function renderArticle(article) {
     const contentEl = document.getElementById('articleContent');
     if (contentEl) {
         const content = getTranslated(article, 'content') || getTranslated(article, 'body') || t('noContent');
-        setInnerHTMLWithScripts(contentEl, content);
+        setInnerHTMLWithScripts(contentEl, convertYouTubeLinksToIframes(content));
     }
 
     // ----- BADGE TRADUCTION DISPONIBLE -----
