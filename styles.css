@@ -1912,6 +1912,8 @@ body,
     z-index: 1000;
     background: linear-gradient(135deg, #1e3a8a 0%, #1e40af 100%);
     box-shadow: 0 2px 16px rgba(0, 0, 0, 0.18);
+    width: 100%;
+    box-sizing: border-box;
 }
 
 .navbar .container,
