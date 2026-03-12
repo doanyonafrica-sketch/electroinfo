@@ -39,7 +39,28 @@ const newsletterList = document.getElementById('newsletterList');
 // ⚠️  Ne jamais appeler sur du HTML brut CodeMirror
 // ============================================
 function cleanQuillHTML(html) {
-    let cleaned = html
+    // ✅ FIX YOUTUBE : Extraire et protéger les blocs iframe/video avant tout nettoyage
+    // Le replace(\s+) écrasait le HTML interne des iframes et cassait les vidéos
+    const iframeBlocks = [];
+    let protected_html = html.replace(
+        /<div[^>]*class="video-wrapper"[^>]*>[\s\S]*?<\/div>\s*<\/div>/gi,
+        (match) => {
+            const placeholder = `__IFRAME_BLOCK_${iframeBlocks.length}__`;
+            iframeBlocks.push(match);
+            return placeholder;
+        }
+    );
+    // Protéger aussi les iframes seules (sans wrapper)
+    protected_html = protected_html.replace(
+        /<iframe[\s\S]*?<\/iframe>/gi,
+        (match) => {
+            const placeholder = `__IFRAME_BLOCK_${iframeBlocks.length}__`;
+            iframeBlocks.push(match);
+            return placeholder;
+        }
+    );
+
+    let cleaned = protected_html
         // Supprimer les attributs inutiles ajoutés par Quill
         .replace(/class="ql-[^"]*"/g, '')
         // Supprimer les <p> vides avec seulement <br> ou espaces
@@ -50,11 +71,16 @@ function cleanQuillHTML(html) {
         .replace(/<br\s*\/?>\s*<\/p>/gi, '</p>')
         // Supprimer plusieurs <br> consécutifs (max 1)
         .replace(/(<br\s*\/?>){2,}/gi, '<br>')
-        // Réduire espaces multiples
+        // Réduire espaces multiples (seulement hors iframes, déjà protégées)
         .replace(/\s+/g, ' ')
         // Supprimer espaces entre balises
         .replace(/>\s+</g, '><')
         .trim();
+
+    // ✅ Réinjecter les blocs iframe protégés
+    iframeBlocks.forEach((block, i) => {
+        cleaned = cleaned.replace(`__IFRAME_BLOCK_${i}__`, block);
+    });
 
     return cleaned;
 }
@@ -521,6 +547,28 @@ function showImageOptions(img) {
 
 function initQuillEditor() {
     if (typeof Quill !== 'undefined') {
+
+        // ✅ FIX YOUTUBE : Enregistrer un blot personnalisé pour autoriser les <iframe>
+        // Sans ça, Quill supprime les iframes quand il récupère le HTML
+        if (!Quill.imports['formats/video-iframe']) {
+            const BlockEmbed = Quill.import('blots/block/embed');
+            class VideoIframe extends BlockEmbed {
+                static create(value) {
+                    const node = super.create();
+                    node.setAttribute('src', value.src || value);
+                    node.setAttribute('frameborder', '0');
+                    node.setAttribute('allowfullscreen', true);
+                    node.setAttribute('allow', 'accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share');
+                    node.setAttribute('style', 'position: absolute; top: 0; left: 0; width: 100%; height: 100%;');
+                    return node;
+                }
+                static value(node) { return node.getAttribute('src'); }
+            }
+            VideoIframe.blotName = 'video-iframe';
+            VideoIframe.tagName  = 'iframe';
+            Quill.register(VideoIframe, true);
+        }
+
         quillEditor = new Quill('#editor', {
             theme: 'snow',
             modules: {
