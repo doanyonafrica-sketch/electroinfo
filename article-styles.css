@@ -555,18 +555,26 @@ body,
 
 .nav-brand img,
 .nav-logo-img {
-    height: 36px;
-    width: auto;
+    height: 40px;
+    width: 40px;
+    max-height: 40px;
+    max-width: 40px;
+    object-fit: contain;
     flex-shrink: 0;
+    background: transparent;
+    border-radius: 10px;
 }
 
 .nav-brand span,
 .nav-logo-text {
-    font-size: 1.2rem;
+    font-size: 1rem;
     font-weight: 800;
     color: white;
     letter-spacing: -0.02em;
     white-space: nowrap;
+    overflow: visible;
+    text-overflow: unset;
+    max-width: none;
 }
 
 /* ── MENU PRINCIPAL (desktop) ─────────────────────────────── */
@@ -1064,11 +1072,11 @@ body,
     /* Logo texte : tronqué si trop long */
     .nav-brand span,
     .nav-logo-text {
-        max-width: 120px;
-        overflow: hidden;
-        text-overflow: ellipsis;
+        max-width: none;
+        overflow: visible;
+        text-overflow: unset;
         white-space: nowrap;
-        font-size: 1.05rem;
+        font-size: 1rem;
     }
 
     /* Hamburger visible */
@@ -1237,8 +1245,8 @@ body,
 
     .nav-brand span,
     .nav-logo-text {
-        max-width: 90px;
-        font-size: 0.95rem;
+        max-width: none;
+        font-size: 1rem;
     }
 
     .mobile-toggle,
@@ -1257,13 +1265,16 @@ body,
 
     .nav-brand span,
     .nav-logo-text {
-        max-width: 70px;
-        font-size: 0.875rem;
+        max-width: none;
+        font-size: 1rem;
     }
 
     .nav-brand img,
     .nav-logo-img {
-        height: 28px;
+        height: 40px;
+        width: 40px;
+        max-height: 40px;
+        max-width: 40px;
     }
 
     .lang-current-btn {
