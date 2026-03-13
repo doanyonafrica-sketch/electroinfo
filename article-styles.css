@@ -1372,10 +1372,10 @@ body {
 
 /* ============================================================
    NAVBAR — article-detail
-   styles.css gère tout ; on force uniquement la taille du logo
+   styles.css gère tout ; overrides minimaux ci-dessous
    ============================================================ */
 
-/* Logo navbar — taille fixe, identique à styles.css */
+/* Logo navbar — hauteur fixe */
 .nav-logo,
 .nav-brand img {
     height: 36px !important;
@@ -1383,6 +1383,39 @@ body {
     max-height: 36px !important;
     flex-shrink: 0 !important;
     object-fit: contain !important;
+}
+
+/* nav-controls : wrapper lang + thème + hamburger
+   Toujours visible dans la barre, niveau .container */
+.nav-controls {
+    display: flex !important;
+    align-items: center !important;
+    gap: 0.4rem !important;
+    margin-left: auto !important;
+    flex-shrink: 0 !important;
+}
+
+/* Sur desktop ≥1024px : nav-menu occupe l'espace central,
+   nav-controls se place naturellement à droite sans margin-left */
+@media (min-width: 1024px) {
+    .nav-controls {
+        margin-left: 0 !important;
+    }
+}
+
+/* Mobile : masquer le texte du bouton thème, icône seule */
+@media (max-width: 768px) {
+    .nav-controls .theme-text {
+        display: none !important;
+    }
+    .nav-controls #themeToggle,
+    .nav-controls .theme-toggle-btn {
+        width: 36px !important;
+        height: 36px !important;
+        padding: 0 !important;
+        justify-content: center !important;
+        border-radius: 50% !important;
+    }
 }
 
 /* ============================================================

@@ -108,6 +108,38 @@
                 <span>ELECTROINFO</span>
             </div>
 
+            <!-- Controls toujours visibles dans la barre (lang + thème + hamburger) -->
+            <div class="nav-controls" style="display:flex;align-items:center;gap:0.4rem;margin-left:auto;flex-shrink:0;">
+
+                <!-- 🌍 Sélecteur de langue -->
+                <div id="langSwitcher" class="lang-switcher">
+                    <button id="langCurrentBtn" class="lang-current-btn" onclick="toggleLangDropdown()" aria-label="Changer la langue">
+                        🌍 Eʋe
+                    </button>
+                    <div class="lang-dropdown" id="langDropdown">
+                        <button class="lang-option lang-active" data-lang="ewe" onclick="setLang('ewe')">🌍 Eʋegbe</button>
+                        <button class="lang-option" data-lang="fr" onclick="setLang('fr')">🇫🇷 Français</button>
+                        <button class="lang-option" data-lang="en" onclick="setLang('en')">🇬🇧 English</button>
+                    </div>
+                </div>
+
+                <!-- Bouton thème -->
+                <button id="themeToggle" class="theme-toggle-btn" aria-label="Changer le thème" title="Changer le thème">
+                    <i class="fas fa-moon" id="themeIcon"></i>
+                    <span class="theme-text" id="themeText" data-i18n="theme_dark">Sombre</span>
+                </button>
+
+                <!-- Bouton langue FR/EN requis par article-detail.js -->
+                <button id="langToggle" class="theme-toggle-btn" aria-label="Langue" onclick="toggleLanguage()" title="Changer la langue FR / EN" style="display:none;"></button>
+
+                <!-- Hamburger -->
+                <button class="mobile-toggle" id="mobileToggle" aria-label="Menu">
+                    <i class="fas fa-bars"></i>
+                </button>
+
+            </div>
+
+            <!-- Menu déroulant mobile (liens + connexion uniquement) -->
             <div class="nav-menu" id="mobileMenu">
                 <div class="nav-links">
                     <a href="/" class="nav-link" data-i18n="nav_home">Accueil</a>
@@ -117,28 +149,6 @@
                     <a href="/contact" class="nav-link" data-i18n="nav_contact">Contact</a>
                 </div>
                 <div class="nav-actions">
-
-                    <!-- 🌍 Sélecteur de langue -->
-                    <div id="langSwitcher" class="lang-switcher">
-                        <button id="langCurrentBtn" class="lang-current-btn" onclick="toggleLangDropdown()" aria-label="Changer la langue">
-                            🌍 Eʋe
-                        </button>
-                        <div class="lang-dropdown" id="langDropdown">
-                            <button class="lang-option lang-active" data-lang="ewe" onclick="setLang('ewe')">🌍 Eʋegbe</button>
-                            <button class="lang-option" data-lang="fr" onclick="setLang('fr')">🇫🇷 Français</button>
-                            <button class="lang-option" data-lang="en" onclick="setLang('en')">🇬🇧 English</button>
-                        </div>
-                    </div>
-
-                    <!-- Bouton thème -->
-                    <button id="themeToggle" class="theme-toggle-btn" aria-label="Changer le thème" title="Changer le thème">
-                        <i class="fas fa-moon" id="themeIcon"></i>
-                        <span class="theme-text" id="themeText" data-i18n="theme_dark">Sombre</span>
-                    </button>
-
-                    <!-- Bouton langue FR/EN requis par article-detail.js -->
-                    <button id="langToggle" class="theme-toggle-btn" aria-label="Langue" onclick="toggleLanguage()" title="Changer la langue FR / EN" style="display:none;"></button>
-
                     <a href="/auth" id="loginBtn" class="btn btn-primary">
                         <i class="fas fa-sign-in-alt"></i>
                         <span class="btn-text" data-i18n="nav_login">Connexion</span>
@@ -167,11 +177,6 @@
                     </div>
                 </div>
             </div>
-
-            <!-- Hamburger — après nav-menu, niveau container -->
-            <button class="mobile-toggle" id="mobileToggle" aria-label="Menu">
-                <i class="fas fa-bars"></i>
-            </button>
 
         </div>
     </nav>
