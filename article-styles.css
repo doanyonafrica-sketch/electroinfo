@@ -1372,21 +1372,33 @@ body {
 
 /* ============================================================
    NAVBAR — article-detail
-   styles.css gère tout ; overrides minimaux ci-dessous
    ============================================================ */
 
-/* Logo navbar — hauteur fixe */
+/* Logo : taille fixe + fond transparent + coins arrondis */
 .nav-logo,
 .nav-brand img {
-    height: 36px !important;
-    width: auto !important;
-    max-height: 36px !important;
+    height: 40px !important;
+    width: 40px !important;
+    max-height: 40px !important;
+    max-width: 40px !important;
     flex-shrink: 0 !important;
     object-fit: contain !important;
+    background: transparent !important;
+    border-radius: 10px !important;
 }
 
-/* nav-controls : wrapper lang + thème + hamburger
-   Toujours visible dans la barre, niveau .container */
+/* Texte brand : ne pas tronquer */
+.nav-brand span {
+    white-space: nowrap !important;
+    overflow: visible !important;
+    text-overflow: unset !important;
+    max-width: none !important;
+    font-size: 1rem !important;
+    font-weight: 800 !important;
+    color: white !important;
+}
+
+/* nav-controls : wrapper lang + thème + hamburger */
 .nav-controls {
     display: flex !important;
     align-items: center !important;
@@ -1395,26 +1407,21 @@ body {
     flex-shrink: 0 !important;
 }
 
-/* Sur desktop ≥1024px : nav-menu occupe l'espace central,
-   nav-controls se place naturellement à droite sans margin-left */
 @media (min-width: 1024px) {
-    .nav-controls {
-        margin-left: 0 !important;
-    }
+    .nav-controls { margin-left: 0 !important; }
 }
 
-/* Mobile : masquer le texte du bouton thème, icône seule */
+/* Mobile : thème = icône seule, même style que hamburger */
 @media (max-width: 768px) {
-    .nav-controls .theme-text {
-        display: none !important;
-    }
+    .nav-controls .theme-text { display: none !important; }
     .nav-controls #themeToggle,
     .nav-controls .theme-toggle-btn {
-        width: 36px !important;
-        height: 36px !important;
+        width: 40px !important;
+        height: 40px !important;
         padding: 0 !important;
         justify-content: center !important;
-        border-radius: 50% !important;
+        border-radius: 0.5rem !important;
+        font-size: 1rem !important;
     }
 }
 
