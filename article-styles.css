@@ -1438,6 +1438,30 @@ body {
     .nav-separator { display: none; }
 }
 
+/* Logo navbar — taille fixe, jamais agrandi */
+.nav-logo {
+    width: 36px !important;
+    height: 36px !important;
+    max-width: 36px !important;
+    max-height: 36px !important;
+    object-fit: contain !important;
+    display: inline-block !important;
+    flex-shrink: 0 !important;
+}
+
+/* nav-brand : alignement logo + texte */
+.nav-brand {
+    display: flex !important;
+    align-items: center !important;
+    gap: .5rem !important;
+    flex-shrink: 0 !important;
+    text-decoration: none !important;
+    color: white !important;
+    font-weight: 700 !important;
+    font-size: 1rem !important;
+    white-space: nowrap !important;
+}
+
 /* ============================================================
    CONTENU MIROIR — PLEINE LARGEUR PC + MOBILE
    Override le max-width:900px et les paddings de styles.css
