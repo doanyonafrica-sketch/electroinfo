@@ -1371,95 +1371,18 @@ body {
 }
 
 /* ============================================================
-   NAVBAR — CORRECTIFS article-detail
+   NAVBAR — article-detail
+   styles.css gère tout ; on force uniquement la taille du logo
    ============================================================ */
 
-/* Conteneur des actions : bien espacé, aligné */
-.nav-actions {
-    display: flex !important;
-    align-items: center !important;
-    gap: .5rem !important;
-    flex-wrap: nowrap !important;
-}
-
-/* Séparateur vertical entre thème et hamburger */
-.nav-separator {
-    width: 1px;
-    height: 24px;
-    background: rgba(255,255,255,.25);
-    margin: 0 .25rem;
-    flex-shrink: 0;
-}
-
-/* Bouton hamburger — taille fixe, jamais écrasé */
-.mobile-toggle {
-    flex-shrink: 0 !important;
-    width: 40px !important;
-    height: 40px !important;
-    display: flex !important;
-    align-items: center !important;
-    justify-content: center !important;
-    border-radius: 8px !important;
-    background: rgba(255,255,255,.12) !important;
-    border: 1px solid rgba(255,255,255,.2) !important;
-    color: white !important;
-    font-size: 1.1rem !important;
-    cursor: pointer !important;
-    transition: background .2s !important;
-}
-.mobile-toggle:hover {
-    background: rgba(255,255,255,.22) !important;
-}
-
-/* Bouton thème — compact sur mobile */
-.theme-toggle-btn {
-    display: flex !important;
-    align-items: center !important;
-    gap: .35rem !important;
-    padding: .45rem .75rem !important;
-    border-radius: 8px !important;
-    background: rgba(255,255,255,.12) !important;
-    border: 1px solid rgba(255,255,255,.2) !important;
-    color: white !important;
-    font-size: .8rem !important;
-    font-weight: 600 !important;
-    cursor: pointer !important;
-    white-space: nowrap !important;
-    transition: background .2s !important;
-}
-.theme-toggle-btn:hover {
-    background: rgba(255,255,255,.22) !important;
-}
-
-/* Sur très petit écran : masquer le texte du thème */
-@media (max-width: 420px) {
-    .theme-text { display: none !important; }
-    .theme-toggle-btn { padding: .45rem .55rem !important; }
-    .nav-separator { display: none; }
-}
-
-/* Logo navbar — taille fixe, jamais agrandi */
-.nav-logo {
-    width: 36px !important;
+/* Logo navbar — taille fixe, identique à styles.css */
+.nav-logo,
+.nav-brand img {
     height: 36px !important;
-    max-width: 36px !important;
+    width: auto !important;
     max-height: 36px !important;
+    flex-shrink: 0 !important;
     object-fit: contain !important;
-    display: inline-block !important;
-    flex-shrink: 0 !important;
-}
-
-/* nav-brand : alignement logo + texte */
-.nav-brand {
-    display: flex !important;
-    align-items: center !important;
-    gap: .5rem !important;
-    flex-shrink: 0 !important;
-    text-decoration: none !important;
-    color: white !important;
-    font-weight: 700 !important;
-    font-size: 1rem !important;
-    white-space: nowrap !important;
 }
 
 /* ============================================================
