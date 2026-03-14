@@ -377,19 +377,19 @@ async function loadArticle() {
 
     // ✅ GitHub Pages — ÉTAPE 1 : 404.html sauvegarde redirect_path dans sessionStorage
     function isValidSlug(s) { return typeof s === 'string' && s.length > 0 && s.length < 200 && !/[<>"{}]/.test(s); }
-    var _ss = sessionStorage.getItem('current_article_slug');
-    if (_ss && !isValidSlug(_ss)) { sessionStorage.removeItem('current_article_slug'); console.warn('🧹 Slug corrompu nettoyé'); }
     if (!slug && !articleId) {
         const redirectPath = sessionStorage.getItem('redirect_path');
         if (redirectPath) {
-            sessionStorage.removeItem('redirect_path');
             const redirectParts = redirectPath.split('/');
             if (redirectParts[1] === 'article' && redirectParts[2]) {
-                slug = decodeURIComponent(redirectParts[2]);
-                // 🔑 Sauvegarder dans une clé persistante pour que le refresh fonctionne
-                // sessionStorage survit aux rafraîchissements mais pas à la fermeture du tab
-                if (isValidSlug(slug)) sessionStorage.setItem('current_article_slug', slug);
-                console.log('📦 Slug récupéré depuis sessionStorage (GitHub Pages):', slug);
+                const candidate = decodeURIComponent(redirectParts[2]);
+                if (isValidSlug(candidate)) {
+                    slug = candidate;
+                    // Persister d'abord, supprimer ensuite (évite la perte si appel double)
+                    sessionStorage.setItem('current_article_slug', slug);
+                    sessionStorage.removeItem('redirect_path');
+                    console.log('📦 Slug récupéré depuis sessionStorage (GitHub Pages):', slug);
+                }
             }
         }
     }
@@ -398,7 +398,7 @@ async function loadArticle() {
     // redirect_path est vide mais current_article_slug est toujours là
     if (!slug && !articleId) {
         const savedSlug = sessionStorage.getItem('current_article_slug');
-        if (savedSlug) {
+        if (isValidSlug(savedSlug)) {
             slug = savedSlug;
             console.log('🔄 Slug récupéré depuis sessionStorage (refresh):', slug);
         }
