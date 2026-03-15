@@ -1458,3 +1458,307 @@ article img {
   transform: translateY(0);
   box-shadow: none;
 }
+
+/* ============================================
+   ADAPTATIONS MOBILE TÉLÉPHONE
+   ============================================ */
+
+/* ──────────────────────────────────────────
+   NAVBAR : boutons en scroll horizontal
+   ────────────────────────────────────────── */
+@media (max-width: 768px) {
+    .navbar .container {
+        flex-direction: column;
+        align-items: stretch;
+        height: auto;
+        padding: 0.625rem 0.75rem;
+        gap: 0.5rem;
+    }
+
+    .nav-brand {
+        font-size: 0.95rem;
+        justify-content: flex-start;
+    }
+
+    .nav-actions {
+        display: flex;
+        flex-wrap: nowrap;
+        overflow-x: auto;
+        gap: 0.4rem;
+        padding-bottom: 0.25rem;
+        -webkit-overflow-scrolling: touch;
+        scrollbar-width: none;
+        width: 100%;
+    }
+    .nav-actions::-webkit-scrollbar { display: none; }
+
+    .nav-actions .btn,
+    .nav-actions .perso {
+        white-space: nowrap;
+        flex-shrink: 0;
+        font-size: 0.75rem;
+        padding: 0.4rem 0.7rem;
+    }
+}
+
+/* ──────────────────────────────────────────
+   ONGLETS ADMIN : scroll horizontal
+   ────────────────────────────────────────── */
+@media (max-width: 768px) {
+    .admin-tabs-nav {
+        overflow-x: auto;
+        flex-wrap: nowrap;
+        -webkit-overflow-scrolling: touch;
+        scrollbar-width: none;
+        border-radius: 8px 8px 0 0;
+    }
+    .admin-tabs-nav::-webkit-scrollbar { display: none; }
+
+    .admin-tab-btn {
+        flex: 0 0 auto;
+        white-space: nowrap;
+        font-size: 0.8rem;
+        padding: 0.7rem 0.9rem;
+        gap: 0.3rem;
+    }
+}
+
+@media (max-width: 400px) {
+    .admin-tab-btn {
+        font-size: 0;      /* cache le texte */
+        padding: 0.7rem;
+    }
+    .admin-tab-btn i {
+        font-size: 1rem;   /* garde l'icône */
+    }
+}
+
+/* ──────────────────────────────────────────
+   HEADER ADMIN
+   ────────────────────────────────────────── */
+@media (max-width: 768px) {
+    .admin-header {
+        flex-direction: column;
+        align-items: flex-start;
+        gap: 0.75rem;
+        padding: 1rem;
+    }
+
+    .admin-header h1 {
+        font-size: 1.2rem;
+    }
+
+    .user-info {
+        align-self: flex-end;
+        font-size: 0.8rem;
+        padding: 0.4rem 0.75rem;
+    }
+}
+
+/* ──────────────────────────────────────────
+   STATS : 2 colonnes sur mobile
+   ────────────────────────────────────────── */
+@media (max-width: 768px) {
+    .stats-grid {
+        grid-template-columns: repeat(2, 1fr) !important;
+        gap: 0.75rem;
+    }
+
+    .stat-card {
+        padding: 1rem 0.875rem;
+        gap: 0.75rem;
+    }
+
+    .stat-icon {
+        width: 2.75rem;
+        height: 2.75rem;
+        font-size: 1.2rem;
+    }
+
+    .stat-value { font-size: 1.4rem; }
+    .stat-label { font-size: 0.75rem; }
+}
+
+@media (max-width: 360px) {
+    .stats-grid { grid-template-columns: 1fr !important; }
+}
+
+/* ──────────────────────────────────────────
+   SÉLECTEUR MODE ÉDITEUR
+   ────────────────────────────────────────── */
+@media (max-width: 768px) {
+    .editor-mode-selector {
+        width: 100%;
+    }
+
+    .mode-btn {
+        flex: 1;
+        justify-content: center;
+        font-size: 0.78rem;
+        padding: 0.4rem 0.5rem;
+    }
+}
+
+/* ──────────────────────────────────────────
+   ÉDITEUR WYSIWYG : toolbar scrollable
+   ────────────────────────────────────────── */
+@media (max-width: 768px) {
+    .wy-toolbar {
+        overflow-x: auto;
+        flex-wrap: nowrap;
+        scrollbar-width: none;
+        top: 0;
+        padding: 4px 6px;
+    }
+    .wy-toolbar::-webkit-scrollbar { display: none; }
+
+    .wy-tb-group,
+    .wy-tb-sep { flex-shrink: 0; }
+
+    .wy-body {
+        padding: 1rem;
+        font-size: 0.95rem;
+        min-height: 280px;
+        max-height: 420px;
+    }
+
+    .wy-tb-select {
+        max-width: 80px;
+        font-size: 0.7rem;
+    }
+}
+
+/* ──────────────────────────────────────────
+   ÉDITEUR HTML / CODEMIRROR
+   ────────────────────────────────────────── */
+@media (max-width: 768px) {
+    #htmlEditorSection .editor-toolbar {
+        flex-direction: column;
+        align-items: flex-start;
+        gap: 0.4rem;
+        padding: 0.5rem;
+    }
+
+    #htmlEditorSection .editor-actions {
+        width: 100%;
+        overflow-x: auto;
+        flex-wrap: nowrap;
+        scrollbar-width: none;
+        padding-bottom: 2px;
+    }
+    #htmlEditorSection .editor-actions::-webkit-scrollbar { display: none; }
+
+    #htmlEditorSection .CodeMirror {
+        height: 280px;
+        font-size: 0.82rem;
+    }
+
+    #htmlEditorSection .editor-footer {
+        font-size: 0.72rem;
+    }
+}
+
+/* ──────────────────────────────────────────
+   ONGLETS LANGUE
+   ────────────────────────────────────────── */
+@media (max-width: 768px) {
+    .lang-tabs-admin {
+        overflow-x: auto !important;
+        flex-wrap: nowrap !important;
+        scrollbar-width: none;
+    }
+    .lang-tabs-admin::-webkit-scrollbar { display: none; }
+
+    .lang-tabs-admin button {
+        flex-shrink: 0;
+        font-size: 0.8rem !important;
+        padding: 0.5rem 0.875rem !important;
+        white-space: nowrap;
+    }
+}
+
+/* ──────────────────────────────────────────
+   MODAL : bottom sheet sur mobile
+   ────────────────────────────────────────── */
+@media (max-width: 768px) {
+    .modal {
+        padding: 0;
+        align-items: flex-end;
+    }
+
+    .modal-content {
+        width: 100%;
+        max-width: 100%;
+        max-height: 92vh;
+        border-radius: 1rem 1rem 0 0;
+    }
+
+    .modal-footer {
+        flex-direction: column-reverse;
+        gap: 0.5rem;
+    }
+
+    .modal-footer .btn {
+        width: 100%;
+    }
+}
+
+/* ──────────────────────────────────────────
+   NOTIFICATIONS : en bas sur mobile
+   ────────────────────────────────────────── */
+@media (max-width: 768px) {
+    .notification {
+        top: auto;
+        bottom: 1rem;
+        left: 0.75rem;
+        right: 0.75rem;
+        max-width: 100%;
+        min-width: unset;
+    }
+
+    .notification.show {
+        right: 0.75rem;
+    }
+}
+
+/* ──────────────────────────────────────────
+   INPUTS : font-size 1rem (évite zoom iOS)
+   ────────────────────────────────────────── */
+@media (max-width: 768px) {
+    .input,
+    select.input,
+    textarea.input,
+    #newAdminName,
+    #newAdminEmail,
+    #newAdminPassword {
+        font-size: 1rem;
+    }
+
+    #createAdminBtn {
+        width: 100%;
+        justify-content: center;
+    }
+}
+
+/* ──────────────────────────────────────────
+   BOUTON "RÉDIGER" : pleine largeur
+   ────────────────────────────────────────── */
+@media (max-width: 768px) {
+    #tab-dashboard > div:first-child {
+        justify-content: stretch !important;
+    }
+
+    #tab-dashboard > div:first-child .btn {
+        width: 100%;
+        justify-content: center;
+    }
+
+    .admin-dashboard {
+        padding: 0.75rem 0 1.5rem;
+        overflow-x: hidden;
+    }
+
+    .container {
+        overflow-x: hidden;
+    }
+}
