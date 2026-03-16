@@ -1091,7 +1091,8 @@ window.editArticle = async function(articleId) {
         document.getElementById('tags').value = (article.tags || []).join(', ');
 
         const status = article.status || 'published';
-        document.getElementById('publicationStatus').value = status;
+        // ✅ FIX — Si brouillon, pré-sélectionner "Publié" pour éviter de re-sauvegarder en draft
+        document.getElementById('publicationStatus').value = status === 'draft' ? 'published' : status;
 
         if (status === 'scheduled' && article.scheduledFor) {
             const scheduledDate = new Date(article.scheduledFor.toDate());
