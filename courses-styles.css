@@ -599,3 +599,57 @@
 }
 
 /* Retirer les anciens styles niveau-btn devenus inutiles */
+
+/* ── Menu mobile (nav-menu coulissant) ─────────────────────── */
+@media (max-width: 768px) {
+    .nav-menu {
+        display: none;
+        flex-direction: column;
+        position: absolute;
+        top: 100%;
+        left: 0;
+        right: 0;
+        background: white;
+        box-shadow: 0 8px 24px rgba(0,0,0,.12);
+        padding: 1rem 1.5rem 1.5rem;
+        gap: .5rem;
+        z-index: 999;
+    }
+    .nav-menu.open {
+        display: flex;
+    }
+    .nav-links {
+        display: flex;
+        flex-direction: column;
+        gap: .25rem;
+    }
+    .nav-link {
+        padding: .65rem .75rem;
+        border-radius: 8px;
+        font-weight: 500;
+    }
+    .nav-link:hover,
+    .nav-link.active {
+        background: #eff6ff;
+        color: #1e40af;
+    }
+    .nav-actions {
+        display: flex;
+        flex-direction: column;
+        gap: .5rem;
+        margin-top: .75rem;
+        padding-top: .75rem;
+        border-top: 1px solid #e5e7eb;
+    }
+    .mobile-toggle {
+        display: flex;
+    }
+}
+@media (min-width: 769px) {
+    .mobile-toggle { display: none; }
+    .nav-menu {
+        display: flex;
+        align-items: center;
+        gap: 1.5rem;
+    }
+}
