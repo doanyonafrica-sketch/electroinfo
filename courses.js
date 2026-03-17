@@ -90,7 +90,7 @@ document.addEventListener('click', e => {
     const dd = $('userDropdown');
     if (dd && !dd.contains(e.target) && e.target !== $('userMenuToggle')) dd.classList.add('hidden');
 });
-$('mobileToggle')?.addEventListener('click', () => $('mobileMenu')?.classList.toggle('open'));
+$('mobileToggle')?.addEventListener('click', () => $('mobileMenu')?.classList.toggle('active'));
 
 // ============================================================
 // INIT selon la page
