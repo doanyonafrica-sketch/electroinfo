@@ -428,7 +428,9 @@
     </div>
     <div class="sl-search">
       <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="color:var(--muted);flex-shrink:0"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.35-4.35"/></svg>
-      <input type="text" placeholder="Rechercher…" oninput="filterSidebar(this.value)"/>
+      <input type="text" id="sideSearch" placeholder="Rechercher…"
+        oninput="filterSidebar(this.value)"
+        onkeydown="if(event.key==='Enter'){document.getElementById('mainSearch').value=this.value;smartSearch(this.value.trim());}"/>
     </div>
     <div class="sl-scroll" id="sideIdx"></div>
   </aside>
@@ -493,14 +495,15 @@
   // ┌─────────────────────────────────────────┐
   // │  REMPLACE ICI avec ta config Firebase   │
   // └─────────────────────────────────────────┘
-const firebaseConfig = {
-  apiKey: "AIzaSyCuFgzytJXD6jt4HUW9LVSD_VpGuFfcEAk",
-  authDomain: "electroino-app.firebaseapp.com",
-  projectId: "electroino-app",
-  storageBucket: "electroino-app.firebasestorage.app",
-  messagingSenderId: "864058526638",
-  appId: "1:864058526638:web:17b821633c7cc99be1563f"
-};
+  const firebaseConfig = {
+    apiKey:            "VOTRE_API_KEY",
+    authDomain:        "VOTRE_PROJECT.firebaseapp.com",
+    projectId:         "VOTRE_PROJECT_ID",
+    storageBucket:     "VOTRE_PROJECT.appspot.com",
+    messagingSenderId: "VOTRE_SENDER_ID",
+    appId:             "VOTRE_APP_ID"
+  };
+
   const app = initializeApp(firebaseConfig);
   const db  = getFirestore(app);
 
@@ -559,6 +562,25 @@ const firebaseConfig = {
       groups[l].push(a);
     });
     const letters = Object.keys(groups).sort();
+
+    if (!letters.length && ql) {
+      // Aucun résultat dans l'index → proposer la génération IA
+      document.getElementById('sideIdx').innerHTML = `
+        <div style="padding:14px 12px;text-align:center;">
+          <div style="font-size:.75rem;color:var(--muted);margin-bottom:10px;line-height:1.5;">
+            Aucune fiche pour<br><strong style="color:var(--text);">"${q}"</strong>
+          </div>
+          <button onclick="document.getElementById('mainSearch').value='${q.replace(/'/g,"\\'")}';smartSearch('${q.replace(/'/g,"\\'")}');"
+            style="width:100%;padding:8px 10px;background:linear-gradient(135deg,rgba(139,92,246,.2),rgba(59,130,246,.15));border:1px solid rgba(139,92,246,.4);border-radius:7px;color:#a78bfa;font-size:.76rem;font-weight:600;cursor:pointer;transition:all .2s;"
+            onmouseover="this.style.background='linear-gradient(135deg,rgba(139,92,246,.35),rgba(59,130,246,.25))'"
+            onmouseout="this.style.background='linear-gradient(135deg,rgba(139,92,246,.2),rgba(59,130,246,.15))'">
+            ✨ Générer avec l'IA
+          </button>
+        </div>`;
+      document.getElementById('sl-count').textContent = '0 fiche';
+      return;
+    }
+
     document.getElementById('sideIdx').innerHTML = letters.map(l => `
       <div class="sl-letter">${l}</div>
       ${groups[l].map(a => `
@@ -609,29 +631,56 @@ const firebaseConfig = {
   // RECHERCHE INTELLIGENTE
   // ══════════════════════════════════════════
 
-  // Mots-clés du domaine — utilisés pour détecter les recherches hors-domaine
-  const DOMAIN_KEYWORDS = [
-    'électr','electr','courant','tension','résistance','resistance','condensateur',
-    'transistor','diode','inductance','bobine','transformateur','moteur','alternateur',
-    'générateur','generateur','redresseur','onduleur','variateur','automate',
-    'relais','contacteur','disjoncteur','fusible','interrupteur','câble','cable',
-    'conducteur','isolant','puissance','énergie','energie','fréquence','frequence',
-    'ampère','ampere','volt','watt','ohm','hertz','farad','henry','tesla',
-    'circuit','schéma','schema','loi','norme','nf c','nf en','iec','ute',
-    'basse tension','haute tension','courant alternatif','courant continu',
-    'triphasé','triphasé','monophasé','triphasé','neutre','phase','terre',
-    'sécurité','securite','protection','installation','bâtiment','batiment',
-    'domotique','robotique','capteur','actuateur','microcontrôleur','arduino',
-    'electronique','électronique','semi-conducteur','composant','signal','filtre',
-    'amplificateur','oscillateur','régulateur','regulateur','convertisseur',
-    'solaire','photovoltaïque','photovoltaique','batterie','accumulateur',
-    'puissance','rendement','efficacité','thermique','chauffage','éclairage',
-    'luminosité','led','lampe','panneau','tableau','armoire','câblage','cablage'
+  // ══════════════════════════════════════════
+  // DÉTECTION DOMAINE — logique inversée
+  // On détecte ce qui est CLAIREMENT hors domaine
+  // plutôt que de lister tout ce qui est dans le domaine
+  // ══════════════════════════════════════════
+
+  // Patterns qui indiquent CLAIREMENT que c'est hors domaine
+  const OFF_DOMAIN_PATTERNS = [
+    // Nourriture / cuisine
+    /recette|cuisine|manger|boire|chocolat|gâteau|gateau|pain|viande|poisson|fruit|légume|legume|repas|plat|sauce|ingrédient|ingredient/,
+    // Sport
+    /football|rugby|basketball|tennis|natation|cyclisme|athlétisme|athletisme|but|match|joueur|équipe|equipe|stade|ballon|sport(?!if)/,
+    // Géographie / pays (sans rapport tech)
+    /capitale|continent|océan|ocean|montagne|fleuve|rivière|riviere|pays (?!du courant|de la tension)/,
+    // Médecine / biologie (sans rapport avec électroméd)
+    /médecine|medecine|chirurgie|anatomie|biologie(?! cellulaire)|maladie|symptôme|symptome|médicament|medicament|virus(?! informatique)|bactérie|bacterie/,
+    // Politique / histoire
+    /président|president(?! de circuit)|élection|election|parti politique|guerre(?! électrique)|revolution(?! industrielle)/,
+    // Chimie organique pure
+    /chimie organique|molécule(?! semi)|protéine|proteine|acide aminé|adn|arn(?! [0-9])/,
+    // Musique / art / littérature
+    /chanson|musique(?! de fond)|artiste|peinture|sculpture|roman|poème|poeme|littérature|litterature/,
+    // Véhicules non-électriques
+    /carburateur|boîte de vitesse|transmission(?! de données|d'énergie)|embrayage|moteur à explosion/,
+  ];
+
+  // Patterns qui indiquent CLAIREMENT que c'est dans le domaine
+  // (références composants, acronymes techniques, etc.)
+  const IN_DOMAIN_PATTERNS = [
+    // Références composants alphanumériques (NE555, LM317, RC522, ESP32, STM32...)
+    /^[a-z]{1,4}\d{2,6}[a-z]?$/i,
+    // Codes normalisés
+    /^(nf|iec|iso|en|din|ul|cei)\s*[a-z0-9]/i,
+    // Mots-clés domaine étendus
+    /électr|electr|electron|courant|tension|résist|resist|condensat|transistor|diode|inductanc|bobine|transform|moteur|alternateur|générateur|generateur|redresseur|onduleur|variateur|automate|relais|contacteur|disjoncteur|fusible|circuit|schéma|schema|ampère|ampere|volt|watt|ohm|hertz|farad|henry|arduino|raspberry|esp32|stm32|pic\d|atmel|avr|arm(?! armée)|microcontrôleur|microcontroleur|microprocesseur|fpga|plc|api(?! resto)|rfid|nfc|bluetooth|zigbee|modbus|can bus|i2c|spi|uart|pwm|adc|dac|gpio|hmi|ihm|scada|bms|ups|ups|photovoltaïque|photovoltaique|solaire|batterie|accumulateur|led|laser|photodiode|optocoupleur|thyristor|triac|igbt|mosfet|bjt|fet|régulateur|regulateur|convertisseur|hacheur|redresseur|onduleur|transformateur|câble|cable|conducteur|isolant|blindage|sécurité|securite|protection|installation|tableau|armoire|basse tension|haute tension|triphasé|triphasé|monophasé|neutre|phase|terre|masse|potentiel|puissance|énergie|energie|fréquence|frequence|impédance|impedance|réactance|reactance|inductance|capacité|capacite|résistivité|resistivite|perméabilité|signal|filtre|amplificateur|oscillateur|atténuateur|attenuateur|modulation|démodulation|harmonique|transitoire|régime|regime/,
   ];
 
   function isInDomain(query) {
-    const q = query.toLowerCase();
-    return DOMAIN_KEYWORDS.some(kw => q.includes(kw));
+    const q = query.trim().toLowerCase();
+    if (!q || q.length < 2) return false;
+
+    // 1. Correspondance positive explicite (références composants, mots-clés)
+    if (IN_DOMAIN_PATTERNS.some(p => p.test(q))) return true;
+
+    // 2. Correspondance négative explicite → hors domaine
+    if (OFF_DOMAIN_PATTERNS.some(p => p.test(q))) return false;
+
+    // 3. Cas ambigu → on laisse passer (l'IA décidera)
+    // Mieux vaut générer une fiche inutile qu'ignorer un vrai composant
+    return true;
   }
 
   // ── Full-text search sur titre, résumé, sections, infobox, refs ──
