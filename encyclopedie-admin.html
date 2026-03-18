@@ -106,6 +106,26 @@
     .toast{position:fixed;bottom:24px;left:50%;transform:translateX(-50%) translateY(20px);background:var(--surface);border:1px solid var(--border);border-radius:8px;padding:10px 18px;font-size:.83rem;color:var(--text);box-shadow:0 6px 20px rgba(0,0,0,.4);opacity:0;transition:opacity .25s,transform .25s;pointer-events:none;z-index:500;}
     .toast.show{opacity:1;transform:translateX(-50%) translateY(0);}
 
+    /* GÉNÉRATION EN LOT */
+    .batch-block{background:linear-gradient(135deg,rgba(34,197,94,.08),rgba(59,130,246,.06));border:1.5px solid rgba(34,197,94,.3);border-radius:var(--r);padding:20px;margin-bottom:16px;}
+    .batch-title{font-family:var(--fh);font-weight:700;font-size:.88rem;display:flex;align-items:center;gap:8px;margin-bottom:6px;}
+    .batch-desc{font-size:.79rem;color:var(--muted);margin-bottom:12px;line-height:1.5;}
+    .btn-batch{background:var(--green);color:#fff;padding:10px 18px;border-radius:8px;font-size:.84rem;font-weight:600;display:flex;align-items:center;gap:7px;white-space:nowrap;transition:opacity .2s;flex-shrink:0;}
+    .btn-batch:hover{opacity:.85;}
+    .btn-batch:disabled{opacity:.4;cursor:not-allowed;}
+    .batch-queue{margin-top:14px;display:none;}
+    .batch-queue.show{display:block;}
+    .bq-item{display:flex;align-items:center;gap:9px;font-size:.8rem;padding:5px 10px;border-radius:6px;color:var(--muted);margin-bottom:4px;}
+    .bq-item.pending{color:var(--muted);}
+    .bq-item.running{color:var(--purple);background:rgba(139,92,246,.08);}
+    .bq-item.done{color:var(--green);background:rgba(34,197,94,.07);}
+    .bq-item.error{color:var(--red);background:rgba(239,68,68,.07);}
+    .bq-item.skip{color:var(--accent2);background:rgba(245,158,11,.07);}
+    .bq-icon{min-width:16px;text-align:center;}
+    .batch-global-bar{height:4px;background:var(--border);border-radius:2px;margin-top:12px;overflow:hidden;}
+    .batch-global-fill{height:100%;background:linear-gradient(90deg,var(--green),var(--accent));border-radius:2px;width:0%;transition:width .5s ease;}
+    .batch-summary{font-size:.78rem;color:var(--muted);margin-top:8px;text-align:right;}
+
     @media(max-width:720px){.wrap{flex-direction:column;}.panel-list{width:100%;}}
   </style>
 </head>
@@ -137,6 +157,43 @@
 
   <!-- FORMULAIRE + IA -->
   <div class="panel-form">
+
+    <!-- BLOC GÉNÉRATION EN LOT -->
+    <div class="batch-block">
+      <div class="batch-title">
+        🚀 Génération en lot
+        <span class="badge" style="background:var(--green);">NOUVEAU</span>
+      </div>
+      <div class="batch-desc">
+        Entre plusieurs sujets séparés par des virgules. L'IA génère et enregistre chaque fiche automatiquement, l'une après l'autre. Les fiches déjà existantes sont ignorées.
+      </div>
+      <div class="ai-row">
+        <div class="form-group">
+          <label>Sujets à générer (séparés par virgule)</label>
+          <textarea id="batch-input" rows="2" placeholder="ex: Pont de Wheatstone, Amplificateur opérationnel, Thyristor, Relais électromagnétique, Moteur asynchrone…"></textarea>
+        </div>
+      </div>
+      <div style="display:flex;align-items:center;gap:10px;margin-top:10px;">
+        <div class="form-group" style="max-width:160px;">
+          <label>Catégorie par défaut</label>
+          <select id="batch-cat">
+            <option value="composant">⚡ Composant</option>
+            <option value="electricite">🔌 Électricité</option>
+          </select>
+        </div>
+        <button class="btn-batch" id="btn-batch" onclick="generateBatch()" style="margin-top:18px;">
+          🚀 Lancer la génération
+        </button>
+        <button style="margin-top:18px;padding:10px 14px;border-radius:8px;background:rgba(239,68,68,.12);color:var(--red);border:1px solid rgba(239,68,68,.2);font-size:.82rem;font-weight:600;display:none;" id="btn-batch-stop" onclick="stopBatch()">
+          ⏹ Arrêter
+        </button>
+      </div>
+      <div class="batch-queue" id="batch-queue">
+        <div class="batch-global-bar"><div class="batch-global-fill" id="batch-fill"></div></div>
+        <div class="batch-summary" id="batch-summary"></div>
+        <div id="batch-items" style="margin-top:10px;max-height:240px;overflow-y:auto;"></div>
+      </div>
+    </div>
 
     <!-- BLOC IA (toujours visible) -->
     <div class="ai-block">
@@ -194,14 +251,14 @@
   // ┌─────────────────────────────────────────┐
   // │  REMPLACE ICI avec ta config Firebase   │
   // └─────────────────────────────────────────┘
-const firebaseConfig = {
-  apiKey: "AIzaSyCuFgzytJXD6jt4HUW9LVSD_VpGuFfcEAk",
-  authDomain: "electroino-app.firebaseapp.com",
-  projectId: "electroino-app",
-  storageBucket: "electroino-app.firebasestorage.app",
-  messagingSenderId: "864058526638",
-  appId: "1:864058526638:web:17b821633c7cc99be1563f"
-};;
+  const firebaseConfig = {
+    apiKey:            "VOTRE_API_KEY",
+    authDomain:        "VOTRE_PROJECT.firebaseapp.com",
+    projectId:         "VOTRE_PROJECT_ID",
+    storageBucket:     "VOTRE_PROJECT.appspot.com",
+    messagingSenderId: "VOTRE_SENDER_ID",
+    appId:             "VOTRE_APP_ID"
+  };
 
   const app = initializeApp(firebaseConfig);
   const db  = getFirestore(app);
@@ -685,6 +742,128 @@ Règles importantes :
 
   // Exposer buildForm pour l'IA
   window._buildForm = buildForm;
+
+  // ══════════════════════════════════════════
+  // GÉNÉRATION EN LOT
+  // ══════════════════════════════════════════
+  let batchRunning = false;
+
+  window.stopBatch = function() {
+    batchRunning = false;
+    document.getElementById('btn-batch-stop').style.display = 'none';
+    document.getElementById('btn-batch').disabled = false;
+    toast('⏹ Génération en lot arrêtée');
+  };
+
+  window.generateBatch = async function() {
+    const raw = document.getElementById('batch-input').value.trim();
+    if (!raw) { toast('⚠️ Entre au moins un sujet'); return; }
+
+    const cat    = document.getElementById('batch-cat').value;
+    const sujets = raw.split(',').map(s => s.trim()).filter(Boolean);
+    if (!sujets.length) return;
+
+    // Vérifier lesquels existent déjà
+    const queue = sujets.map(s => ({
+      sujet: s,
+      exists: DB.some(a => a.title.toLowerCase() === s.toLowerCase()),
+      status: 'pending'
+    }));
+
+    // UI
+    const queueEl = document.getElementById('batch-queue');
+    const itemsEl = document.getElementById('batch-items');
+    const fillEl  = document.getElementById('batch-fill');
+    const summEl  = document.getElementById('batch-summary');
+    queueEl.classList.add('show');
+    document.getElementById('btn-batch').disabled = true;
+    document.getElementById('btn-batch-stop').style.display = 'flex';
+    batchRunning = true;
+
+    function renderQueue() {
+      itemsEl.innerHTML = queue.map((q,i) => {
+        const ico = q.status==='pending'?'○':q.status==='running'?'⟳':q.status==='done'?'✓':q.status==='skip'?'↷':'✗';
+        return `<div class="bq-item ${q.status}"><span class="bq-icon">${ico}</span>${q.sujet}${q.exists?' <em style="font-size:.72rem;">(déjà existant)</em>':''}</div>`;
+      }).join('');
+      itemsEl.scrollTop = itemsEl.scrollHeight;
+    }
+
+    // Marquer les existants comme skip dès le début
+    queue.forEach(q => { if (q.exists) q.status = 'skip'; });
+    renderQueue();
+
+    let done = 0, errors = 0, skipped = queue.filter(q=>q.exists).length;
+    const total = queue.length;
+
+    for (let i = 0; i < queue.length; i++) {
+      if (!batchRunning) break;
+      const item = queue[i];
+      if (item.status === 'skip') { done++; continue; }
+
+      item.status = 'running';
+      renderQueue();
+      fillEl.style.width = `${Math.round((i/total)*100)}%`;
+      summEl.textContent = `${i+1}/${total} — ${done} générée(s), ${errors} erreur(s), ${skipped} ignorée(s)`;
+
+      try {
+        const prompt = `Tu es une encyclopédie francophone spécialisée en électricité industrielle, électronique et technologie électrique.
+
+Génère une fiche encyclopédique COMPLÈTE en JSON pour le sujet : "${item.sujet}"
+
+RÈGLES STRICTES :
+- Répondre UNIQUEMENT avec du JSON valide, sans backticks, sans texte avant ou après
+- Schéma requis : { "id":"slug-kebab","icon":"emoji","title":"...","subtitle":"...","tag":"${cat}","niveau":"Débutant|Intermédiaire|Avancé","lecture":"X min","summary":"...","infobox":[{"k":"...","v":"...","mono":false}],"sections":[{"h2":"...","id":"...","html":"...","subs":[{"h3":"...","id":"...","html":"..."}]}],"refs":["..."],"related":["..."],"autoGenerated":true,"updatedAt":"${new Date().toISOString()}"}
+- Minimum 4 sections H2, sous-sections H3, infobox 4-7 lignes, formules dans <div class="formula">...</div>
+- Contenu sérieux niveau technicien/étudiant`;
+
+        const res = await fetch('https://api.anthropic.com/v1/messages', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            model: 'claude-sonnet-4-20250514',
+            max_tokens: 4000,
+            messages: [{ role: 'user', content: prompt }]
+          })
+        });
+
+        if (!res.ok) throw new Error(`API ${res.status}`);
+        const data  = await res.json();
+        const raw2  = data.content?.find(b => b.type === 'text')?.text || '';
+        const clean = raw2.replace(/```json|```/g,'').trim();
+        const fiche = JSON.parse(clean);
+        if (!fiche.id || !fiche.title || !fiche.sections) throw new Error('JSON incomplet');
+
+        // Enregistrer Firestore
+        await setDoc(doc(db, 'encyclopedie', fiche.id), fiche, { merge: true });
+        const idx = DB.findIndex(x => x.id === fiche.id);
+        if (idx >= 0) DB[idx] = fiche; else DB.push(fiche);
+
+        item.status = 'done';
+        done++;
+      } catch(e) {
+        console.error('Batch item:', item.sujet, e);
+        item.status = 'error';
+        errors++;
+      }
+
+      renderQueue();
+      fillEl.style.width = `${Math.round(((i+1)/total)*100)}%`;
+      summEl.textContent = `${i+1}/${total} — ${done} générée(s), ${errors} erreur(s), ${skipped} ignorée(s)`;
+
+      // Pause entre chaque appel pour éviter le rate limiting
+      if (i < queue.length - 1 && batchRunning) {
+        await new Promise(r => setTimeout(r, 1500));
+      }
+    }
+
+    batchRunning = false;
+    document.getElementById('btn-batch-stop').style.display = 'none';
+    document.getElementById('btn-batch').disabled = false;
+    fillEl.style.width = '100%';
+    DB.sort((a,b) => a.title.localeCompare(b.title,'fr'));
+    renderList();
+    toast(`✅ Lot terminé — ${done} fiche(s) générée(s), ${errors} erreur(s), ${skipped} ignorée(s)`);
+  };
 
   load();
 </script>

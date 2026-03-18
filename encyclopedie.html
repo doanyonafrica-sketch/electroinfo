@@ -293,6 +293,26 @@
     /* Ajustement sticky sidebar : navbar ElectroInfo 68px */
     .sleft{top:78px;max-height:calc(100vh - 94px);}
     @media(max-width:768px){.sleft{top:70px;max-height:calc(100vh - 86px);}}
+
+    /* ─── FEEDBACK ─── */
+    .feedback-bar{display:flex;align-items:center;gap:10px;flex-wrap:wrap;margin-top:28px;padding:16px 20px;background:var(--surface);border:1px solid var(--border);border-radius:var(--r);}
+    .fb-label{font-size:.84rem;color:var(--muted);flex:1;min-width:140px;}
+    .fb-btn{padding:7px 16px;border-radius:20px;font-size:.84rem;font-weight:600;border:1.5px solid var(--border);color:var(--text);background:var(--surface2);transition:all .2s;cursor:pointer;}
+    .fb-btn.fb-yes:hover{background:#dcfce7;border-color:#16a34a;color:#16a34a;}
+    .fb-btn.fb-no:hover{background:#fee2e2;border-color:#dc2626;color:#dc2626;}
+    .fb-btn:disabled{cursor:default;}
+    .fb-score{font-size:.78rem;color:var(--muted);}
+
+    /* ─── IMPRESSION ─── */
+    @media print{
+      .navbar,.sleft,.back-btn,.art-share,.feedback-bar,.toast,.fntip,
+      .toc-tog,.infobox,.rel-box{display:none!important;}
+      body{background:#fff!important;color:#0d0f14!important;}
+      .wrap,.main{padding:0!important;display:block!important;}
+      .artview,.artbody{display:block!important;max-width:100%!important;}
+      .art-h1{font-size:1.6rem;}
+      .formula{background:#f8f9fa;border-left:3px solid #1e40af;padding:8px 14px;}
+    }
     @keyframes fu{from{opacity:0;transform:translateY(10px);}to{opacity:1;transform:none;}}
   </style>
 </head>
@@ -442,9 +462,10 @@
 
     <!-- VUE ARTICLE -->
     <div class="artview" id="artView">
-      <div style="display:flex;align-items:center;gap:10px;margin-bottom:20px;">
+      <div style="display:flex;align-items:center;gap:10px;margin-bottom:20px;flex-wrap:wrap;">
         <button class="back-btn" onclick="backToList()">← Encyclopédie</button>
         <button class="art-share" onclick="shareArticle()" title="Copier le lien">🔗 Partager</button>
+        <button class="art-share" onclick="printArticle()" title="Imprimer / Sauvegarder en PDF">🖨️ Imprimer</button>
       </div>
       <div class="artlayout">
         <div class="artbody" id="artBody"></div>
@@ -464,14 +485,14 @@
   // ┌─────────────────────────────────────────┐
   // │  REMPLACE ICI avec ta config Firebase   │
   // └─────────────────────────────────────────┘
- const firebaseConfig = {
-  apiKey: "AIzaSyCuFgzytJXD6jt4HUW9LVSD_VpGuFfcEAk",
-  authDomain: "electroino-app.firebaseapp.com",
-  projectId: "electroino-app",
-  storageBucket: "electroino-app.firebasestorage.app",
-  messagingSenderId: "864058526638",
-  appId: "1:864058526638:web:17b821633c7cc99be1563f"
-};
+  const firebaseConfig = {
+    apiKey:            "VOTRE_API_KEY",
+    authDomain:        "VOTRE_PROJECT.firebaseapp.com",
+    projectId:         "VOTRE_PROJECT_ID",
+    storageBucket:     "VOTRE_PROJECT.appspot.com",
+    messagingSenderId: "VOTRE_SENDER_ID",
+    appId:             "VOTRE_APP_ID"
+  };
 
   const app = initializeApp(firebaseConfig);
   const db  = getFirestore(app);
@@ -606,18 +627,49 @@
     return DOMAIN_KEYWORDS.some(kw => q.includes(kw));
   }
 
+  // ── Full-text search sur titre, résumé, sections, infobox, refs ──
+  function fullTextScore(a, q) {
+    const tokens = q.toLowerCase().split(/\s+/).filter(t => t.length > 1);
+    if (!tokens.length) return 0;
+
+    // Construire le corpus texte de la fiche
+    const titleStr   = (a.title   || '').toLowerCase();
+    const idStr      = (a.id      || '').toLowerCase();
+    const subStr     = (a.subtitle|| '').toLowerCase();
+    const summaryStr = (a.summary || '').toLowerCase();
+    const infoStr    = (a.infobox || []).map(r => `${r.k} ${r.v}`).join(' ').toLowerCase();
+    const sectStr    = (a.sections|| []).map(s => {
+      const subContent = (s.subs||[]).map(sub => `${sub.h3} ${sub.html||''}`).join(' ');
+      return `${s.h2} ${s.html||''} ${subContent}`;
+    }).join(' ').replace(/<[^>]+>/g,'').toLowerCase();
+    const refsStr    = (a.refs    || []).join(' ').toLowerCase();
+
+    let score = 0;
+    for (const t of tokens) {
+      // Titre = poids max
+      if (titleStr === t || idStr === t || idStr === t.replace(/\s+/g,'-')) score += 100;
+      else if (titleStr.startsWith(t)) score += 60;
+      else if (titleStr.includes(t))   score += 40;
+      // Sous-titre / résumé
+      if (subStr.includes(t))          score += 20;
+      if (summaryStr.includes(t))      score += 15;
+      // Infobox
+      if (infoStr.includes(t))         score += 10;
+      // Sections (full-text)
+      if (sectStr.includes(t))         score += 8;
+      // Références
+      if (refsStr.includes(t))         score += 3;
+    }
+    return score;
+  }
+
   function findInDB(query) {
-    const q = query.toLowerCase().trim();
-    // Correspondance exacte sur title ou id
-    let found = DB.find(a =>
-      a.title.toLowerCase() === q ||
-      a.id.toLowerCase() === q ||
-      a.id.toLowerCase() === q.replace(/\s+/g,'-')
-    );
-    if (found) return found;
-    // Correspondance partielle sur title
-    found = DB.find(a => a.title.toLowerCase().includes(q) || q.includes(a.title.toLowerCase()));
-    return found || null;
+    const q = query.trim();
+    if (!q) return null;
+    const scored = DB.map(a => ({ a, s: fullTextScore(a, q) }))
+                     .filter(x => x.s > 0)
+                     .sort((x,y) => y.s - x.s);
+    return scored.length ? scored[0].a : null;
   }
 
   // Afficher l'état "génération IA en cours" dans la grille
@@ -686,11 +738,37 @@
     const btn = document.getElementById('btnSearch');
     if (btn) btn.disabled = true;
 
-    // 1. Chercher dans la base locale
-    const found = findInDB(query);
-    if (found) {
+    const q = query.trim();
+
+    // 1. Chercher dans la base — score fort = ouvre directement
+    const q_lower = q.toLowerCase();
+    const scored = DB.map(a => ({ a, s: fullTextScore(a, q) }))
+                     .filter(x => x.s > 0)
+                     .sort((x,y) => y.s - x.s);
+
+    if (scored.length && scored[0].s >= 40) {
+      // Correspondance forte → ouvre directement
       if (btn) btn.disabled = false;
-      openA(found.id);
+      openA(scored[0].a.id);
+      return;
+    }
+
+    if (scored.length && scored[0].s > 0) {
+      // Correspondance partielle → afficher suggestions
+      if (btn) btn.disabled = false;
+      const grid = document.getElementById('lgrid');
+      grid.innerHTML = `
+        <div style="grid-column:1/-1;margin-bottom:18px;">
+          <div class="off-domain" style="border-color:rgba(59,130,246,.3);">
+            <div class="od-icon">🔍</div>
+            <h3 style="color:var(--accent);">Résultats proches pour "${q}"</h3>
+            <p>Aucune fiche exacte, mais ces fiches pourraient correspondre :</p>
+            <div class="od-suggestions">
+              ${scored.slice(0,5).map(x=>`<span class="od-sug" onclick="openA('${x.a.id}')">${x.a.icon||'📄'} ${x.a.title}</span>`).join('')}
+            </div>
+            <p style="margin-top:12px;font-size:.78rem;">Ou <button class="btn" onclick="window._forceGenerate('${q.replace(/'/g,"\\'")}')">générer une nouvelle fiche IA</button> sur ce sujet</p>
+          </div>
+        </div>`;
       return;
     }
 
@@ -702,9 +780,19 @@
     }
 
     // 3. Génération IA
+    await _generateAndSave(query, btn);
+  };
+
+  // Forcer la génération même si des résultats partiels existent
+  window._forceGenerate = async function(query) {
+    const btn = document.getElementById('btnSearch');
+    if (btn) btn.disabled = true;
+    await _generateAndSave(query, btn);
+  };
+
+  async function _generateAndSave(query, btn) {
     const progress = showGeneratingState(query);
     progress.setStep(0);
-
     try {
       await new Promise(r => setTimeout(r, 400));
       progress.setStep(1);
@@ -763,56 +851,43 @@ RÈGLES STRICTES :
       await new Promise(r => setTimeout(r, 300));
 
       if (!res.ok) throw new Error(`API ${res.status}`);
-      const data = await res.json();
-      const raw  = data.content?.find(b => b.type === 'text')?.text || '';
+      const data  = await res.json();
+      const raw   = data.content?.find(b => b.type === 'text')?.text || '';
       const clean = raw.replace(/```json|```/g,'').trim();
       const fiche = JSON.parse(clean);
-
-      // Validation minimale
       if (!fiche.id || !fiche.title || !fiche.sections) throw new Error('JSON incomplet');
 
       progress.setStep(3);
       await new Promise(r => setTimeout(r, 300));
 
-      // 4. Enregistrer dans Firestore
+      // Enregistrer dans Firestore
       try {
         await setDoc(doc(db, 'encyclopedie', fiche.id), fiche, { merge: true });
-        // Ajouter à la base locale
-        const existing = DB.findIndex(x => x.id === fiche.id);
-        if (existing >= 0) DB[existing] = fiche; else DB.push(fiche);
-        DB.sort((a,b) => a.title.localeCompare(b.title, 'fr'));
-        progress.allDone();
-        await new Promise(r => setTimeout(r, 600));
-        buildSidebar();
-        openA(fiche.id);
-        showToast('✨ Fiche générée et enregistrée automatiquement');
       } catch(fsErr) {
-        // Firestore KO → on l'affiche quand même sans persister
         console.warn('Firestore write:', fsErr.message);
-        DB.push(fiche);
-        DB.sort((a,b) => a.title.localeCompare(b.title, 'fr'));
-        progress.allDone();
-        await new Promise(r => setTimeout(r, 500));
-        buildSidebar();
-        openA(fiche.id);
-        showToast('✨ Fiche générée (non persistée — vérifier Firebase)');
       }
+      const existing = DB.findIndex(x => x.id === fiche.id);
+      if (existing >= 0) DB[existing] = fiche; else DB.push(fiche);
+      DB.sort((a,b) => a.title.localeCompare(b.title, 'fr'));
+      progress.allDone();
+      await new Promise(r => setTimeout(r, 600));
+      buildSidebar();
+      openA(fiche.id);
+      showToast('✨ Fiche générée et enregistrée automatiquement');
 
     } catch(err) {
-      console.error('smartSearch IA:', err);
+      console.error('_generateAndSave:', err);
       document.getElementById('lgrid').innerHTML = `
         <div style="grid-column:1/-1">
           <div class="state-box">
             <div class="icon">⚠️</div>
-            <p>Impossible de générer la fiche pour "<strong>${query}</strong>".<br>
-            Vérifie ta connexion ou réessaie.</p>
+            <p>Impossible de générer la fiche pour "<strong>${query}</strong>".<br>Vérifie ta connexion ou réessaie.</p>
             <button class="btn" onclick="renderList()">← Retour à l'encyclopédie</button>
           </div>
         </div>`;
     }
-
     if (btn) btn.disabled = false;
-  };
+  }
   window.openA = function(id) {
     const a = DB.find(x => x.id===id);
     if (!a) { showToast('Fiche introuvable : ' + id); return; }
@@ -874,7 +949,14 @@ RÈGLES STRICTES :
       <div class="art-intro">${a.summary}</div>
       ${toc}
       ${secs}
-      ${refs}`;
+      ${refs}
+      <!-- ── Feedback ── -->
+      <div class="feedback-bar" id="feedback-${a.id}">
+        <span class="fb-label">Cette fiche vous a été utile ?</span>
+        <button class="fb-btn fb-yes" onclick="submitFeedback('${a.id}',1,this)">👍 Oui</button>
+        <button class="fb-btn fb-no"  onclick="submitFeedback('${a.id}',-1,this)">👎 Non</button>
+        <span class="fb-score" id="fbscore-${a.id}"></span>
+      </div>`;
 
     // Infobox
     const rel = (a.related||[]).map(rid => {
@@ -897,9 +979,143 @@ RÈGLES STRICTES :
     document.getElementById('artView').classList.add('show');
     window.scrollTo({top:0, behavior:'smooth'});
     buildSidebar();
+    loadFeedbackScore(a.id);
   };
 
-  window.backToList = function() {
+  // ══════════════════════════════════════════
+  // FEEDBACK 👍 / 👎
+  // ══════════════════════════════════════════
+  window.submitFeedback = async function(id, vote, btn) {
+    const bar = document.getElementById(`feedback-${id}`);
+    if (!bar || bar.dataset.voted) return;
+    bar.dataset.voted = '1';
+    // Désactiver les boutons
+    bar.querySelectorAll('.fb-btn').forEach(b => { b.disabled = true; b.style.opacity = '.5'; });
+    btn.style.opacity = '1';
+    btn.style.transform = 'scale(1.15)';
+    try {
+      const ref = doc(db, 'encyclopedie', id);
+      const snap = await import('https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js')
+        .then(m => m.updateDoc(ref, {
+          feedbackUp:   vote > 0
+            ? (await import('https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js').then(m => m.increment(1)))
+            : (await import('https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js').then(m => m.increment(0))),
+          feedbackDown: vote < 0
+            ? (await import('https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js').then(m => m.increment(1)))
+            : (await import('https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js').then(m => m.increment(0))),
+        }));
+    } catch(e) { console.warn('feedback:', e.message); }
+    const score = document.getElementById(`fbscore-${id}`);
+    if (score) score.textContent = vote > 0 ? '👍 Merci !' : 'Merci pour votre retour.';
+    // Mémoriser le vote localement
+    localStorage.setItem(`fb_${id}`, vote);
+  };
+
+  async function loadFeedbackScore(id) {
+    const local = localStorage.getItem(`fb_${id}`);
+    const bar   = document.getElementById(`feedback-${id}`);
+    if (!bar) return;
+    if (local) {
+      bar.dataset.voted = '1';
+      bar.querySelectorAll('.fb-btn').forEach(b => { b.disabled = true; b.style.opacity = '.5'; });
+      const score = document.getElementById(`fbscore-${id}`);
+      if (score) score.textContent = local > 0 ? '👍 Déjà voté' : 'Déjà voté';
+    }
+    // Charger le score depuis Firestore
+    try {
+      const snap = await getDoc(doc(db, 'encyclopedie', id));
+      if (snap.exists()) {
+        const d = snap.data();
+        const up = d.feedbackUp||0, dn = d.feedbackDown||0, tot = up+dn;
+        const score = document.getElementById(`fbscore-${id}`);
+        if (score && tot > 0 && !local) {
+          score.textContent = `${up}/${tot} utile${tot>1?'s':''}`;
+        }
+      }
+    } catch(e) {}
+  }
+
+  // ══════════════════════════════════════════
+  // IMPRESSION / PDF
+  // ══════════════════════════════════════════
+  window.printArticle = function() {
+    if (!curArt) return;
+    const a = curArt;
+    // Construire le contenu sections en texte propre
+    let sIdx = 0;
+    const secsHtml = (a.sections||[]).map(s => {
+      sIdx++;
+      const subHtml = (s.subs||[]).map((sub,xi) =>
+        `<h3>${sIdx}.${xi+1} — ${sub.h3}</h3>${sub.html||''}`
+      ).join('');
+      return `<h2><span style="color:#1e40af;margin-right:8px;">${sIdx}</span>${s.h2}</h2>${s.html||''}${subHtml}`;
+    }).join('');
+
+    const refsHtml = a.refs?.length
+      ? `<h2>Références</h2><ol>${a.refs.map(r=>`<li>${r}</li>`).join('')}</ol>` : '';
+
+    const infoHtml = (a.infobox||[]).map(r =>
+      `<tr><td><strong>${r.k}</strong></td><td${r.mono?' style="font-family:monospace"':''}>${r.v}</td></tr>`
+    ).join('');
+
+    const win = window.open('','_blank');
+    win.document.write(`<!DOCTYPE html><html lang="fr"><head>
+      <meta charset="UTF-8"/>
+      <title>${a.title} — ElectroInfo</title>
+      <style>
+        @import url('https://fonts.googleapis.com/css2?family=Syne:wght@700;800&family=DM+Sans:opsz,wght@9..40,400;9..40,500&family=DM+Mono:wght@400&display=swap');
+        *{box-sizing:border-box;margin:0;padding:0;}
+        body{font-family:'DM Sans',sans-serif;color:#0d0f14;padding:40px;max-width:800px;margin:0 auto;line-height:1.65;font-size:14px;}
+        h1{font-family:'Syne',sans-serif;font-size:2rem;font-weight:800;margin-bottom:6px;color:#0d0f14;}
+        h2{font-family:'Syne',sans-serif;font-size:1.15rem;font-weight:700;margin:28px 0 10px;padding-bottom:6px;border-bottom:2px solid #e2e8f0;color:#1e3a8a;}
+        h3{font-family:'Syne',sans-serif;font-size:1rem;font-weight:700;margin:18px 0 8px;color:#374151;}
+        p.art-p{margin-bottom:10px;}
+        .formula{font-family:'DM Mono',monospace;background:#f1f5f9;border-left:3px solid #1e40af;padding:10px 16px;margin:12px 0;border-radius:4px;font-size:1.05rem;}
+        .header{border-bottom:3px solid #1e40af;padding-bottom:20px;margin-bottom:28px;}
+        .subtitle{color:#64748b;font-size:.95rem;margin-bottom:12px;}
+        .tags{display:flex;gap:8px;margin-bottom:12px;}
+        .tag{padding:3px 10px;border-radius:20px;font-size:.75rem;font-weight:700;}
+        .tag.composant{background:#dbeafe;color:#1e40af;}
+        .tag.electricite{background:#fef3c7;color:#92400e;}
+        .tag.plain{background:#f1f5f9;color:#475569;}
+        .infobox{float:right;width:220px;margin:0 0 20px 20px;border:1px solid #e2e8f0;border-radius:8px;overflow:hidden;font-size:.82rem;}
+        .infobox table{width:100%;border-collapse:collapse;}
+        .infobox td{padding:6px 10px;border-bottom:1px solid #f1f5f9;vertical-align:top;}
+        .infobox tr:last-child td{border-bottom:none;}
+        .infobox .ib-head{background:#1e40af;color:white;font-family:'Syne',sans-serif;font-weight:700;padding:8px 10px;font-size:.85rem;}
+        ol,ul{padding-left:20px;margin-bottom:12px;}
+        li{margin-bottom:4px;}
+        .footer{margin-top:40px;padding-top:16px;border-top:1px solid #e2e8f0;font-size:.78rem;color:#94a3b8;display:flex;justify-content:space-between;}
+        .wl{color:#1e40af;text-decoration:underline;}
+        sup{font-size:.7rem;color:#1e40af;}
+        @media print{body{padding:20px;}.footer{position:fixed;bottom:0;left:0;right:0;padding:10px 20px;background:white;}}
+      </style>
+    </head><body>
+      <div class="header">
+        <div style="font-size:.75rem;color:#94a3b8;margin-bottom:8px;text-transform:uppercase;letter-spacing:.08em;">
+          ElectroInfo — Encyclopédie &rsaquo; ${a.tag==='composant'?'Composant':'Électricité'}
+        </div>
+        <h1>${a.icon||''} ${a.title}</h1>
+        <div class="subtitle">${a.subtitle||''}</div>
+        <div class="tags">
+          <span class="tag ${a.tag}">${a.tag==='composant'?'⚡ Composant':'🔌 Électricité'}</span>
+          <span class="tag plain">📖 ${a.lecture||'—'}</span>
+          <span class="tag plain">${a.niveau||'—'}</span>
+        </div>
+        <p style="color:#374151;">${a.summary}</p>
+      </div>
+      ${infoHtml ? `<div class="infobox"><div class="ib-head">${a.title}</div><table>${infoHtml}</table></div>` : ''}
+      ${secsHtml}
+      ${refsHtml}
+      <div style="clear:both;"></div>
+      <div class="footer">
+        <span>electroinfo.online/encyclopedie/${a.id}</span>
+        <span>Généré le ${new Date().toLocaleDateString('fr-FR')}</span>
+      </div>
+      <script>window.onload=()=>window.print();<\/script>
+    </body></html>`);
+    win.document.close();
+  };
     curArt = null;
     history.pushState({}, 'Encyclopédie', window.location.pathname);
     updateSEO(null);
@@ -938,42 +1154,73 @@ RÈGLES STRICTES :
 
   // ══════════════════════════════════════════
   // SEO — meta + Schema.org dynamique
+  // URLs propres : /encyclopedie/resistance
   // ══════════════════════════════════════════
+  const SITE_ORIGIN = 'https://electroinfo.online';
+
+  function getCleanUrl(id) {
+    // URL propre SEO — même si on utilise le hash côté client
+    return id ? `${SITE_ORIGIN}/encyclopedie/${id}` : `${SITE_ORIGIN}/encyclopedie`;
+  }
+
   function updateSEO(a) {
-    const url = window.location.href;
     if (a) {
-      document.getElementById('page-title').textContent = `${a.title} — Encyclopédie ElectroInfo`;
-      document.getElementById('meta-desc').content      = a.summary;
-      document.getElementById('canonical').href         = url;
-      document.getElementById('og-title').content       = `${a.title} — ElectroInfo`;
-      document.getElementById('og-desc').content        = a.summary;
-      document.getElementById('og-url').content         = url;
+      const cleanUrl = getCleanUrl(a.id);
+      document.getElementById('page-title').textContent  = `${a.title} — Encyclopédie ElectroInfo`;
+      document.getElementById('meta-desc').content       = a.summary;
+      document.getElementById('canonical').href          = cleanUrl;
+      document.getElementById('og-title').content        = `${a.title} — ElectroInfo`;
+      document.getElementById('og-desc').content         = a.summary;
+      document.getElementById('og-url').content          = cleanUrl;
       document.getElementById('schema-article').textContent = JSON.stringify({
-        "@context":"https://schema.org",
-        "@type":"Article",
+        "@context": "https://schema.org",
+        "@type":    "Article",
         "headline": `${a.title} — ${a.subtitle||''}`,
         "description": a.summary,
-        "inLanguage":"fr",
-        "url": url,
-        "isPartOf":{"@type":"WebSite","name":"ElectroInfo"},
-        "about":{"@type":"Thing","name":a.title},
-        "keywords":[a.title, a.tag==='composant'?'composant électronique':'électricité','electroinfo','NF EN 60617'],
-        "educationalLevel": a.niveau||'',
-        "timeRequired": a.lecture ? `PT${a.lecture.replace(' min','')}M` : undefined,
-        "breadcrumb":{"@type":"BreadcrumbList","itemListElement":[
-          {"@type":"ListItem","position":1,"name":"ElectroInfo","item": BASE_URL.replace(/#.*$/,'')},
-          {"@type":"ListItem","position":2,"name":"Encyclopédie","item": BASE_URL.replace(/#.*$/,'')},
-          {"@type":"ListItem","position":3,"name":a.title,"item":url}
-        ]}
+        "inLanguage": "fr",
+        "url": cleanUrl,
+        "isPartOf": { "@type":"WebSite", "name":"ElectroInfo", "url": SITE_ORIGIN },
+        "about":    { "@type":"Thing",   "name": a.title },
+        "keywords": [
+          a.title,
+          a.tag === 'composant' ? 'composant électronique' : 'électricité',
+          'electroinfo', 'NF EN 60617', 'encyclopédie électrique francophone'
+        ],
+        "educationalLevel": a.niveau || '',
+        "timeRequired": a.lecture ? `PT${a.lecture.replace(/\s*min/i,'')}M` : undefined,
+        "dateModified": a.updatedAt || new Date().toISOString(),
+        "publisher": {
+          "@type": "Organization",
+          "name":  "ElectroInfo",
+          "url":   SITE_ORIGIN,
+          "logo":  `${SITE_ORIGIN}/images/logo.png`
+        },
+        "breadcrumb": {
+          "@type": "BreadcrumbList",
+          "itemListElement": [
+            { "@type":"ListItem", "position":1, "name":"ElectroInfo",  "item": SITE_ORIGIN },
+            { "@type":"ListItem", "position":2, "name":"Encyclopédie", "item": `${SITE_ORIGIN}/encyclopedie` },
+            { "@type":"ListItem", "position":3, "name": a.title,       "item": cleanUrl }
+          ]
+        }
       });
     } else {
+      const encUrl = `${SITE_ORIGIN}/encyclopedie`;
       document.getElementById('page-title').textContent = 'Encyclopédie — ElectroInfo';
-      document.getElementById('meta-desc').content      = 'Encyclopédie francophone sur l\'électronique et l\'électricité.';
-      document.getElementById('canonical').href         = BASE_URL;
+      document.getElementById('meta-desc').content      = 'Encyclopédie francophone sur l\'électronique et l\'électricité : composants, lois, normes NF EN 60617 et NF C 15-100.';
+      document.getElementById('canonical').href         = encUrl;
       document.getElementById('og-title').content       = 'Encyclopédie — ElectroInfo';
       document.getElementById('og-desc').content        = 'Référence francophone sur l\'électronique et l\'électricité.';
-      document.getElementById('og-url').content         = BASE_URL;
-      document.getElementById('schema-article').textContent = '{}';
+      document.getElementById('og-url').content         = encUrl;
+      document.getElementById('schema-article').textContent = JSON.stringify({
+        "@context": "https://schema.org",
+        "@type":    "CollectionPage",
+        "name":     "Encyclopédie ElectroInfo",
+        "description": "Encyclopédie francophone dédiée à l'électronique et à l'électricité industrielle.",
+        "url":      encUrl,
+        "inLanguage": "fr",
+        "isPartOf": { "@type":"WebSite", "name":"ElectroInfo", "url": SITE_ORIGIN }
+      });
     }
   }
 
@@ -1104,6 +1351,17 @@ RÈGLES STRICTES :
     setLang(saved);
   });
 })();
+</script>
+
+<!-- ===== SERVICE WORKER ===== -->
+<script>
+if ('serviceWorker' in navigator) {
+  window.addEventListener('load', () => {
+    navigator.serviceWorker.register('/sw.js')
+      .then(r => console.log('SW enregistré:', r.scope))
+      .catch(e => console.warn('SW échec:', e));
+  });
+}
 </script>
 
 </body>
