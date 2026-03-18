@@ -14,11 +14,12 @@
     input,select,textarea{font-family:var(--fb);}
 
     /* NAV */
-    .nav{background:var(--surface);border-bottom:1px solid var(--border);height:56px;padding:0 24px;display:flex;align-items:center;justify-content:space-between;}
-    .brand{font-family:var(--fh);font-weight:800;font-size:1rem;display:flex;align-items:center;gap:8px;color:var(--text);}
-    .brand .dot{color:var(--accent);}
-    .nav-back{font-size:.82rem;color:var(--muted);text-decoration:none;display:flex;align-items:center;gap:5px;transition:color .2s;}
-    .nav-back:hover{color:var(--text);}
+    .nav{background:linear-gradient(135deg,#1e3a8a 0%,#1e40af 100%);border-bottom:none;box-shadow:0 2px 16px rgba(0,0,0,.18);height:60px;padding:0 24px;display:flex;align-items:center;justify-content:space-between;}
+    .brand{font-family:var(--fh);font-weight:800;font-size:1rem;display:flex;align-items:center;gap:10px;color:#fff;text-decoration:none;}
+    .brand img{height:32px;width:auto;}
+    .brand .admin-badge{background:rgba(255,255,255,.15);border:1px solid rgba(255,255,255,.3);color:rgba(255,255,255,.85);font-size:.72rem;font-weight:600;padding:2px 9px;border-radius:20px;letter-spacing:.04em;}
+    .nav-back{font-size:.82rem;color:rgba(255,255,255,.75);text-decoration:none;display:flex;align-items:center;gap:5px;padding:.4rem .85rem;border-radius:20px;border:1.5px solid rgba(255,255,255,.3);transition:all .2s;}
+    .nav-back:hover{color:#fff;background:rgba(255,255,255,.12);border-color:rgba(255,255,255,.5);}
 
     /* LAYOUT */
     .wrap{display:flex;max-width:1260px;margin:0 auto;gap:22px;padding:26px 20px 80px;}
@@ -111,12 +112,12 @@
 <body>
 
 <nav class="nav">
-  <div class="brand">
-    <svg width="20" height="20" viewBox="0 0 22 22" fill="none"><rect width="22" height="22" rx="6" fill="#3b82f6"/><path d="M6 11h10M11 6v10" stroke="#fff" stroke-width="2.2" stroke-linecap="round"/></svg>
-    Electro<span class="dot">Info</span>
-    <span style="color:var(--muted);font-weight:400;font-size:.82rem">— Admin Encyclopédie</span>
-  </div>
-  <a href="encyclopedie.html" class="nav-back">← Voir l'encyclopédie</a>
+  <a href="/" class="brand">
+    <img src="images/logo-small.png" alt="ElectroInfo">
+    ELECTROINFO
+    <span class="admin-badge">Admin Encyclopédie</span>
+  </a>
+  <a href="/encyclopedie" class="nav-back">← Voir l'encyclopédie</a>
 </nav>
 
 <div class="toast" id="toast"></div>
@@ -194,14 +195,13 @@
   // │  REMPLACE ICI avec ta config Firebase   │
   // └─────────────────────────────────────────┘
   const firebaseConfig = {
-  apiKey: "AIzaSyCuFgzytJXD6jt4HUW9LVSD_VpGuFfcEAk",
-  authDomain: "electroino-app.firebaseapp.com",
-  projectId: "electroino-app",
-  storageBucket: "electroino-app.firebasestorage.app",
-  messagingSenderId: "864058526638",
-  appId: "1:864058526638:web:17b821633c7cc99be1563f"
-};
-
+    apiKey:            "VOTRE_API_KEY",
+    authDomain:        "VOTRE_PROJECT.firebaseapp.com",
+    projectId:         "VOTRE_PROJECT_ID",
+    storageBucket:     "VOTRE_PROJECT.appspot.com",
+    messagingSenderId: "VOTRE_SENDER_ID",
+    appId:             "VOTRE_APP_ID"
+  };
 
   const app = initializeApp(firebaseConfig);
   const db  = getFirestore(app);
