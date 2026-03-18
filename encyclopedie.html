@@ -20,7 +20,7 @@
 
   <!-- Schema.org WebSite -->
   <script type="application/ld+json" id="schema-website">
-  {"@context":"https://schema.org","@type":"WebSite","name":"ElectroInfo","description":"Encyclopédie francophone dédiée à l'électronique et à l'électricité","inLanguage":"fr","url":""}
+  {"@context":"https://schema.org","@type":"WebSite","name":"ElectroInfo","description":"Encyclopédie francophone dédiée à l'électronique et à l'électricité","inLanguage":"fr","url":"https://electroinfo.online","potentialAction":{"@type":"SearchAction","target":"https://electroinfo.online/encyclopedie?q={search_term_string}","query-input":"required name=search_term_string"}}
   </script>
   <!-- Schema.org Article (injecté dynamiquement) -->
   <script type="application/ld+json" id="schema-article">{}</script>
@@ -491,26 +491,30 @@
   import { initializeApp }                from "https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js";
   import { getFirestore, collection, getDocs, doc, getDoc, query, orderBy, setDoc, updateDoc, increment }
                                           from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
+  import { getFunctions, httpsCallable }  from "https://www.gstatic.com/firebasejs/10.12.2/firebase-functions.js";
 
   // ┌─────────────────────────────────────────┐
   // │  REMPLACE ICI avec ta config Firebase   │
   // └─────────────────────────────────────────┘
- const firebaseConfig = {
-  apiKey: "AIzaSyCuFgzytJXD6jt4HUW9LVSD_VpGuFfcEAk",
-  authDomain: "electroino-app.firebaseapp.com",
-  projectId: "electroino-app",
-  storageBucket: "electroino-app.firebasestorage.app",
-  messagingSenderId: "864058526638",
-  appId: "1:864058526638:web:17b821633c7cc99be1563f"
-};
+  const firebaseConfig = {
+    apiKey:            "VOTRE_API_KEY",
+    authDomain:        "VOTRE_PROJECT.firebaseapp.com",
+    projectId:         "VOTRE_PROJECT_ID",
+    storageBucket:     "VOTRE_PROJECT.appspot.com",
+    messagingSenderId: "VOTRE_SENDER_ID",
+    appId:             "VOTRE_APP_ID"
+  };
 
-  const app = initializeApp(firebaseConfig);
-  const db  = getFirestore(app);
+  const app  = initializeApp(firebaseConfig);
+  const db   = getFirestore(app);
+  const fnc  = getFunctions(app, 'europe-west1'); // même région que la Cloud Function
 
-  // ─── BASE URL dynamique ───────────────────
-  const BASE_URL = window.location.origin + window.location.pathname;
+  const SITE_ORIGIN = 'https://electroinfo.online';
 
-  // ─── Données en mémoire ──────────────────
+  // Initialiser l'état history pour que popstate fonctionne dès le départ
+  if (!history.state) {
+    history.replaceState({}, 'Encyclopédie', window.location.href);
+  }
   let DB        = [];   // toutes les fiches
   let filterCat = 'all';
   let curArt    = null;
@@ -535,18 +539,31 @@
     }
     buildSidebar();
     renderList();
-    // Vérifier si une fiche est demandée dans le hash
-    const hash = window.location.hash.replace('#','');
-    if (hash) openA(hash);
+
+    // Détecter l'article demandé — hash OU URL propre /encyclopedie/id
+    const hash    = window.location.hash.replace('#','');
+    const pathSeg = window.location.pathname.replace(/.*\/encyclopedie\/?/,'').replace(/\//,'').trim();
+    const articleId = hash || pathSeg;
+    if (articleId) openA(articleId);
   }
 
   // ══════════════════════════════════════════
-  // ROUTING HASH — chaque article a son URL
+  // ROUTING — URLs propres /encyclopedie/:id
+  // + bouton Retour navigateur (popstate)
   // ══════════════════════════════════════════
   window.addEventListener('hashchange', () => {
     const h = window.location.hash.replace('#','');
     if (h) openA(h);
     else   backToList();
+  });
+
+  // Bouton Retour/Avant du navigateur
+  window.addEventListener('popstate', (e) => {
+    if (e.state?.articleId) {
+      openA(e.state.articleId, true); // true = ne pas re-pusher
+    } else {
+      backToList(true);
+    }
   });
 
   // ══════════════════════════════════════════
@@ -853,65 +870,17 @@
       await new Promise(r => setTimeout(r, 400));
       progress.setStep(1);
 
-      // Appel API Claude
-      const prompt = `Tu es une encyclopédie francophone spécialisée en électricité industrielle, électronique et technologie électrique.
-
-Génère une fiche encyclopédique COMPLÈTE en JSON pour le sujet : "${query}"
-
-RÈGLES STRICTES :
-- Répondre UNIQUEMENT avec du JSON valide, sans backticks, sans texte avant ou après
-- Le JSON doit respecter exactement ce schéma :
-{
-  "id": "slug-kebab-case",
-  "icon": "emoji",
-  "title": "Titre exact",
-  "subtitle": "Sous-titre court",
-  "tag": "composant" ou "electricite",
-  "niveau": "Débutant" ou "Intermédiaire" ou "Avancé",
-  "lecture": "X min",
-  "summary": "Résumé intro 2-3 phrases",
-  "infobox": [{"k":"clé","v":"valeur","mono":false}],
-  "sections": [
-    {
-      "h2": "Titre section",
-      "id": "ancre-id",
-      "html": "<p class=\\"art-p\\">Contenu HTML. Formules dans <div class=\\"formula\\">U = R × I</div></p>",
-      "subs": [
-        {"h3": "Sous-section", "id": "sub-id", "html": "<p class=\\"art-p\\">Contenu</p>"}
-      ]
-    }
-  ],
-  "refs": ["Auteur, Titre, Éditeur, Année."],
-  "related": ["id-fiche-liee"],
-  "autoGenerated": true,
-  "updatedAt": "${new Date().toISOString()}"
-}
-
-- Minimum 4 sections H2 avec sous-sections H3
-- Infobox : 4 à 7 lignes avec unités, symboles, normes
-- Liens internes avec <span class="wl" onclick="openA('id')">texte</span>
-- Formules mathématiques dans <div class="formula">...</div>
-- Contenu sérieux, précis, niveau technicien/étudiant`;
-
-      const res = await fetch('https://api.anthropic.com/v1/messages', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          model: 'claude-sonnet-4-20250514',
-          max_tokens: 4000,
-          messages: [{ role: 'user', content: prompt }]
-        })
-      });
+      // Appel via Cloud Function sécurisée (la clé API reste côté serveur)
+      const generateFiche = httpsCallable(fnc, 'generateFiche', { timeout: 60000 });
+      const result = await generateFiche({ query });
 
       progress.setStep(2);
       await new Promise(r => setTimeout(r, 300));
 
-      if (!res.ok) throw new Error(`API ${res.status}`);
-      const data  = await res.json();
-      const raw   = data.content?.find(b => b.type === 'text')?.text || '';
-      const clean = raw.replace(/```json|```/g,'').trim();
-      const fiche = JSON.parse(clean);
-      if (!fiche.id || !fiche.title || !fiche.sections) throw new Error('JSON incomplet');
+      const fiche = result.data?.fiche;
+      if (!fiche || !fiche.id || !fiche.title || !fiche.sections) {
+        throw new Error('Fiche incomplète reçue de la Cloud Function');
+      }
 
       progress.setStep(3);
       await new Promise(r => setTimeout(r, 300));
@@ -944,13 +913,16 @@ RÈGLES STRICTES :
     }
     if (btn) btn.disabled = false;
   }
-  window.openA = function(id) {
+  window.openA = function(id, noPush=false) {
     const a = DB.find(x => x.id===id);
     if (!a) { showToast('Fiche introuvable : ' + id); return; }
     curArt = a;
 
-    // URL + SEO
-    history.pushState({articleId:id}, a.title, `${window.location.pathname}#${id}`);
+    // URL propre SEO + état pour popstate
+    const cleanUrl = getCleanUrl(id);
+    if (!noPush) {
+      history.pushState({ articleId: id }, a.title, `${window.location.pathname}#${id}`);
+    }
     updateSEO(a);
 
     // TOC
@@ -1166,9 +1138,9 @@ RÈGLES STRICTES :
     win.document.close();
   };
 
-  window.backToList = function() {
+  window.backToList = function(noPush=false) {
     curArt = null;
-    history.pushState({}, 'Encyclopédie', window.location.pathname);
+    if (!noPush) history.pushState({}, 'Encyclopédie', window.location.pathname);
     updateSEO(null);
     document.getElementById('artView').classList.remove('show');
     document.getElementById('listView').classList.remove('hide');
@@ -1207,10 +1179,8 @@ RÈGLES STRICTES :
   // SEO — meta + Schema.org dynamique
   // URLs propres : /encyclopedie/resistance
   // ══════════════════════════════════════════
-  const SITE_ORIGIN = 'https://electroinfo.online';
 
   function getCleanUrl(id) {
-    // URL propre SEO — même si on utilise le hash côté client
     return id ? `${SITE_ORIGIN}/encyclopedie/${id}` : `${SITE_ORIGIN}/encyclopedie`;
   }
 
