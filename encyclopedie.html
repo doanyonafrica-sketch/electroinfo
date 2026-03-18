@@ -1,0 +1,617 @@
+<!DOCTYPE html>
+<html lang="fr" data-theme="dark">
+<head>
+  <meta charset="UTF-8"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <meta name="robots" content="index, follow"/>
+
+  <!-- SEO dynamique — mis à jour par JS à chaque article -->
+  <title id="page-title">Encyclopédie — ElectroInfo</title>
+  <meta name="description" id="meta-desc" content="Encyclopédie francophone sur l'électronique et l'électricité : composants, lois, normes NF EN 60617 et NF C 15-100."/>
+  <link rel="canonical" id="canonical" href=""/>
+
+  <!-- Open Graph -->
+  <meta property="og:type"        content="website"/>
+  <meta property="og:site_name"   content="ElectroInfo"/>
+  <meta property="og:locale"      content="fr_FR"/>
+  <meta property="og:title"       id="og-title"  content="Encyclopédie — ElectroInfo"/>
+  <meta property="og:description" id="og-desc"   content="Référence francophone sur l'électronique et l'électricité."/>
+  <meta property="og:url"         id="og-url"    content=""/>
+
+  <!-- Schema.org WebSite -->
+  <script type="application/ld+json" id="schema-website">
+  {"@context":"https://schema.org","@type":"WebSite","name":"ElectroInfo","description":"Encyclopédie francophone dédiée à l'électronique et à l'électricité","inLanguage":"fr","url":""}
+  </script>
+  <!-- Schema.org Article (injecté dynamiquement) -->
+  <script type="application/ld+json" id="schema-article">{}</script>
+
+  <link href="https://fonts.googleapis.com/css2?family=Syne:wght@400;600;700;800&family=DM+Sans:opsz,wght@9..40,300;9..40,400;9..40,500&family=DM+Mono:wght@400;500&display=swap" rel="stylesheet"/>
+
+  <style>
+    :root{
+      --bg:#0d0f14; --surface:#141820; --surface2:#1c2230;
+      --border:#252d3d; --accent:#3b82f6; --accent2:#f59e0b;
+      --text:#e2e8f0; --muted:#8892a4; --tag-bg:#1e2a40;
+      --r:10px; --fh:'Syne',sans-serif; --fb:'DM Sans',sans-serif; --fm:'DM Mono',monospace;
+    }
+    [data-theme=light]{--bg:#f4f6fb;--surface:#fff;--surface2:#eef1f7;--border:#d4d9e8;--text:#0d0f14;--muted:#6b7690;--tag-bg:#dce6f7;}
+    *,*::before,*::after{box-sizing:border-box;margin:0;padding:0;}
+    html{scroll-behavior:smooth;}
+    body{font-family:var(--fb);background:var(--bg);color:var(--text);min-height:100vh;transition:background .3s,color .3s;}
+    a{color:var(--accent);text-decoration:none;}
+    a:hover{text-decoration:underline;}
+    button{cursor:pointer;border:none;background:none;font-family:inherit;}
+
+    /* ─── NAVBAR ─── */
+    .nav{position:sticky;top:0;z-index:200;background:rgba(13,15,20,.92);backdrop-filter:blur(18px);border-bottom:1px solid var(--border);height:58px;padding:0 24px;display:flex;align-items:center;justify-content:space-between;}
+    [data-theme=light] .nav{background:rgba(244,246,251,.92);}
+    .brand{display:flex;align-items:center;gap:9px;font-family:var(--fh);font-weight:800;font-size:1.1rem;letter-spacing:-.02em;color:var(--text);}
+    .brand .dot{color:var(--accent);}
+    .navlinks{display:flex;gap:4px;}
+    .nl{padding:6px 13px;border-radius:6px;font-size:.83rem;font-weight:500;color:var(--muted);transition:all .2s;}
+    .nl:hover,.nl.on{color:var(--text);background:var(--surface2);}
+    .nl.on{color:var(--accent);}
+    .nav-right{display:flex;align-items:center;gap:8px;}
+    .tbtn{width:34px;height:34px;border-radius:8px;background:var(--surface2);color:var(--muted);display:flex;align-items:center;justify-content:center;font-size:.95rem;transition:background .2s;}
+    .tbtn:hover{background:var(--border);}
+
+    /* ─── LAYOUT ─── */
+    .wrap{display:flex;max-width:1300px;margin:0 auto;padding:32px 20px 80px;gap:28px;align-items:flex-start;}
+
+    /* ─── SIDEBAR ─── */
+    .sleft{width:252px;flex-shrink:0;position:sticky;top:70px;background:var(--surface);border:1px solid var(--border);border-radius:var(--r);overflow:hidden;max-height:calc(100vh - 86px);display:flex;flex-direction:column;}
+    .sl-head{padding:12px 16px;border-bottom:1px solid var(--border);font-family:var(--fh);font-weight:700;font-size:.76rem;letter-spacing:.07em;text-transform:uppercase;color:var(--accent);display:flex;align-items:center;justify-content:space-between;flex-shrink:0;}
+    .sl-count{font-size:.72rem;color:var(--muted);font-weight:400;letter-spacing:0;text-transform:none;}
+    .sl-search{margin:8px 10px;display:flex;align-items:center;gap:7px;background:var(--surface2);border:1px solid var(--border);border-radius:7px;padding:7px 11px;flex-shrink:0;}
+    .sl-search input{flex:1;background:none;border:none;outline:none;font-family:var(--fb);font-size:.81rem;color:var(--text);}
+    .sl-search input::placeholder{color:var(--muted);}
+    .sl-scroll{overflow-y:auto;flex:1;}
+    .sl-letter{padding:6px 16px 2px;font-family:var(--fh);font-weight:700;font-size:.72rem;color:var(--muted);letter-spacing:.08em;text-transform:uppercase;}
+    .se{display:flex;align-items:center;gap:8px;padding:7px 14px;font-size:.81rem;color:var(--muted);cursor:pointer;transition:background .15s,color .15s;border-left:3px solid transparent;}
+    .se:hover{background:var(--surface2);color:var(--text);}
+    .se.active{background:var(--tag-bg);color:var(--accent);border-left-color:var(--accent);}
+    .se-icon{font-size:.95rem;flex-shrink:0;}
+    .cbadge{margin-left:auto;font-size:.6rem;font-weight:700;letter-spacing:.04em;padding:2px 5px;border-radius:4px;text-transform:uppercase;flex-shrink:0;}
+    .cbadge.composant{background:#1e3a5f;color:#60a5fa;}
+    .cbadge.electricite{background:#3d2a00;color:#f59e0b;}
+
+    /* ─── MAIN ─── */
+    .main{flex:1;min-width:0;}
+
+    /* ─── ÉTAT CHARGEMENT / ERREUR ─── */
+    .state-box{text-align:center;padding:60px 20px;color:var(--muted);}
+    .state-box .icon{font-size:2.5rem;margin-bottom:14px;}
+    .state-box p{font-size:.9rem;line-height:1.6;max-width:400px;margin:0 auto 20px;}
+    .state-box .btn{display:inline-flex;align-items:center;gap:6px;padding:10px 20px;border-radius:8px;background:var(--accent);color:#fff;font-size:.85rem;font-weight:600;cursor:pointer;border:none;transition:opacity .2s;}
+    .state-box .btn:hover{opacity:.85;}
+    .spinner{width:36px;height:36px;border:3px solid var(--border);border-top-color:var(--accent);border-radius:50%;animation:spin .8s linear infinite;margin:0 auto 16px;}
+    @keyframes spin{to{transform:rotate(360deg);}}
+
+    /* ─── FILTRES ─── */
+    .lfilters{display:flex;gap:8px;flex-wrap:wrap;margin-bottom:22px;}
+    .fb{padding:7px 16px;border-radius:20px;font-size:.82rem;font-weight:600;border:1.5px solid var(--border);color:var(--muted);background:var(--surface);transition:all .2s;}
+    .fb:hover{border-color:var(--accent);color:var(--accent);}
+    .fb.on{background:var(--accent);border-color:var(--accent);color:#fff;}
+
+    /* ─── GRID CARTES ─── */
+    .lgrid{display:grid;grid-template-columns:repeat(auto-fill,minmax(255px,1fr));gap:14px;}
+    .lc{background:var(--surface);border:1px solid var(--border);border-radius:var(--r);padding:18px;cursor:pointer;transition:border-color .2s,transform .2s,box-shadow .2s;position:relative;overflow:hidden;animation:fu .35s both;}
+    .lc::after{content:'';position:absolute;top:0;left:0;right:0;height:2px;background:var(--accent);transform:scaleX(0);transform-origin:left;transition:transform .3s;}
+    .lc:hover{border-color:var(--accent);transform:translateY(-2px);box-shadow:0 6px 22px rgba(0,0,0,.22);}
+    .lc:hover::after{transform:scaleX(1);}
+    .lc-top{display:flex;align-items:center;justify-content:space-between;margin-bottom:10px;}
+    .lc-icon{font-size:1.3rem;}
+    .lctag{font-size:.67rem;font-weight:700;letter-spacing:.05em;text-transform:uppercase;padding:2px 8px;border-radius:4px;}
+    .lctag.composant{background:#1e3a5f;color:#60a5fa;}
+    .lctag.electricite{background:#3d2a00;color:#f59e0b;}
+    .lc h3{font-family:var(--fh);font-weight:700;font-size:.92rem;letter-spacing:-.01em;margin-bottom:6px;}
+    .lc p{font-size:.8rem;color:var(--muted);line-height:1.55;}
+    .lc-foot{margin-top:12px;padding-top:10px;border-top:1px solid var(--border);display:flex;align-items:center;justify-content:space-between;}
+    .lc-meta{font-size:.72rem;color:var(--muted);}
+    .lc-arr{width:26px;height:26px;border-radius:6px;background:var(--surface2);color:var(--muted);display:flex;align-items:center;justify-content:center;font-size:.75rem;transition:background .2s,color .2s;}
+    .lc:hover .lc-arr{background:var(--accent);color:#fff;}
+
+    /* ─── ARTICLE ─── */
+    .artview{display:none;}
+    .artview.show{display:block;}
+    .listview.hide{display:none;}
+    .back-btn{display:inline-flex;align-items:center;gap:6px;font-size:.81rem;color:var(--muted);margin-bottom:20px;padding:6px 12px;border-radius:6px;background:var(--surface);border:1px solid var(--border);cursor:pointer;transition:background .2s,color .2s;}
+    .back-btn:hover{background:var(--surface2);color:var(--text);}
+    .art-share{padding:6px 12px;border-radius:6px;background:var(--surface2);border:1px solid var(--border);font-size:.78rem;color:var(--muted);transition:all .2s;display:inline-flex;align-items:center;gap:5px;}
+    .art-share:hover{background:var(--accent);border-color:var(--accent);color:#fff;}
+    .artlayout{display:flex;gap:26px;align-items:flex-start;}
+    .artbody{flex:1;min-width:0;}
+
+    /* Titre article */
+    .art-icon-row{display:flex;align-items:flex-start;gap:14px;margin-bottom:14px;}
+    .art-bigicon{width:52px;height:52px;border-radius:12px;background:var(--tag-bg);display:flex;align-items:center;justify-content:center;font-size:1.7rem;flex-shrink:0;}
+    .art-h1{font-family:var(--fh);font-weight:800;font-size:clamp(1.4rem,3vw,1.95rem);letter-spacing:-.03em;line-height:1.15;}
+    .art-sub{color:var(--muted);font-size:.86rem;margin-top:5px;font-style:italic;}
+    .art-tags{display:flex;gap:8px;flex-wrap:wrap;margin-top:10px;}
+    .atag{font-size:.7rem;font-weight:700;letter-spacing:.05em;text-transform:uppercase;padding:3px 9px;border-radius:4px;}
+    .atag.composant{background:#1e3a5f;color:#60a5fa;}
+    .atag.electricite{background:#3d2a00;color:#f59e0b;}
+    .atag.plain{background:var(--tag-bg);color:var(--muted);}
+    .art-divider{height:1px;background:var(--border);margin:18px 0;}
+
+    /* Intro */
+    .art-intro{border-left:3px solid var(--accent);background:var(--surface2);border-radius:0 8px 8px 0;padding:14px 18px;margin-bottom:24px;font-size:.91rem;line-height:1.75;color:var(--text);}
+
+    /* TOC */
+    .toc{background:var(--surface);border:1px solid var(--border);border-radius:var(--r);padding:14px 18px;margin-bottom:28px;display:inline-block;min-width:240px;max-width:100%;}
+    .toc-title{font-family:var(--fh);font-weight:700;font-size:.76rem;letter-spacing:.07em;text-transform:uppercase;color:var(--accent);margin-bottom:10px;display:flex;align-items:center;gap:8px;}
+    .toc-tog{font-size:.7rem;color:var(--muted);cursor:pointer;margin-left:auto;}
+    .toc-tog:hover{color:var(--text);}
+    .toclist{list-style:none;}
+    .toclist li{padding:2px 0;}
+    .toclist a{font-size:.81rem;color:var(--muted);display:flex;align-items:center;gap:6px;transition:color .15s;}
+    .toclist a:hover{color:var(--accent);text-decoration:none;}
+    .tocnum{font-family:var(--fm);font-size:.73rem;color:var(--accent);min-width:22px;}
+    .toc-sub{padding-left:20px !important;}
+    .toc-sub a{font-size:.77rem;}
+
+    /* Sections */
+    .art-section{margin-bottom:30px;}
+    .art-h2{font-family:var(--fh);font-weight:700;font-size:1.06rem;letter-spacing:-.01em;margin-bottom:12px;padding-bottom:8px;border-bottom:2px solid var(--border);display:flex;align-items:center;gap:10px;scroll-margin-top:76px;}
+    .secnum{font-family:var(--fm);font-size:.73rem;color:var(--accent);}
+    .art-h3{font-family:var(--fh);font-weight:700;font-size:.91rem;margin:16px 0 9px;padding-left:10px;border-left:3px solid var(--border);scroll-margin-top:76px;}
+    .art-p{font-size:.875rem;line-height:1.8;color:var(--muted);margin-bottom:9px;}
+    .art-p strong{color:var(--text);}
+    .wl{color:var(--accent);border-bottom:1px dotted var(--accent);cursor:pointer;transition:color .15s;}
+    .wl:hover{color:#93c5fd;}
+    .formula{background:var(--bg);border:1px solid var(--border);border-radius:8px;padding:14px 20px;font-family:var(--fm);font-size:.92rem;text-align:center;color:var(--accent2);margin:12px 0;letter-spacing:.03em;}
+
+    /* Références */
+    .rn{display:inline-flex;align-items:center;justify-content:center;width:16px;height:16px;border-radius:50%;background:var(--tag-bg);border:1px solid var(--accent);font-size:.61rem;font-weight:700;color:var(--accent);cursor:pointer;margin-left:1px;vertical-align:super;transition:background .15s;}
+    .rn:hover{background:var(--accent);color:#fff;}
+    .refs-sec{margin-top:34px;padding-top:18px;border-top:2px solid var(--border);}
+    .refs-title{font-family:var(--fh);font-weight:700;font-size:.88rem;margin-bottom:10px;color:var(--muted);}
+    .refs-ol{list-style:none;counter-reset:rc;}
+    .refs-ol li{counter-increment:rc;font-size:.77rem;color:var(--muted);padding:6px 0;border-bottom:1px solid var(--border);display:flex;gap:10px;align-items:flex-start;}
+    .refs-ol li:last-child{border-bottom:none;}
+    .refs-ol li::before{content:counter(rc);min-width:20px;height:20px;border-radius:50%;background:var(--tag-bg);color:var(--accent);font-size:.67rem;font-weight:700;display:flex;align-items:center;justify-content:center;flex-shrink:0;margin-top:1px;}
+
+    /* Tooltip footnote */
+    .fntip{position:fixed;z-index:400;background:var(--surface);border:1.5px solid var(--accent);border-radius:8px;padding:10px 14px;max-width:290px;font-size:.79rem;color:var(--text);line-height:1.55;box-shadow:0 8px 28px rgba(0,0,0,.5);pointer-events:none;opacity:0;transition:opacity .2s;}
+    .fntip.show{opacity:1;}
+
+    /* ─── INFOBOX ─── */
+    .infobox{width:230px;flex-shrink:0;background:var(--surface);border:1px solid var(--border);border-radius:var(--r);overflow:hidden;position:sticky;top:70px;}
+    .ib-head{padding:11px 14px;background:var(--tag-bg);border-bottom:1px solid var(--border);font-family:var(--fh);font-weight:700;font-size:.75rem;letter-spacing:.07em;text-transform:uppercase;color:var(--accent);text-align:center;}
+    .ib-icon{text-align:center;padding:16px 0;font-size:2.6rem;border-bottom:1px solid var(--border);}
+    .ib-row{padding:9px 14px;border-bottom:1px solid var(--border);}
+    .ib-row:last-child{border-bottom:none;}
+    .ib-k{font-size:.68rem;font-weight:600;color:var(--muted);letter-spacing:.04em;text-transform:uppercase;margin-bottom:3px;}
+    .ib-v{font-size:.82rem;color:var(--text);font-weight:500;}
+    .ib-v.mono{font-family:var(--fm);font-size:.78rem;color:var(--accent2);}
+    .rel-box{margin-top:12px;background:var(--surface);border:1px solid var(--border);border-radius:var(--r);overflow:hidden;}
+    .rel-head{padding:9px 13px;background:var(--surface2);border-bottom:1px solid var(--border);font-family:var(--fh);font-weight:700;font-size:.72rem;letter-spacing:.06em;text-transform:uppercase;color:var(--muted);}
+    .rel-link{display:flex;align-items:center;gap:8px;padding:8px 13px;font-size:.81rem;color:var(--muted);cursor:pointer;border-bottom:1px solid var(--border);transition:background .15s,color .15s;}
+    .rel-link:last-child{border-bottom:none;}
+    .rel-link:hover{background:var(--surface2);color:var(--text);}
+
+    /* ─── TOAST ─── */
+    .toast{position:fixed;bottom:28px;left:50%;transform:translateX(-50%) translateY(20px);background:var(--surface);border:1px solid var(--border);border-radius:8px;padding:10px 18px;font-size:.83rem;color:var(--text);box-shadow:0 6px 20px rgba(0,0,0,.4);opacity:0;transition:opacity .25s,transform .25s;pointer-events:none;z-index:500;}
+    .toast.show{opacity:1;transform:translateX(-50%) translateY(0);}
+
+    /* ─── RESPONSIVE ─── */
+    @media(max-width:960px){.sleft,.infobox,.rel-box{display:none;}}
+    @media(max-width:640px){.navlinks{display:none;}.wrap{padding:16px 12px 60px;}}
+    @keyframes fu{from{opacity:0;transform:translateY(10px);}to{opacity:1;transform:none;}}
+  </style>
+</head>
+<body>
+
+<nav class="nav">
+  <a href="index.html" class="brand" style="text-decoration:none;">
+    <svg width="22" height="22" viewBox="0 0 22 22" fill="none"><rect width="22" height="22" rx="6" fill="#3b82f6"/><path d="M6 11h10M11 6v10" stroke="#fff" stroke-width="2.2" stroke-linecap="round"/></svg>
+    Electro<span class="dot">Info</span>
+  </a>
+  <div class="navlinks">
+    <a href="index.html" class="nl">Accueil</a>
+    <a href="articles.html" class="nl">Articles</a>
+    <a href="encyclopedie.html" class="nl on">Encyclopédie</a>
+    <a href="courses.html" class="nl">Cours</a>
+  </div>
+  <div class="nav-right">
+    <button class="tbtn" onclick="toggleTheme()" title="Changer thème">🌓</button>
+  </div>
+</nav>
+
+<!-- Tooltip footnote -->
+<div class="fntip" id="fntip"></div>
+<!-- Toast -->
+<div class="toast" id="toast"></div>
+
+<div class="wrap">
+  <!-- SIDEBAR -->
+  <aside class="sleft">
+    <div class="sl-head">
+      <span>Index</span>
+      <span class="sl-count" id="sl-count">…</span>
+    </div>
+    <div class="sl-search">
+      <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="color:var(--muted);flex-shrink:0"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.35-4.35"/></svg>
+      <input type="text" placeholder="Rechercher…" oninput="filterSidebar(this.value)"/>
+    </div>
+    <div class="sl-scroll" id="sideIdx"></div>
+  </aside>
+
+  <!-- CONTENU PRINCIPAL -->
+  <main class="main">
+
+    <!-- VUE LISTE -->
+    <div class="listview" id="listView">
+      <div style="margin-bottom:26px;">
+        <h1 style="font-family:var(--fh);font-weight:800;font-size:1.65rem;letter-spacing:-.03em;margin-bottom:8px;">
+          Encyclopédie <span style="color:var(--accent)">ElectroInfo</span>
+        </h1>
+        <p style="color:var(--muted);font-size:.88rem;max-width:540px;line-height:1.62;">
+          Référence francophone sur l'électronique et l'électricité — composants, lois, normes NF EN 60617 et NF C 15-100.
+        </p>
+      </div>
+      <div class="lfilters">
+        <button class="fb on" onclick="setFilter('all',this)">Tout</button>
+        <button class="fb" onclick="setFilter('composant',this)">⚡ Composants</button>
+        <button class="fb" onclick="setFilter('electricite',this)">🔌 Électricité</button>
+      </div>
+      <div id="lgrid" class="lgrid">
+        <!-- Chargement -->
+        <div style="grid-column:1/-1" id="grid-state">
+          <div class="state-box"><div class="spinner"></div><p>Chargement des fiches…</p></div>
+        </div>
+      </div>
+    </div>
+
+    <!-- VUE ARTICLE -->
+    <div class="artview" id="artView">
+      <div style="display:flex;align-items:center;gap:10px;margin-bottom:20px;">
+        <button class="back-btn" onclick="backToList()">← Encyclopédie</button>
+        <button class="art-share" onclick="shareArticle()" title="Copier le lien">🔗 Partager</button>
+      </div>
+      <div class="artlayout">
+        <div class="artbody" id="artBody"></div>
+        <div id="artIB"></div>
+      </div>
+    </div>
+
+  </main>
+</div>
+
+<!-- ══════════ FIREBASE SDK ══════════ -->
+<script type="module">
+  import { initializeApp }                from "https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js";
+  import { getFirestore, collection, getDocs, doc, getDoc, query, orderBy }
+                                          from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
+
+  // ┌─────────────────────────────────────────┐
+  // │  REMPLACE ICI avec ta config Firebase   │
+  // └─────────────────────────────────────────┘
+  const firebaseConfig = {
+    apiKey:            "VOTRE_API_KEY",
+    authDomain:        "VOTRE_PROJECT.firebaseapp.com",
+    projectId:         "VOTRE_PROJECT_ID",
+    storageBucket:     "VOTRE_PROJECT.appspot.com",
+    messagingSenderId: "VOTRE_SENDER_ID",
+    appId:             "VOTRE_APP_ID"
+  };
+
+  const app = initializeApp(firebaseConfig);
+  const db  = getFirestore(app);
+
+  // ─── BASE URL dynamique ───────────────────
+  const BASE_URL = window.location.origin + window.location.pathname;
+
+  // ─── Données en mémoire ──────────────────
+  let DB        = [];   // toutes les fiches
+  let filterCat = 'all';
+  let curArt    = null;
+
+  // ══════════════════════════════════════════
+  // CHARGEMENT FIRESTORE
+  // ══════════════════════════════════════════
+  async function loadArticles() {
+    try {
+      const snap = await getDocs(query(collection(db, 'encyclopedie'), orderBy('title')));
+      if (snap.empty) {
+        // Firestore vide → données de démo
+        DB = DEMO_DATA;
+        showToast('📖 Mode démo — ajoutez des fiches depuis l\'admin');
+      } else {
+        DB = snap.docs.map(d => ({ id: d.id, ...d.data() }));
+      }
+    } catch (e) {
+      console.warn('Firestore:', e.message);
+      DB = DEMO_DATA;
+      showToast('⚠️ Firebase non configuré — mode démo');
+    }
+    buildSidebar();
+    renderList();
+    // Vérifier si une fiche est demandée dans le hash
+    const hash = window.location.hash.replace('#','');
+    if (hash) openA(hash);
+  }
+
+  // ══════════════════════════════════════════
+  // ROUTING HASH — chaque article a son URL
+  // ══════════════════════════════════════════
+  window.addEventListener('hashchange', () => {
+    const h = window.location.hash.replace('#','');
+    if (h) openA(h);
+    else   backToList();
+  });
+
+  // ══════════════════════════════════════════
+  // SIDEBAR
+  // ══════════════════════════════════════════
+  function buildSidebar(q='') {
+    const ql = q.toLowerCase();
+    const f  = DB.filter(a => !ql || a.title.toLowerCase().includes(ql) || a.summary.toLowerCase().includes(ql));
+    const groups = {};
+    f.forEach(a => {
+      const l = a.title[0].toUpperCase();
+      if (!groups[l]) groups[l] = [];
+      groups[l].push(a);
+    });
+    const letters = Object.keys(groups).sort();
+    document.getElementById('sideIdx').innerHTML = letters.map(l => `
+      <div class="sl-letter">${l}</div>
+      ${groups[l].map(a => `
+        <div class="se${curArt?.id===a.id?' active':''}" onclick="openA('${a.id}')">
+          <span class="se-icon">${a.icon||'📄'}</span>
+          <span style="flex:1;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;">${a.title}</span>
+          <span class="cbadge ${a.tag}">${a.tag==='composant'?'CI':'Él.'}</span>
+        </div>`).join('')}
+    `).join('');
+    document.getElementById('sl-count').textContent = `${f.length} fiche${f.length>1?'s':''}`;
+  }
+  window.filterSidebar = q => buildSidebar(q);
+
+  // ══════════════════════════════════════════
+  // LISTE
+  // ══════════════════════════════════════════
+  window.setFilter = (cat, btn) => {
+    filterCat = cat;
+    document.querySelectorAll('.fb').forEach(b => b.classList.remove('on'));
+    btn.classList.add('on');
+    renderList();
+  };
+
+  function renderList() {
+    const d = filterCat==='all' ? DB : DB.filter(a => a.tag===filterCat);
+    const grid = document.getElementById('lgrid');
+    if (!d.length) {
+      grid.innerHTML = `<div style="grid-column:1/-1"><div class="state-box"><div class="icon">🔍</div><p>Aucune fiche dans cette catégorie.</p></div></div>`;
+      return;
+    }
+    grid.innerHTML = d.map((a,i) => `
+      <div class="lc" onclick="openA('${a.id}')" style="animation-delay:${i*.04}s">
+        <div class="lc-top">
+          <span class="lc-icon">${a.icon||'📄'}</span>
+          <span class="lctag ${a.tag}">${a.tag==='composant'?'Composant':'Électricité'}</span>
+        </div>
+        <h3>${a.title}</h3>
+        <p>${a.summary}</p>
+        <div class="lc-foot">
+          <span class="lc-meta">📖 ${a.lecture||'—'} · ${a.niveau||'—'}</span>
+          <span class="lc-arr">→</span>
+        </div>
+      </div>
+    `).join('');
+  }
+
+  // ══════════════════════════════════════════
+  // ARTICLE
+  // ══════════════════════════════════════════
+  window.openA = function(id) {
+    const a = DB.find(x => x.id===id);
+    if (!a) { showToast('Fiche introuvable : ' + id); return; }
+    curArt = a;
+
+    // URL + SEO
+    history.pushState({articleId:id}, a.title, `${window.location.pathname}#${id}`);
+    updateSEO(a);
+
+    // TOC
+    const tocItems = [];
+    let si = 0;
+    (a.sections||[]).forEach(s => {
+      si++;
+      tocItems.push({n:si, label:s.h2, id:s.id, l:1});
+      (s.subs||[]).forEach((sub,xi) => tocItems.push({n:`${si}.${xi+1}`, label:sub.h3, id:sub.id, l:2}));
+    });
+    if (a.refs?.length) tocItems.push({n:si+1, label:'Références', id:'refs', l:1});
+
+    const toc = `<div class="toc">
+      <div class="toc-title">📑 Sommaire <span class="toc-tog" onclick="togToc(this)">[masquer]</span></div>
+      <ul class="toclist" id="toclist">
+        ${tocItems.map(t=>`<li${t.l===2?' class="toc-sub"':''}>
+          <a onclick="scrollTo2('${t.id}');return false;" href="#${t.id}">
+            <span class="tocnum">${t.n}</span>${t.label}
+          </a></li>`).join('')}
+      </ul></div>`;
+
+    // Sections
+    let sIdx = 0;
+    const secs = (a.sections||[]).map(s => {
+      sIdx++;
+      return `<div class="art-section">
+        <h2 class="art-h2" id="${s.id}"><span class="secnum">${sIdx}</span>${s.h2}</h2>
+        ${s.html||''}
+        ${(s.subs||[]).map((sub,xi)=>`<h3 class="art-h3" id="${sub.id}">${sIdx}.${xi+1} — ${sub.h3}</h3>${sub.html||''}`).join('')}
+      </div>`;
+    }).join('');
+
+    const refs = a.refs?.length ? `<div class="refs-sec" id="refs">
+      <div class="refs-title">Références</div>
+      <ol class="refs-ol">${a.refs.map(r=>`<li>${r}</li>`).join('')}</ol>
+    </div>` : '';
+
+    document.getElementById('artBody').innerHTML = `
+      <div class="art-icon-row">
+        <div class="art-bigicon">${a.icon||'📄'}</div>
+        <div>
+          <h1 class="art-h1">${a.title}</h1>
+          <div class="art-sub">${a.subtitle||''}</div>
+        </div>
+      </div>
+      <div class="art-tags">
+        <span class="atag ${a.tag}">${a.tag==='composant'?'⚡ Composant':'🔌 Électricité'}</span>
+        <span class="atag plain">📖 ${a.lecture||'—'}</span>
+        <span class="atag plain">${a.niveau||'—'}</span>
+      </div>
+      <div class="art-divider"></div>
+      <div class="art-intro">${a.summary}</div>
+      ${toc}
+      ${secs}
+      ${refs}`;
+
+    // Infobox
+    const rel = (a.related||[]).map(rid => {
+      const r = DB.find(x=>x.id===rid);
+      return r ? `<div class="rel-link" onclick="openA('${rid}')">${r.icon||'📄'} ${r.title}</div>` : '';
+    }).join('');
+
+    document.getElementById('artIB').innerHTML = `
+      <div class="infobox">
+        <div class="ib-head">${a.title}</div>
+        <div class="ib-icon">${a.icon||'📄'}</div>
+        ${(a.infobox||[]).map(r=>`<div class="ib-row">
+          <div class="ib-k">${r.k}</div>
+          <div class="ib-v${r.mono?' mono':''}">${r.v}</div>
+        </div>`).join('')}
+      </div>
+      ${rel ? `<div class="rel-box"><div class="rel-head">Voir aussi</div>${rel}</div>` : ''}`;
+
+    document.getElementById('listView').classList.add('hide');
+    document.getElementById('artView').classList.add('show');
+    window.scrollTo({top:0, behavior:'smooth'});
+    buildSidebar();
+  };
+
+  window.backToList = function() {
+    curArt = null;
+    history.pushState({}, 'Encyclopédie', window.location.pathname);
+    updateSEO(null);
+    document.getElementById('artView').classList.remove('show');
+    document.getElementById('listView').classList.remove('hide');
+    buildSidebar();
+  };
+
+  window.shareArticle = function() {
+    const url = window.location.href;
+    if (navigator.clipboard) {
+      navigator.clipboard.writeText(url).then(() => showToast('🔗 Lien copié !'));
+    } else {
+      showToast(url);
+    }
+  };
+
+  window.scrollTo2  = id => { const el=document.getElementById(id); if(el) el.scrollIntoView({behavior:'smooth',block:'start'}); };
+  window.togToc     = btn => { const l=document.getElementById('toclist'); if(!l) return; l.style.display=l.style.display==='none'?'':'none'; btn.textContent=l.style.display==='none'?'[afficher]':'[masquer]'; };
+
+  // ══════════════════════════════════════════
+  // FOOTNOTE TOOLTIP
+  // ══════════════════════════════════════════
+  window.showRef = function(e, idx) {
+    e.stopPropagation();
+    if (!curArt?.refs?.[idx]) return;
+    const tip = document.getElementById('fntip');
+    tip.innerHTML = `<strong>[${idx+1}]</strong> ${curArt.refs[idx]}`;
+    tip.classList.add('show');
+    const r = e.target.getBoundingClientRect();
+    tip.style.left = Math.min(r.left, window.innerWidth-300) + 'px';
+    requestAnimationFrame(() => { tip.style.top = (r.top + window.scrollY - tip.offsetHeight - 10) + 'px'; });
+    const hide = () => { tip.classList.remove('show'); document.removeEventListener('click', hide); };
+    setTimeout(() => document.addEventListener('click', hide), 100);
+  };
+
+  // ══════════════════════════════════════════
+  // SEO — meta + Schema.org dynamique
+  // ══════════════════════════════════════════
+  function updateSEO(a) {
+    const url = window.location.href;
+    if (a) {
+      document.getElementById('page-title').textContent = `${a.title} — Encyclopédie ElectroInfo`;
+      document.getElementById('meta-desc').content      = a.summary;
+      document.getElementById('canonical').href         = url;
+      document.getElementById('og-title').content       = `${a.title} — ElectroInfo`;
+      document.getElementById('og-desc').content        = a.summary;
+      document.getElementById('og-url').content         = url;
+      document.getElementById('schema-article').textContent = JSON.stringify({
+        "@context":"https://schema.org",
+        "@type":"Article",
+        "headline": `${a.title} — ${a.subtitle||''}`,
+        "description": a.summary,
+        "inLanguage":"fr",
+        "url": url,
+        "isPartOf":{"@type":"WebSite","name":"ElectroInfo"},
+        "about":{"@type":"Thing","name":a.title},
+        "keywords":[a.title, a.tag==='composant'?'composant électronique':'électricité','electroinfo','NF EN 60617'],
+        "educationalLevel": a.niveau||'',
+        "timeRequired": a.lecture ? `PT${a.lecture.replace(' min','')}M` : undefined,
+        "breadcrumb":{"@type":"BreadcrumbList","itemListElement":[
+          {"@type":"ListItem","position":1,"name":"ElectroInfo","item": BASE_URL.replace(/#.*$/,'')},
+          {"@type":"ListItem","position":2,"name":"Encyclopédie","item": BASE_URL.replace(/#.*$/,'')},
+          {"@type":"ListItem","position":3,"name":a.title,"item":url}
+        ]}
+      });
+    } else {
+      document.getElementById('page-title').textContent = 'Encyclopédie — ElectroInfo';
+      document.getElementById('meta-desc').content      = 'Encyclopédie francophone sur l\'électronique et l\'électricité.';
+      document.getElementById('canonical').href         = BASE_URL;
+      document.getElementById('og-title').content       = 'Encyclopédie — ElectroInfo';
+      document.getElementById('og-desc').content        = 'Référence francophone sur l\'électronique et l\'électricité.';
+      document.getElementById('og-url').content         = BASE_URL;
+      document.getElementById('schema-article').textContent = '{}';
+    }
+  }
+
+  // ══════════════════════════════════════════
+  // TOAST
+  // ══════════════════════════════════════════
+  window.showToast = function(msg, dur=3000) {
+    const t = document.getElementById('toast');
+    t.textContent = msg;
+    t.classList.add('show');
+    setTimeout(() => t.classList.remove('show'), dur);
+  };
+
+  // ══════════════════════════════════════════
+  // THÈME
+  // ══════════════════════════════════════════
+  window.toggleTheme = () => {
+    const h = document.documentElement;
+    h.dataset.theme = h.dataset.theme==='dark' ? 'light' : 'dark';
+    localStorage.setItem('ei-theme', h.dataset.theme);
+  };
+  // Restaurer le thème
+  const savedTheme = localStorage.getItem('ei-theme');
+  if (savedTheme) document.documentElement.dataset.theme = savedTheme;
+
+  // ══════════════════════════════════════════
+  // DONNÉES DE DÉMO (utilisées si Firestore vide)
+  // ══════════════════════════════════════════
+  const DEMO_DATA = [
+    {id:"resistance",icon:"🟫",tag:"composant",title:"Résistance",subtitle:"Composant passif limiteur de courant",summary:"Composant électronique passif qui s'oppose au passage du courant électrique, provoquant une chute de tension proportionnelle selon la loi d'Ohm.",lecture:"5 min",niveau:"Débutant",infobox:[{k:"Symbole NF EN 60617",v:"—R—",mono:true},{k:"Unité",v:"Ohm (Ω)"},{k:"Type",v:"Composant passif"},{k:"Loi associée",v:"Loi d'Ohm"},{k:"Code couleur",v:"4 ou 5 bandes"}],sections:[{h2:"Définition",id:"def",html:`<p class="art-p">Une <strong>résistance</strong> est un composant électronique passif qui oppose une résistance au passage du <span class="wl" onclick="openA('courant')">courant électrique</span>. Elle dissipe l'énergie sous forme de chaleur (effet Joule).<button class="rn" onclick="showRef(event,0)">1</button></p><p class="art-p">La valeur est exprimée en <strong>Ohms (Ω)</strong>. On trouve des résistances de quelques Ω à plusieurs MΩ.</p>`,subs:[]},{h2:"Loi d'Ohm",id:"loi",html:``,subs:[{h3:"Formule fondamentale",id:"formule",html:`<div class="formula">U = R × I</div><p class="art-p">La <span class="wl" onclick="openA('loi-ohm')">loi d'Ohm</span> relie la <span class="wl" onclick="openA('tension')">tension U</span>, la résistance R et le <span class="wl" onclick="openA('courant')">courant I</span>.</p>`},{h3:"Puissance dissipée",id:"pwr",html:`<div class="formula">P = R × I² = U² / R</div><p class="art-p">Chaque résistance a une puissance maximale admissible. Prévoir un facteur ×2 pour la fiabilité.<button class="rn" onclick="showRef(event,1)">2</button></p>`}]},{h2:"Code couleur",id:"couleur",html:`<p class="art-p">Les résistances portent <strong>4 ou 5 bandes colorées</strong>. Les premières bandes indiquent les chiffres, la suivante le multiplicateur, et la dernière la tolérance (or = ±5%, marron = ±1%).</p>`,subs:[]},{h2:"Associations",id:"assoc",html:``,subs:[{h3:"En série",id:"serie",html:`<div class="formula">R_total = R1 + R2 + R3 + …</div>`},{h3:"En parallèle",id:"para",html:`<div class="formula">1/R_total = 1/R1 + 1/R2 + …</div>`}]}],refs:["Georg Simon Ohm, Die galvanische Kette, Berlin, 1827.","IEC 60115-1:2020 — Résistances fixes pour équipements électroniques."],related:["condensateur","loi-ohm","tension"]},
+    {id:"condensateur",icon:"🔷",tag:"composant",title:"Condensateur",subtitle:"Composant passif de stockage de charge",summary:"Composant passif capable de stocker de l'énergie sous forme de champ électrique, utilisé pour le filtrage, le découplage ou le stockage.",lecture:"6 min",niveau:"Débutant",infobox:[{k:"Symbole NF EN 60617",v:"—||—",mono:true},{k:"Unité",v:"Farad (F)"},{k:"Grandeur",v:"Capacité"},{k:"Polarisation",v:"Électrolytique ou non"}],sections:[{h2:"Définition",id:"def",html:`<p class="art-p">Deux armatures séparées par un diélectrique. La <span class="wl" onclick="openA('tension')">tension</span> appliquée crée un champ électrique stockant de l'énergie.<button class="rn" onclick="showRef(event,0)">1</button></p>`,subs:[]},{h2:"Relation fondamentale",id:"rel",html:`<div class="formula">Q = C × U</div>`,subs:[]},{h2:"Types",id:"types",html:``,subs:[{h3:"Céramique",id:"cera",html:`<p class="art-p">Non polarisé, hautes fréquences, découplage d'alimentation.</p>`},{h3:"Électrolytique",id:"elec-t",html:`<p class="art-p"><strong>Polarisé</strong> — ne jamais inverser (risque explosion). Grandes capacités.<button class="rn" onclick="showRef(event,1)">2</button></p>`},{h3:"Film polyester",id:"film",html:`<p class="art-p">Stable, faibles pertes, audio et filtres BF.</p>`}]}],refs:["Horowitz & Hill, The Art of Electronics, 3e éd., Cambridge UP, 2015.","IEC 60384-1:2021 — Condensateurs fixes."],related:["resistance","inductance","transistor"]},
+    {id:"transistor",icon:"🔺",tag:"composant",title:"Transistor",subtitle:"Composant actif d'amplification et commutation",summary:"Composant semi-conducteur fondamental permettant d'amplifier un signal ou de commuter un circuit. Inventé en 1947, pilier de l'électronique moderne.",lecture:"8 min",niveau:"Intermédiaire",infobox:[{k:"Types courants",v:"NPN, PNP, MOSFET"},{k:"Type",v:"Composant actif"},{k:"Gain courant",v:"β (hFE)"}],sections:[{h2:"Historique",id:"hist",html:`<p class="art-p">Inventé en <strong>1947</strong> aux Bell Labs par Shockley, Bardeen et Brattain.<button class="rn" onclick="showRef(event,0)">1</button></p>`,subs:[]},{h2:"Transistor bipolaire BJT",id:"bjt",html:``,subs:[{h3:"Gain en courant",id:"gain",html:`<div class="formula">Ic = β × Ib</div><p class="art-p">β typiquement entre 100 et 500 pour un NPN standard.<button class="rn" onclick="showRef(event,1)">2</button></p>`}]},{h2:"Modes de fonctionnement",id:"modes",html:`<p class="art-p"><strong>Coupure</strong> (bloqué) · <strong>Saturation</strong> (passant) · <strong>Actif</strong> (amplification).</p>`,subs:[]}],refs:["Bardeen & Brattain, Physical Review, 74(2), 1948.","ON Semiconductor, BC547 Datasheet, Rev.7, 2014."],related:["diode","resistance","circuit-integre"]},
+    {id:"diode",icon:"▶",tag:"composant",title:"Diode",subtitle:"Composant à conduction unidirectionnelle",summary:"Composant semi-conducteur ne laissant passer le courant que dans un seul sens. Redressement, protection et régulation de tension.",lecture:"5 min",niveau:"Débutant",infobox:[{k:"Symbole NF EN 60617",v:"→|—",mono:true},{k:"Tension de seuil",v:"~0,6–0,7 V (Si)"},{k:"Types",v:"Redresseur, Zener, LED, Schottky"}],sections:[{h2:"Principe",id:"principe",html:`<p class="art-p">Conduit en direct (anode > cathode), bloque en inverse.<button class="rn" onclick="showRef(event,0)">1</button></p>`,subs:[]},{h2:"Types",id:"types",html:``,subs:[{h3:"Zener",id:"zener",html:`<p class="art-p">Régule une <span class="wl" onclick="openA('tension')">tension</span> en inverse à Vz défini.</p>`},{h3:"LED",id:"led",html:`<p class="art-p">Émet de la lumière. Toujours avec une <span class="wl" onclick="openA('resistance')">résistance</span> de limitation.</p>`},{h3:"Schottky",id:"schottky",html:`<p class="art-p">Seuil ~0,3 V, commutation rapide. Alimentations découpage.</p>`}]}],refs:["Sze & Ng, Physics of Semiconductor Devices, 3e éd., Wiley, 2007."],related:["transistor","resistance","loi-ohm"]},
+    {id:"inductance",icon:"🌀",tag:"composant",title:"Inductance (Bobine)",subtitle:"Composant passif de stockage magnétique",summary:"Stocke l'énergie sous forme de champ magnétique et résiste aux variations rapides du courant (loi de Lenz).",lecture:"5 min",niveau:"Débutant",infobox:[{k:"Symbole NF EN 60617",v:"—⌇⌇⌇—",mono:true},{k:"Unité",v:"Henry (H)"}],sections:[{h2:"Définition",id:"def",html:`<div class="formula">u = L × (di/dt)</div><p class="art-p">S'oppose aux variations de <span class="wl" onclick="openA('courant')">courant</span>. Bloque les hautes fréquences.<button class="rn" onclick="showRef(event,0)">1</button></p>`,subs:[]}],refs:["Griffiths, Introduction to Electrodynamics, 4e éd., Cambridge UP, 2017."],related:["condensateur","resistance","transistor"]},
+    {id:"circuit-integre",icon:"💾",tag:"composant",title:"Circuit intégré",subtitle:"Assemblage miniaturisé de composants",summary:"Ensemble de composants électroniques gravés sur une puce de silicium. Cœur de l'électronique numérique et analogique moderne.",lecture:"7 min",niveau:"Intermédiaire",infobox:[{k:"Abréviation",v:"CI / IC"},{k:"Matériau",v:"Silicium (Si)"}],sections:[{h2:"Historique",id:"hist",html:`<p class="art-p">Inventé en 1958–1959 par Jack Kilby (TI) et Robert Noyce (Fairchild).<button class="rn" onclick="showRef(event,0)">1</button></p>`,subs:[]},{h2:"Types principaux",id:"types",html:`<p class="art-p">Portes logiques, amplificateurs opérationnels, microcontrôleurs, régulateurs de <span class="wl" onclick="openA('tension')">tension</span>, mémoires.</p>`,subs:[]}],refs:["Kilby, US Patent 3,138,743, 1959."],related:["transistor","diode","resistance"]},
+    {id:"tension",icon:"⚡",tag:"electricite",title:"Tension électrique",subtitle:"Différence de potentiel entre deux points",summary:"La tension mesure le travail nécessaire pour déplacer une charge entre deux points d'un circuit. Unité : le volt (V).",lecture:"4 min",niveau:"Débutant",infobox:[{k:"Symbole",v:"U ou V"},{k:"Unité",v:"Volt (V)"},{k:"Mesure",v:"Voltmètre (//)"},{k:"Réseau France",v:"230 V / 50 Hz"}],sections:[{h2:"Définition",id:"def",html:`<p class="art-p">Différence de potentiel électrique entre deux points.<button class="rn" onclick="showRef(event,0)">1</button></p>`,subs:[]},{h2:"DC vs AC",id:"acdc",html:``,subs:[{h3:"Continu (DC)",id:"dc",html:`<p class="art-p">Valeur fixe (batterie 12 V). Électronique embarquée.</p>`},{h3:"Alternatif (AC)",id:"ac",html:`<div class="formula">V_eff = V_max / √2 ≈ 0,707 × V_max</div><p class="art-p">Réseau EDF : 230 V efficaces à 50 Hz.</p>`}]},{h2:"Mesure",id:"mesure",html:`<p class="art-p">Voltmètre branché <em>en parallèle</em>.<button class="rn" onclick="showRef(event,1)">2</button></p>`,subs:[]}],refs:["Griffiths, Introduction to Electrodynamics, Cambridge UP, 2017.","NF EN 61010-1 — Sécurité appareils de mesure."],related:["courant","puissance","loi-ohm"]},
+    {id:"courant",icon:"➡️",tag:"electricite",title:"Courant électrique",subtitle:"Déplacement ordonné de charges électriques",summary:"Flux de porteurs de charges à travers un conducteur. Unité : l'ampère (A). Grandeur fondamentale de l'électricité.",lecture:"4 min",niveau:"Débutant",infobox:[{k:"Symbole",v:"I"},{k:"Unité",v:"Ampère (A)"},{k:"Mesure",v:"Ampèremètre (série)"}],sections:[{h2:"Définition",id:"def",html:`<div class="formula">I = Q / t</div><p class="art-p">I (A) = Q (coulombs) / t (secondes).<button class="rn" onclick="showRef(event,0)">1</button></p>`,subs:[]},{h2:"Courant et sécurité",id:"secu",html:`<p class="art-p">→ <strong>1 mA</strong> perception · <strong>10 mA</strong> tétanisation · <strong>30 mA</strong> fibrillation · <strong>100 mA</strong> arrêt cardiaque. Norme <span class="wl" onclick="openA('nf-c-15-100')">NF C 15-100</span>.<button class="rn" onclick="showRef(event,1)">2</button></p>`,subs:[]}],refs:["Feynman, Lectures on Physics Vol.2, Addison-Wesley, 1964.","NF C 15-100:2002+A3:2015, §131."],related:["tension","puissance","protection-diff"]},
+    {id:"puissance",icon:"🔋",tag:"electricite",title:"Puissance électrique",subtitle:"Énergie consommée par unité de temps",summary:"Mesure la quantité d'énergie électrique transférée par unité de temps. Unité : le watt (W).",lecture:"5 min",niveau:"Débutant",infobox:[{k:"Symbole",v:"P"},{k:"Unité",v:"Watt (W)"},{k:"Formule DC",v:"P = U × I"}],sections:[{h2:"En courant continu",id:"dc",html:`<div class="formula">P = U × I = R × I²</div>`,subs:[]},{h2:"En courant alternatif",id:"ac",html:`<div class="formula">P = U × I × cos(φ)</div><p class="art-p">cos(φ) = facteur de puissance (1 pour charge résistive).<button class="rn" onclick="showRef(event,0)">1</button></p>`,subs:[]}],refs:["NF EN 61000-3-2:2019 — Harmoniques de courant."],related:["tension","courant","loi-ohm"]},
+    {id:"loi-ohm",icon:"📐",tag:"electricite",title:"Loi d'Ohm",subtitle:"Relation fondamentale entre U, I et R",summary:"La loi de base de l'électricité : la tension aux bornes d'un conducteur ohmique est proportionnelle au courant qui le traverse.",lecture:"4 min",niveau:"Débutant",infobox:[{k:"Formule",v:"U = R × I",mono:true},{k:"Énoncé par",v:"Georg Ohm (1827)"},{k:"Limite",v:"Non-linéaire : diodes, transistors"}],sections:[{h2:"Énoncé",id:"enonce",html:`<div class="formula">U = R×I &nbsp;·&nbsp; I = U/R &nbsp;·&nbsp; R = U/I</div><p class="art-p">Valable pour les composants <em>linéaires</em> seulement.<button class="rn" onclick="showRef(event,0)">1</button></p>`,subs:[]},{h2:"Limites",id:"limites",html:`<p class="art-p">Les <span class="wl" onclick="openA('diode')">diodes</span> et <span class="wl" onclick="openA('transistor')">transistors</span> ont un comportement non-linéaire.</p>`,subs:[]}],refs:["Ohm, G.S., Die galvanische Kette, Berlin, 1827."],related:["resistance","tension","courant"]},
+    {id:"protection-diff",icon:"🛡️",tag:"electricite",title:"Disjoncteur différentiel",subtitle:"Protection contre les défauts d'isolement",summary:"Coupe le circuit en cas de fuite de courant vers la terre. Indispensable pour la sécurité des personnes selon la NF C 15-100.",lecture:"6 min",niveau:"Intermédiaire",infobox:[{k:"Norme",v:"NF C 15-100"},{k:"Seuil standard",v:"30 mA"},{k:"Temps de coupure",v:"< 40 ms"}],sections:[{h2:"Principe",id:"principe",html:`<p class="art-p">Compare les <span class="wl" onclick="openA('courant')">courants</span> phase et neutre. Toute différence = fuite → coupure.<button class="rn" onclick="showRef(event,0)">1</button></p>`,subs:[]},{h2:"Classes",id:"classes",html:`<p class="art-p"><strong>AC</strong> : sinusoïdal · <strong>A</strong> : pulsé (lave-linge) · <strong>B</strong> : continu (solaire, VE). Type A minimum obligatoire en logement neuf.</p>`,subs:[]}],refs:["NF C 15-100:2002+A3:2015, §413."],related:["courant","nf-c-15-100","tension"]},
+    {id:"nf-c-15-100",icon:"📋",tag:"electricite",title:"Norme NF C 15-100",subtitle:"Référence française des installations électriques",summary:"Norme obligatoire régissant les installations électriques basse tension dans les bâtiments d'habitation en France.",lecture:"8 min",niveau:"Intermédiaire",infobox:[{k:"Domaine",v:"Basse tension (BT)"},{k:"Organisme",v:"UTE / AFNOR"},{k:"Version",v:"NF C 15-100+A5:2015"},{k:"Obligation",v:"DTU — obligatoire"}],sections:[{h2:"Présentation",id:"pres",html:`<p class="art-p">Référentiel obligatoire en France pour les installations électriques BT en habitation.<button class="rn" onclick="showRef(event,0)">1</button> Couvre câblage, <span class="wl" onclick="openA('protection-diff')">protections</span>, mise à la terre, règles par pièce.</p>`,subs:[]},{h2:"Règles par pièce",id:"pieces",html:``,subs:[{h3:"Cuisine",id:"cuisine",html:`<p class="art-p">Min. 6 prises 16 A sur 2 circuits 20 A. Circuit 32 A dédié cuisinière. Différentiel 30 mA.</p>`},{h3:"Salle de bain",id:"sdb",html:`<p class="art-p">Volumes 0, 1, 2. Aucune prise en volumes 0 et 1. Différentiel <span class="wl" onclick="openA('protection-diff')">30 mA</span> obligatoire.<button class="rn" onclick="showRef(event,1)">2</button></p>`},{h3:"Séjour & chambres",id:"sejour",html:`<p class="art-p">Séjour : min. 5 prises. Chambres : min. 3 prises. Disjoncteur 16 A + différentiel 30 mA.</p>`}]}],refs:["NF C 15-100:2002+A3:2015 — AFNOR.","NF C 15-100, §701 — Salles d'eau."],related:["protection-diff","courant","tension"]},
+  ];
+
+  // ══════════════════════════════════════════
+  // INIT
+  // ══════════════════════════════════════════
+  loadArticles();
+</script>
+
+</body>
+</html>
