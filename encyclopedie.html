@@ -491,22 +491,24 @@
   import { initializeApp }                from "https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js";
   import { getFirestore, collection, getDocs, doc, getDoc, query, orderBy, setDoc, updateDoc, increment }
                                           from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
-  import { getFunctions, httpsCallable }  from "https://www.gstatic.com/firebasejs/10.12.2/firebase-functions.js";
+
+  // URL de la Cloud Function (onRequest — CORS géré côté serveur)
+  const CF_URL = 'https://europe-west1-electroino-app.cloudfunctions.net/generateFiche';
 
   // ┌─────────────────────────────────────────┐
   // │  REMPLACE ICI avec ta config Firebase   │
   // └─────────────────────────────────────────┘
   const firebaseConfig = {
-  apiKey: "AIzaSyCuFgzytJXD6jt4HUW9LVSD_VpGuFfcEAk",
-  authDomain: "electroino-app.firebaseapp.com",
-  projectId: "electroino-app",
-  storageBucket: "electroino-app.firebasestorage.app",
-  messagingSenderId: "864058526638",
-  appId: "1:864058526638:web:17b821633c7cc99be1563f"
-};
+    apiKey:            "VOTRE_API_KEY",
+    authDomain:        "VOTRE_PROJECT.firebaseapp.com",
+    projectId:         "VOTRE_PROJECT_ID",
+    storageBucket:     "VOTRE_PROJECT.appspot.com",
+    messagingSenderId: "VOTRE_SENDER_ID",
+    appId:             "VOTRE_APP_ID"
+  };
+
   const app  = initializeApp(firebaseConfig);
   const db   = getFirestore(app);
-  const fnc  = getFunctions(app, 'europe-west1'); // même région que la Cloud Function
 
   const SITE_ORIGIN = 'https://electroinfo.online';
 
@@ -869,14 +871,22 @@
       await new Promise(r => setTimeout(r, 400));
       progress.setStep(1);
 
-      // Appel via Cloud Function sécurisée (la clé API reste côté serveur)
-      const generateFiche = httpsCallable(fnc, 'generateFiche', { timeout: 60000 });
-      const result = await generateFiche({ query });
+      // Appel Cloud Function via fetch (CORS géré côté serveur)
+      const cfRes = await fetch(CF_URL, {
+        method:  'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body:    JSON.stringify({ query }),
+      });
 
       progress.setStep(2);
       await new Promise(r => setTimeout(r, 300));
 
-      const fiche = result.data?.fiche;
+      if (!cfRes.ok) {
+        const err = await cfRes.json().catch(() => ({}));
+        throw new Error(err.error || `Erreur serveur ${cfRes.status}`);
+      }
+      const cfData = await cfRes.json();
+      const fiche  = cfData.fiche;
       if (!fiche || !fiche.id || !fiche.title || !fiche.sections) {
         throw new Error('Fiche incomplète reçue de la Cloud Function');
       }
