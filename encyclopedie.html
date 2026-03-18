@@ -479,20 +479,20 @@
 <!-- ══════════ FIREBASE SDK ══════════ -->
 <script type="module">
   import { initializeApp }                from "https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js";
-  import { getFirestore, collection, getDocs, doc, getDoc, query, orderBy, setDoc }
+  import { getFirestore, collection, getDocs, doc, getDoc, query, orderBy, setDoc, updateDoc, increment }
                                           from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
 
   // ┌─────────────────────────────────────────┐
   // │  REMPLACE ICI avec ta config Firebase   │
   // └─────────────────────────────────────────┘
- const firebaseConfig = {
-  apiKey: "AIzaSyCuFgzytJXD6jt4HUW9LVSD_VpGuFfcEAk",
-  authDomain: "electroino-app.firebaseapp.com",
-  projectId: "electroino-app",
-  storageBucket: "electroino-app.firebasestorage.app",
-  messagingSenderId: "864058526638",
-  appId: "1:864058526638:web:17b821633c7cc99be1563f"
-};
+  const firebaseConfig = {
+    apiKey:            "VOTRE_API_KEY",
+    authDomain:        "VOTRE_PROJECT.firebaseapp.com",
+    projectId:         "VOTRE_PROJECT_ID",
+    storageBucket:     "VOTRE_PROJECT.appspot.com",
+    messagingSenderId: "VOTRE_SENDER_ID",
+    appId:             "VOTRE_APP_ID"
+  };
 
   const app = initializeApp(firebaseConfig);
   const db  = getFirestore(app);
@@ -989,25 +989,18 @@ RÈGLES STRICTES :
     const bar = document.getElementById(`feedback-${id}`);
     if (!bar || bar.dataset.voted) return;
     bar.dataset.voted = '1';
-    // Désactiver les boutons
     bar.querySelectorAll('.fb-btn').forEach(b => { b.disabled = true; b.style.opacity = '.5'; });
     btn.style.opacity = '1';
     btn.style.transform = 'scale(1.15)';
     try {
       const ref = doc(db, 'encyclopedie', id);
-      const snap = await import('https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js')
-        .then(m => m.updateDoc(ref, {
-          feedbackUp:   vote > 0
-            ? (await import('https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js').then(m => m.increment(1)))
-            : (await import('https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js').then(m => m.increment(0))),
-          feedbackDown: vote < 0
-            ? (await import('https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js').then(m => m.increment(1)))
-            : (await import('https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js').then(m => m.increment(0))),
-        }));
+      await updateDoc(ref, {
+        feedbackUp:   increment(vote > 0  ? 1 : 0),
+        feedbackDown: increment(vote < 0  ? 1 : 0),
+      });
     } catch(e) { console.warn('feedback:', e.message); }
     const score = document.getElementById(`fbscore-${id}`);
     if (score) score.textContent = vote > 0 ? '👍 Merci !' : 'Merci pour votre retour.';
-    // Mémoriser le vote localement
     localStorage.setItem(`fb_${id}`, vote);
   };
 
