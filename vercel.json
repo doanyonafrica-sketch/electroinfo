@@ -1,16 +1,7 @@
 {
+  "cleanUrls": true,
   "rewrites": [
-    {
-      "source": "/sitemap.xml",
-      "destination": "/api/sitemap"
-    },
-    {
-      "source": "/article/:slug",
-      "destination": "/api/og?slug=:slug"
-    },
-    {
-      "source": "/(.*)",
-      "destination": "/index.html"
-    }
+    { "source": "/sitemap.xml", "destination": "/api/sitemap" },
+    { "source": "/article/:slug", "destination": "/api/og?slug=:slug" }
   ]
 }
