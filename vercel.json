@@ -1,1 +1,10 @@
-
+{
+  "buildCommand": "",
+  "outputDirectory": ".",
+  "rewrites": [
+    {
+      "source": "/article/:slug",
+      "destination": "/api/og?slug=:slug"
+    }
+  ]
+}
