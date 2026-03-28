@@ -2694,7 +2694,7 @@ body {
 
 /* Paragraphes */
 .article-body p {
-    margin-bottom: 1.35rem;
+    margin-bottom: 0.875rem;
     text-align: left !important;
     hyphens: none !important;
     -webkit-hyphens: none !important;
