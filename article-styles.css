@@ -2651,6 +2651,110 @@ body {
 }
 
 /* ============================================================
+   ARTICLE BODY — TYPOGRAPHIE ÉDITORIALE
+   ============================================================ */
+
+.article-body {
+    font-family: var(--font-body);
+    font-size: 1.0625rem;
+    line-height: 1.8;
+    color: var(--text-body);
+    max-width: 780px;
+    margin: 0 auto;
+}
+
+/* Titres de section */
+.article-body h2 {
+    font-family: var(--font-display);
+    font-size: 1.5rem;
+    font-weight: 800;
+    color: var(--ink);
+    margin: 2.5rem 0 1rem;
+    padding-bottom: 0.5rem;
+    border-bottom: 2px solid var(--border);
+    letter-spacing: -0.02em;
+    line-height: 1.25;
+}
+
+.article-body h3 {
+    font-family: var(--font-display);
+    font-size: 1.2rem;
+    font-weight: 700;
+    color: var(--ink-soft);
+    margin: 2rem 0 0.75rem;
+    letter-spacing: -0.01em;
+}
+
+/* Paragraphes */
+.article-body p {
+    margin-bottom: 1.4rem;
+}
+
+/* Listes */
+.article-body ul,
+.article-body ol {
+    padding-left: 1.5rem;
+    margin-bottom: 1.4rem;
+}
+
+.article-body li {
+    margin-bottom: 0.5rem;
+    line-height: 1.7;
+}
+
+.article-body ul li::marker {
+    color: var(--primary-bright);
+}
+
+/* Citation mise en avant */
+.article-body blockquote {
+    border-left: 4px solid var(--primary-bright);
+    background: var(--surface-3);
+    margin: 2rem 0;
+    padding: 1.25rem 1.5rem;
+    border-radius: 0 var(--radius) var(--radius) 0;
+    color: var(--ink-soft);
+    font-style: italic;
+    font-size: 1.05rem;
+}
+
+/* Liens dans le corps */
+.article-body a {
+    color: var(--primary);
+    text-decoration: underline;
+    text-underline-offset: 3px;
+    transition: color 0.2s;
+}
+.article-body a:hover { color: var(--primary-bright); }
+
+/* Code inline */
+.article-body code {
+    background: var(--surface-3);
+    border: 1px solid var(--border);
+    padding: 0.15em 0.45em;
+    border-radius: 4px;
+    font-size: 0.9em;
+    color: var(--primary);
+}
+
+/* Images */
+.article-body img {
+    width: 100%;
+    height: auto;
+    border-radius: var(--radius-lg);
+    margin: 1.75rem 0;
+    display: block;
+    box-shadow: var(--shadow-md);
+}
+
+/* Mobile */
+@media (max-width: 768px) {
+    .article-body { font-size: 1rem; }
+    .article-body h2 { font-size: 1.3rem; }
+    .article-body h3 { font-size: 1.1rem; }
+}
+
+/* ============================================================
    CONTENU MIROIR — PLEINE LARGEUR PC + MOBILE
    Override le max-width:900px et les paddings de styles.css
    pour que le contenu utilise toute la largeur disponible
