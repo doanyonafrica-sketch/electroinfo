@@ -2700,6 +2700,12 @@ body {
     -webkit-hyphens: none !important;
 }
 
+/* Retours à la ligne */
+.article-body br {
+    display: block;
+    margin-bottom: 0.25rem;
+}
+
 /* Listes */
 .article-body ul,
 .article-body ol {
