@@ -1,11 +1,11 @@
 {
   "cleanUrls": true,
   "rewrites": [
-    { "source": "/sitemap.xml",                "destination": "/api/sitemap" },
-    { "source": "/article/:slug",              "destination": "/api/og?slug=:slug" },
-    { "source": "/matiere/:slug",              "destination": "/matiere.html" },
-    { "source": "/seance/:slug/:seq/:s",       "destination": "/seance.html" },
-    { "source": "/seance/:slug/:seq",          "destination": "/seance.html" },
-    { "source": "/seance/:slug",               "destination": "/seance.html" }
+    { "source": "/sitemap.xml",          "destination": "/api/sitemap" },
+    { "source": "/article/:slug",         "destination": "/api/og?slug=:slug" },
+    { "source": "/matiere/:slug",         "destination": "/matiere.html" },
+    { "source": "/seance/:slug/:seq/:s",  "destination": "/seance.html" },
+    { "source": "/seance/:slug/:seq",     "destination": "/seance.html" },
+    { "source": "/seance/:slug",          "destination": "/seance.html" }
   ]
 }
