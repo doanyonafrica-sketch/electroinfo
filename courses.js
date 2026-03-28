@@ -33,8 +33,8 @@ const auth = getAuth(app);
 // ── Détection de page ─────────────────────────────────────
 const PAGE = (() => {
     const p = location.pathname;
-    if (p.includes('seance.html') || p.startsWith('/seance/')) return 'seance';
-    if (p.includes('matiere.html') || p.startsWith('/matiere/')) return 'matiere';
+    if (p.includes('seance.html') || p.startsWith('/seance')) return 'seance';
+    if (p.includes('matiere.html') || p.startsWith('/matiere')) return 'matiere';
     return 'courses';
 })();
 
