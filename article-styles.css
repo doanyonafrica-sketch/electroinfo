@@ -2656,45 +2656,56 @@ body {
 
 .article-body {
     font-family: var(--font-body);
-    font-size: 1.0625rem;
-    line-height: 1.8;
+    font-size: 1rem;          /* 16px — lisible sans être trop grand */
+    line-height: 1.75;
     color: var(--text-body);
+    text-align: left !important;   /* supprime le justify */
+    -webkit-hyphens: none !important;
+    hyphens: none !important;
     max-width: 780px;
     margin: 0 auto;
+    word-break: normal;
+    overflow-wrap: break-word;
 }
 
 /* Titres de section */
 .article-body h2 {
     font-family: var(--font-display);
-    font-size: 1.5rem;
+    font-size: 1.35rem;
     font-weight: 800;
     color: var(--ink);
-    margin: 2.5rem 0 1rem;
+    margin: 2.25rem 0 0.875rem;
     padding-bottom: 0.5rem;
     border-bottom: 2px solid var(--border);
     letter-spacing: -0.02em;
     line-height: 1.25;
+    text-align: left !important;
 }
 
 .article-body h3 {
     font-family: var(--font-display);
-    font-size: 1.2rem;
+    font-size: 1.1rem;
     font-weight: 700;
     color: var(--ink-soft);
-    margin: 2rem 0 0.75rem;
+    margin: 1.75rem 0 0.625rem;
     letter-spacing: -0.01em;
+    text-align: left !important;
 }
 
 /* Paragraphes */
 .article-body p {
-    margin-bottom: 1.4rem;
+    margin-bottom: 1.35rem;
+    text-align: left !important;
+    hyphens: none !important;
+    -webkit-hyphens: none !important;
 }
 
 /* Listes */
 .article-body ul,
 .article-body ol {
     padding-left: 1.5rem;
-    margin-bottom: 1.4rem;
+    margin-bottom: 1.35rem;
+    text-align: left !important;
 }
 
 .article-body li {
@@ -2715,7 +2726,8 @@ body {
     border-radius: 0 var(--radius) var(--radius) 0;
     color: var(--ink-soft);
     font-style: italic;
-    font-size: 1.05rem;
+    font-size: 1rem;
+    text-align: left !important;
 }
 
 /* Liens dans le corps */
@@ -2733,7 +2745,7 @@ body {
     border: 1px solid var(--border);
     padding: 0.15em 0.45em;
     border-radius: 4px;
-    font-size: 0.9em;
+    font-size: 0.875em;
     color: var(--primary);
 }
 
@@ -2749,9 +2761,12 @@ body {
 
 /* Mobile */
 @media (max-width: 768px) {
-    .article-body { font-size: 1rem; }
-    .article-body h2 { font-size: 1.3rem; }
-    .article-body h3 { font-size: 1.1rem; }
+    .article-body {
+        font-size: 0.9375rem;   /* 15px sur mobile */
+        line-height: 1.7;
+    }
+    .article-body h2 { font-size: 1.2rem; }
+    .article-body h3 { font-size: 1.05rem; }
 }
 
 /* ============================================================
