@@ -20,9 +20,9 @@ export default async function handler(req, res) {
     const userAgent = req.headers['user-agent'] || '';
     const isCrawler = CRAWLER_UA.test(userAgent);
 
-    // Si c'est un humain (pas un crawler), rediriger directement
+    // Si c'est un humain (pas un crawler), rediriger vers l'URL propre de l'article
     if (!isCrawler) {
-        return res.redirect(302, `${SITE_URL}/article-detail.html?slug=${slug}`);
+        return res.redirect(302, `${SITE_URL}/article-detail?slug=${slug}`);
     }
 
     try {
@@ -189,7 +189,7 @@ export default async function handler(req, res) {
 
     } catch (error) {
         console.error('Erreur OG function:', error);
-        return res.redirect(302, `${SITE_URL}/article-detail.html?slug=${slug}`);
+        return res.redirect(302, `${SITE_URL}/article-detail?slug=${slug}`);
     }
 }
 
