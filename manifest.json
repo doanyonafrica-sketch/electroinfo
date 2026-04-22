@@ -1,0 +1,70 @@
+{
+  "name": "ElectroInfo — Électricité & Énergie",
+  "short_name": "ElectroInfo",
+  "description": "Votre portail d'expertise en électricité industrielle, bâtiment, domotique et robotique pour le monde francophone.",
+  "start_url": "/",
+  "scope": "/",
+  "display": "standalone",
+  "orientation": "portrait-primary",
+  "background_color": "#0f172a",
+  "theme_color": "#1e40af",
+  "lang": "fr",
+  "dir": "ltr",
+  "categories": ["education", "utilities"],
+  "icons": [
+    {
+      "src": "/images/favicon.ico",
+      "sizes": "48x48",
+      "type": "image/x-icon"
+    },
+    {
+      "src": "/images/logo-small.png",
+      "sizes": "192x192",
+      "type": "image/png",
+      "purpose": "any maskable"
+    },
+    {
+      "src": "/images/logo.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "any maskable"
+    },
+    {
+      "src": "/images/apple-touch-icon.png",
+      "sizes": "180x180",
+      "type": "image/png"
+    }
+  ],
+  "shortcuts": [
+    {
+      "name": "Articles",
+      "short_name": "Articles",
+      "description": "Dernières actualités électricité",
+      "url": "/articles",
+      "icons": [{ "src": "/images/logo-small.png", "sizes": "192x192" }]
+    },
+    {
+      "name": "Cours",
+      "short_name": "Cours",
+      "description": "Cours BAC PRO, BTS, BEP, CAP",
+      "url": "/courses",
+      "icons": [{ "src": "/images/logo-small.png", "sizes": "192x192" }]
+    },
+    {
+      "name": "Encyclopédie",
+      "short_name": "Encyclo",
+      "description": "Encyclopédie électrotechnique",
+      "url": "/encyclopedie",
+      "icons": [{ "src": "/images/logo-small.png", "sizes": "192x192" }]
+    }
+  ],
+  "screenshots": [
+    {
+      "src": "/images/og-image.png",
+      "sizes": "1200x630",
+      "type": "image/png",
+      "form_factor": "wide",
+      "label": "ElectroInfo — Page d'accueil"
+    }
+  ]
+}
