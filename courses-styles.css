@@ -1,0 +1,601 @@
+/* ============================================================
+   courses-styles.css — Styles pour courses, matiere, seance
+   ============================================================ */
+
+/* ── Vues switchables ──────────────────────────────────────── */
+.courses-view        { display: none; }
+.courses-view.active-view { display: block; }
+
+/* ── Hero courses ──────────────────────────────────────────── */
+.courses-hero {
+    background: linear-gradient(135deg, #1e40af 0%, #3b82f6 60%, #60a5fa 100%);
+    color: white;
+    padding: 4rem 1.5rem 3rem;
+    text-align: center;
+}
+.courses-hero-title {
+    font-size: 2.5rem;
+    font-weight: 800;
+    margin: 0 0 .75rem;
+}
+.courses-hero-sub {
+    font-size: 1.1rem;
+    opacity: .85;
+    margin: 0;
+}
+
+/* ── Grille diplômes ───────────────────────────────────────── */
+.diplomes-container {
+    max-width: 900px;
+    margin: 0 auto;
+    padding: 3rem 1.5rem;
+}
+.diplomes-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+    gap: 1.25rem;
+}
+.diplome-card {
+    background: white;
+    border: 2px solid #e5e7eb;
+    border-radius: 16px;
+    padding: 2rem 1.5rem;
+    cursor: pointer;
+    transition: all .25s;
+    display: flex;
+    align-items: center;
+    gap: 1rem;
+    position: relative;
+    overflow: hidden;
+}
+.diplome-card::before {
+    content: '';
+    position: absolute;
+    inset: 0;
+    background: linear-gradient(135deg, #1e40af, #3b82f6);
+    opacity: 0;
+    transition: opacity .25s;
+}
+.diplome-card:hover { border-color: #3b82f6; transform: translateY(-3px); box-shadow: 0 8px 24px rgba(59,130,246,.2); }
+.diplome-card:hover::before { opacity: .05; }
+.diplome-card:hover .diplome-icon { background: #1e40af; color: white; }
+.diplome-icon {
+    width: 56px; height: 56px;
+    background: #eff6ff;
+    color: #1e40af;
+    border-radius: 12px;
+    display: flex; align-items: center; justify-content: center;
+    font-size: 1.5rem;
+    flex-shrink: 0;
+    transition: all .25s;
+}
+.diplome-label { font-size: 1.3rem; font-weight: 800; color: #1f2937; }
+.diplome-desc  { font-size: .8rem; color: #6b7280; margin-top: .2rem; }
+.diplome-arrow { margin-left: auto; color: #9ca3af; transition: transform .25s; }
+.diplome-card:hover .diplome-arrow { transform: translateX(4px); color: #3b82f6; }
+
+/* ── Header vue matières ───────────────────────────────────── */
+.matieres-header {
+    display: flex;
+    align-items: center;
+    gap: 1rem;
+    padding: 1.5rem 2rem;
+    border-bottom: 1px solid #e5e7eb;
+    background: white;
+    position: sticky;
+    top: 0;
+    z-index: 10;
+    box-shadow: 0 2px 8px rgba(0,0,0,.06);
+}
+.matieres-header h2 { margin: 0; font-size: 1.4rem; color: #1f2937; }
+.matieres-container { max-width: 1100px; margin: 0 auto; padding: 2rem 1.5rem; }
+
+/* ── Grille matières ───────────────────────────────────────── */
+.matieres-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+    gap: 1.5rem;
+}
+.matiere-card {
+    background: white;
+    border-radius: 16px;
+    overflow: hidden;
+    box-shadow: 0 2px 8px rgba(0,0,0,.08);
+    cursor: pointer;
+    transition: all .25s;
+    display: flex;
+    flex-direction: column;
+}
+.matiere-card:hover { transform: translateY(-4px); box-shadow: 0 12px 32px rgba(0,0,0,.14); }
+
+.mc-cover {
+    height: 120px;
+    display: flex;
+    align-items: flex-end;
+    justify-content: space-between;
+    padding: 1rem;
+    position: relative;
+}
+.mc-initials {
+    font-size: 2.5rem;
+    font-weight: 900;
+    color: rgba(255,255,255,.25);
+    position: absolute;
+    top: 50%; left: 50%;
+    transform: translate(-50%,-50%);
+    pointer-events: none;
+    letter-spacing: -2px;
+}
+.mc-diplome {
+    background: rgba(255,255,255,.2);
+    color: white;
+    font-size: .75rem;
+    font-weight: 700;
+    padding: .3rem .8rem;
+    border-radius: 20px;
+    backdrop-filter: blur(6px);
+}
+.mc-body  { padding: 1.25rem; flex: 1; }
+.mc-niveau {
+    display: inline-block;
+    padding: .25rem .75rem;
+    border-radius: 20px;
+    font-size: .75rem;
+    font-weight: 700;
+    margin-bottom: .75rem;
+}
+.mc-titre { font-size: 1.1rem; font-weight: 700; color: #1f2937; margin: 0 0 .5rem; line-height: 1.3; }
+.mc-desc  { font-size: .875rem; color: #6b7280; margin: 0; display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden; }
+
+.mc-footer {
+    padding: .875rem 1.25rem;
+    border-top: 1px solid #f3f4f6;
+    display: flex;
+    align-items: center;
+    gap: 1rem;
+    font-size: .8rem;
+    color: #6b7280;
+}
+.mc-footer i { margin-right: .3rem; color: #9ca3af; }
+.mc-cta { margin-left: auto; color: #1e40af; font-weight: 700; font-size: .8rem; }
+
+/* ── Boutons retour ────────────────────────────────────────── */
+.back-btn {
+    display: inline-flex;
+    align-items: center;
+    gap: .5rem;
+    background: white;
+    border: 2px solid #e5e7eb;
+    padding: .5rem 1.1rem;
+    border-radius: 8px;
+    cursor: pointer;
+    font-weight: 600;
+    color: #374151;
+    transition: all .2s;
+    text-decoration: none;
+    font-size: .9rem;
+}
+.back-btn:hover { border-color: #3b82f6; color: #1e40af; }
+.back-link {
+    display: inline-flex;
+    align-items: center;
+    gap: .5rem;
+    color: rgba(255,255,255,.85);
+    text-decoration: none;
+    font-weight: 600;
+    font-size: .9rem;
+    margin-bottom: 1.25rem;
+    transition: color .2s;
+}
+.back-link:hover { color: white; }
+
+.back-btn-empty {
+    margin-top: 1.5rem;
+    display: inline-flex;
+    align-items: center;
+    gap: .5rem;
+    background: #1e40af;
+    color: white;
+    padding: .75rem 1.5rem;
+    border-radius: 8px;
+    cursor: pointer;
+    border: none;
+    font-weight: 700;
+    font-size: .95rem;
+    transition: background .2s;
+}
+.back-btn-empty:hover { background: #1d4ed8; }
+
+/* ── États vides / loading ─────────────────────────────────── */
+.loading-state {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    min-height: 50vh;
+    color: #6b7280;
+    gap: 1rem;
+}
+.loading-state i { font-size: 3rem; color: #3b82f6; }
+
+.error-state {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    min-height: 50vh;
+    color: #6b7280;
+    gap: 1rem;
+    text-align: center;
+}
+.error-state i { font-size: 3rem; color: #ef4444; }
+
+.empty-courses {
+    text-align: center;
+    padding: 4rem 2rem;
+    color: #9ca3af;
+}
+.empty-courses i { font-size: 4rem; margin-bottom: 1.5rem; display: block; color: #d1d5db; }
+.empty-courses p  { font-size: 1.2rem; font-weight: 600; color: #6b7280; margin-bottom: .5rem; }
+.empty-courses small { color: #9ca3af; }
+
+/* ── Hero matière ──────────────────────────────────────────── */
+.matiere-hero {
+    background: linear-gradient(135deg, #1e40af 0%, #3b82f6 100%);
+    color: white;
+    padding: 3rem 2rem;
+}
+.matiere-hero-content { max-width: 900px; margin: 0 auto; }
+.matiere-meta { display: flex; gap: .75rem; margin-bottom: 1rem; flex-wrap: wrap; }
+.diplome-badge, .niveau-badge {
+    display: inline-block;
+    padding: .35rem 1rem;
+    border-radius: 20px;
+    font-size: .85rem;
+    font-weight: 700;
+}
+.diplome-badge { background: rgba(255,255,255,.2); color: white; }
+.niveau-badge  { background: rgba(255,255,255,.15); color: rgba(255,255,255,.9); }
+
+.matiere-hero h1 { font-size: 2.2rem; font-weight: 800; margin: 0 0 .75rem; line-height: 1.2; }
+.matiere-desc    { font-size: 1rem; opacity: .85; margin: 0 0 1.5rem; line-height: 1.6; }
+.matiere-stats   { display: flex; gap: 2rem; font-size: .95rem; opacity: .9; flex-wrap: wrap; }
+.matiere-stats i { margin-right: .4rem; }
+
+/* ── Corps matière (sidebar + main) ────────────────────────── */
+.matiere-body {
+    display: grid;
+    grid-template-columns: 260px 1fr;
+    gap: 0;
+    max-width: 1200px;
+    margin: 2rem auto;
+    padding: 0 1.5rem;
+    align-items: start;
+}
+.sequences-sidebar {
+    background: white;
+    border-radius: 12px;
+    box-shadow: 0 2px 8px rgba(0,0,0,.07);
+    padding: 1.25rem;
+    position: sticky;
+    top: 80px;
+}
+.sidebar-title {
+    font-size: .85rem;
+    font-weight: 700;
+    color: #9ca3af;
+    text-transform: uppercase;
+    letter-spacing: .08em;
+    margin-bottom: 1rem;
+}
+.sidebar-title i { margin-right: .4rem; }
+.seq-nav-item {
+    padding: .6rem .75rem;
+    border-radius: 8px;
+    cursor: pointer;
+    font-size: .875rem;
+    color: #374151;
+    transition: all .2s;
+    display: flex;
+    align-items: center;
+    gap: .5rem;
+    margin-bottom: .25rem;
+}
+.seq-nav-item i { font-size: .65rem; color: #9ca3af; flex-shrink: 0; }
+.seq-nav-item:hover  { background: #eff6ff; color: #1e40af; }
+.seq-nav-item.active { background: #1e40af; color: white; }
+.seq-nav-item.active i { color: rgba(255,255,255,.7); }
+
+.sequences-main { padding-left: 1.5rem; }
+
+/* ── Blocs séquences ───────────────────────────────────────── */
+.sequence-block {
+    background: white;
+    border-radius: 12px;
+    box-shadow: 0 2px 8px rgba(0,0,0,.07);
+    margin-bottom: 1.5rem;
+    overflow: hidden;
+}
+.sequence-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 1.25rem 1.5rem;
+    cursor: pointer;
+    transition: background .2s;
+    border-bottom: 1px solid #f3f4f6;
+}
+.sequence-header:hover { background: #f9fafb; }
+.seq-info { flex: 1; }
+.seq-num  { font-size: .8rem; font-weight: 700; color: #3b82f6; text-transform: uppercase; letter-spacing: .05em; }
+.seq-title { font-size: 1.1rem; font-weight: 700; color: #1f2937; margin: .25rem 0 0; }
+.seq-toggle-btn {
+    background: #f3f4f6;
+    border: none;
+    width: 36px; height: 36px;
+    border-radius: 8px;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: #6b7280;
+    transition: all .2s;
+    flex-shrink: 0;
+}
+.seq-toggle-btn:hover { background: #e5e7eb; }
+
+/* ── Items séances ─────────────────────────────────────────── */
+.seances-list { padding: .5rem; }
+.seance-item {
+    display: flex;
+    align-items: center;
+    gap: 1rem;
+    padding: .875rem 1rem;
+    border-radius: 8px;
+    cursor: pointer;
+    transition: all .2s;
+    margin-bottom: .25rem;
+}
+.seance-item:hover { background: #eff6ff; }
+.seance-item-icon {
+    width: 40px; height: 40px;
+    background: #eff6ff;
+    color: #1e40af;
+    border-radius: 10px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: .85rem;
+    flex-shrink: 0;
+    transition: all .2s;
+}
+.seance-item:hover .seance-item-icon { background: #1e40af; color: white; }
+.seance-item-info { flex: 1; }
+.seance-num { font-size: .75rem; font-weight: 700; color: #3b82f6; }
+.seance-item-info h4 { font-size: .95rem; font-weight: 600; color: #1f2937; margin: .2rem 0 .25rem; }
+.has-pdf { font-size: .75rem; color: #dc2626; font-weight: 600; }
+.has-pdf i { margin-right: .3rem; }
+.seance-arrow { color: #9ca3af; font-size: .85rem; transition: transform .2s; }
+.seance-item:hover .seance-arrow { transform: translateX(3px); color: #1e40af; }
+
+.empty-seances {
+    padding: 2rem;
+    text-align: center;
+    color: #9ca3af;
+}
+.empty-seances i { font-size: 2rem; margin-bottom: .75rem; display: block; }
+.empty-seances p  { font-size: .9rem; margin: 0; }
+
+/* ── Page séance (lecture) ─────────────────────────────────── */
+.seance-page { min-height: 100vh; background: #f9fafb; }
+.seance-header {
+    background: linear-gradient(135deg, #1e40af 0%, #3b82f6 100%);
+    color: white;
+    padding: 3rem 1.5rem 2.5rem;
+}
+.seance-header-content { max-width: 860px; margin: 0 auto; }
+.seance-meta { display: flex; gap: .75rem; margin-bottom: 1rem; flex-wrap: wrap; }
+.seance-badge {
+    background: rgba(255,255,255,.2);
+    padding: .35rem 1rem;
+    border-radius: 20px;
+    font-size: .85rem;
+    font-weight: 700;
+}
+.seq-badge {
+    background: rgba(255,255,255,.12);
+    padding: .35rem 1rem;
+    border-radius: 20px;
+    font-size: .85rem;
+    font-weight: 600;
+    color: rgba(255,255,255,.85);
+}
+.seance-title { font-size: 2rem; font-weight: 800; margin: 0; line-height: 1.2; }
+
+.seance-main { max-width: 860px; margin: 0 auto; padding: 2rem 1.5rem; }
+
+/* PDF */
+.pdf-section { margin-bottom: 1.5rem; }
+.pdf-card {
+    background: linear-gradient(135deg, #dc2626, #ef4444);
+    border-radius: 12px;
+    padding: 1.5rem;
+    display: flex;
+    align-items: center;
+    gap: 1.25rem;
+    color: white;
+    flex-wrap: wrap;
+}
+.pdf-icon {
+    width: 56px; height: 56px;
+    background: rgba(255,255,255,.2);
+    border-radius: 10px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 1.75rem;
+    flex-shrink: 0;
+}
+.pdf-info { flex: 1; }
+.pdf-info h4 { margin: 0 0 .25rem; font-size: 1rem; }
+.pdf-info p  { margin: 0; font-size: .875rem; opacity: .9; }
+.pdf-btn {
+    background: white;
+    color: #dc2626;
+    padding: .65rem 1.25rem;
+    border-radius: 8px;
+    text-decoration: none;
+    font-weight: 700;
+    font-size: .9rem;
+    display: inline-flex;
+    align-items: center;
+    gap: .5rem;
+    transition: all .2s;
+    white-space: nowrap;
+}
+.pdf-btn:hover { transform: scale(1.04); box-shadow: 0 4px 12px rgba(0,0,0,.2); }
+
+/* Contenu séance */
+.seance-content-card {
+    background: white;
+    border-radius: 16px;
+    padding: 3rem;
+    box-shadow: 0 4px 6px rgba(0,0,0,.07);
+    margin-bottom: 2rem;
+    overflow-x: auto;
+}
+#seanceContent h1 { font-size: 1.8rem; color: #1f2937; border-bottom: 3px solid #3b82f6; padding-bottom: .5rem; margin-top: 2rem; }
+#seanceContent h2 { font-size: 1.4rem; color: #1e40af; margin-top: 1.75rem; }
+#seanceContent h3 { font-size: 1.15rem; color: #374151; margin-top: 1.5rem; }
+#seanceContent p  { line-height: 1.8; color: #374151; margin-bottom: 1rem; }
+#seanceContent ul, #seanceContent ol { margin-left: 1.5rem; margin-bottom: 1rem; line-height: 1.8; }
+#seanceContent li { margin-bottom: .4rem; color: #374151; }
+#seanceContent img { max-width: 100%; border-radius: 8px; margin: 1.5rem 0; box-shadow: 0 4px 8px rgba(0,0,0,.1); }
+#seanceContent table { width: 100%; border-collapse: collapse; margin: 1.5rem 0; display: block; overflow-x: auto; }
+#seanceContent th, #seanceContent td { padding: .75rem 1rem; text-align: left; border: 1px solid #e5e7eb; }
+#seanceContent th { background: #f3f4f6; font-weight: 700; }
+#seanceContent code { background: #f3f4f6; padding: .2rem .5rem; border-radius: 4px; font-family: monospace; color: #dc2626; }
+#seanceContent pre  { background: #1f2937; color: #f9fafb; padding: 1.5rem; border-radius: 8px; overflow-x: auto; }
+#seanceContent blockquote { border-left: 4px solid #3b82f6; background: #eff6ff; padding: 1rem 1.5rem; border-radius: 0 8px 8px 0; margin: 1.5rem 0; }
+
+/* Navigation séances */
+.seance-nav {
+    display: flex;
+    justify-content: space-between;
+    gap: 1rem;
+    margin-top: 1rem;
+}
+.nav-btn {
+    background: white;
+    border: 2px solid #e5e7eb;
+    padding: 1rem 1.5rem;
+    border-radius: 8px;
+    text-decoration: none;
+    color: #374151;
+    font-weight: 600;
+    display: inline-flex;
+    align-items: center;
+    gap: .5rem;
+    transition: all .2s;
+    flex: 1;
+    justify-content: center;
+    font-size: .95rem;
+}
+.nav-btn:hover:not(.disabled) { border-color: #3b82f6; color: #1e40af; transform: translateY(-2px); }
+.nav-btn.disabled { opacity: .4; cursor: not-allowed; pointer-events: none; }
+
+/* ── Responsive ────────────────────────────────────────────── */
+@media (max-width: 1024px) {
+    .matiere-body { grid-template-columns: 1fr; }
+    .sequences-sidebar { position: static; margin-bottom: 1.5rem; }
+    .sequences-main { padding-left: 0; }
+}
+
+@media (max-width: 768px) {
+    .courses-hero-title { font-size: 1.8rem; }
+    .diplomes-grid { grid-template-columns: 1fr; }
+    .diplome-card { padding: 1.25rem; }
+    .matieres-header { padding: 1rem; flex-wrap: wrap; }
+    .matiere-hero { padding: 2rem 1rem; }
+    .matiere-hero h1 { font-size: 1.6rem; }
+    .matiere-body { padding: 0 1rem; }
+    .seance-header { padding: 2rem 1rem; }
+    .seance-title { font-size: 1.4rem; }
+    .seance-main { padding: 1rem; }
+    .seance-content-card { padding: 1.25rem; }
+    .seance-nav { flex-direction: column; }
+    .pdf-card { flex-direction: column; text-align: center; }
+    .pdf-btn { width: 100%; justify-content: center; }
+}
+
+/* ── Filtre par niveau ───────────────────────────────────── */
+.niveau-btn {
+    display: inline-flex; align-items: center; gap: .45rem;
+    padding: .5rem 1.1rem; border: 2px solid #e2e8f0; border-radius: 30px;
+    background: white; color: #374151; font-weight: 700; font-size: .82rem;
+    cursor: pointer; transition: all .2s; white-space: nowrap;
+}
+.niveau-btn:hover { border-color: #3b82f6; color: #1e40af; background: #eff6ff; }
+.niveau-btn.active { background: #1e40af; color: white; border-color: #1e40af; }
+.niveau-btn[data-niveau="Débutant"].active     { background: #065f46; border-color: #065f46; }
+.niveau-btn[data-niveau="Intermédiaire"].active { background: #92400e; border-color: #92400e; }
+.niveau-btn[data-niveau="Avancé"].active        { background: #991b1b; border-color: #991b1b; }
+.nv-count {
+    background: rgba(255,255,255,.3); color: inherit;
+    padding: .1rem .45rem; border-radius: 10px; font-size: .75rem; font-weight: 800;
+}
+.niveau-btn:not(.active) .nv-count { background: #f1f5f9; color: #64748b; }
+
+/* ── Vue Niveaux ─────────────────────────────────────────── */
+.niveaux-container {
+    max-width: 860px;
+    margin: 0 auto;
+    padding: 2rem 1.5rem;
+}
+.niveaux-subtitle {
+    text-align: center;
+    color: #64748b;
+    font-size: 1rem;
+    margin-bottom: 2rem;
+}
+.niveaux-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+    gap: 1.25rem;
+}
+.niveau-card {
+    background: white;
+    border-radius: 14px;
+    box-shadow: 0 4px 16px rgba(0,0,0,.08);
+    padding: 1.75rem 1.5rem;
+    display: flex;
+    align-items: center;
+    gap: 1.25rem;
+    cursor: pointer;
+    transition: transform .2s, box-shadow .2s;
+    border-top: 4px solid #1e40af;
+}
+.niveau-card:hover {
+    transform: translateY(-4px);
+    box-shadow: 0 10px 30px rgba(0,0,0,.14);
+}
+.nc-icon {
+    width: 56px; height: 56px; border-radius: 14px;
+    display: flex; align-items: center; justify-content: center;
+    font-size: 1.5rem; flex-shrink: 0;
+}
+.nc-body { flex: 1; }
+.nc-titre { font-size: 1.15rem; font-weight: 800; margin: 0 0 .25rem; }
+.nc-desc  { font-size: .82rem; color: #64748b; margin: 0 0 .5rem; }
+.nc-count {
+    font-size: .75rem; font-weight: 700; background: #f1f5f9;
+    color: #64748b; padding: .2rem .65rem; border-radius: 20px;
+}
+.nc-arrow { font-size: 1.1rem; flex-shrink: 0; opacity: .6; }
+.niveau-card:hover .nc-arrow { opacity: 1; }
+
+@media (max-width: 600px) {
+    .niveaux-grid { grid-template-columns: 1fr; }
+}
+
+/* Retirer les anciens styles niveau-btn devenus inutiles */

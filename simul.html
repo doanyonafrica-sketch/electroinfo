@@ -1,0 +1,1002 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Deux Sens de Marche — Symboles CEI 60617</title>
+<style>
+@import url('https://fonts.googleapis.com/css2?family=Share+Tech+Mono&family=Barlow+Condensed:wght@400;600;700&display=swap');
+
+:root {
+  --bg:      #0b0f1c;
+  --panel:   #0d1220;
+  --border:  #1a2a45;
+  --fwd:     #00b8e6;
+  --rev:     #e67e00;
+  --green:   #00cc66;
+  --red:     #e63355;
+  --yellow:  #f0c030;
+  --dim:     #2a3d5a;
+  --text:    #c0d4f0;
+  --wire:    #1e3050;
+}
+
+* { margin:0; padding:0; box-sizing:border-box; }
+body { background:var(--bg); color:var(--text); font-family:'Barlow Condensed',sans-serif; min-height:100vh; }
+
+header {
+  background:#060a14;
+  border-bottom:1px solid var(--border);
+  padding:10px 20px;
+  display:flex; align-items:center; justify-content:space-between;
+}
+header h1 { font-size:1.2rem; font-weight:700; letter-spacing:4px; text-transform:uppercase; color:var(--fwd); }
+
+.led-row { display:flex; gap:18px; align-items:center; font-family:'Share Tech Mono',monospace; font-size:0.75rem; }
+.led-item { display:flex; align-items:center; gap:5px; }
+.led { width:9px; height:9px; border-radius:50%; background:var(--dim); transition:all .2s; }
+.led.g  { background:var(--green);  box-shadow:0 0 7px var(--green); }
+.led.b  { background:var(--fwd);    box-shadow:0 0 7px var(--fwd); }
+.led.o  { background:var(--rev);    box-shadow:0 0 7px var(--rev); }
+.led.r  { background:var(--red);    box-shadow:0 0 7px var(--red); }
+
+.grid {
+  display:grid;
+  grid-template-columns:1fr 1fr;
+  grid-template-rows:auto auto;
+  gap:12px; padding:12px;
+  max-width:1380px; margin:0 auto;
+}
+
+.card {
+  background:var(--panel);
+  border:1px solid var(--border);
+  border-radius:6px;
+  padding:12px 14px;
+}
+.card-title {
+  font-size:.8rem; font-weight:700; letter-spacing:3px; text-transform:uppercase;
+  margin-bottom:10px; padding-bottom:7px; border-bottom:1px solid var(--border);
+}
+.card-puissance .card-title { color:var(--fwd); }
+.card-commande  .card-title { color:var(--rev); }
+.card-control   { grid-column:1/-1; display:flex; align-items:center; justify-content:space-between; gap:16px; flex-wrap:wrap; }
+
+.btn {
+  font-family:'Barlow Condensed',sans-serif; font-size:1.1rem; font-weight:700;
+  letter-spacing:2px; padding:12px 26px; border:2px solid; border-radius:5px;
+  cursor:pointer; text-transform:uppercase; transition:all .12s; background:transparent;
+}
+.btn-stop   { color:var(--red);   border-color:var(--red);   }
+.btn-stop:hover   { background:rgba(230,51,85,.15); box-shadow:0 0 18px rgba(230,51,85,.3); }
+.btn-fwd    { color:var(--fwd);   border-color:var(--fwd);   }
+.btn-fwd:hover:not(:disabled) { background:rgba(0,184,230,.12); box-shadow:0 0 18px rgba(0,184,230,.3); }
+.btn-rev    { color:var(--rev);   border-color:var(--rev);   }
+.btn-rev:hover:not(:disabled) { background:rgba(230,126,0,.12); box-shadow:0 0 18px rgba(230,126,0,.3); }
+.btn:disabled { opacity:.35; cursor:not-allowed; }
+
+.state-box {
+  font-family:'Share Tech Mono',monospace;
+  border:1px solid var(--border); border-radius:6px;
+  padding:14px 22px; text-align:center; min-width:200px;
+  background:rgba(0,0,0,.3);
+}
+.state-lbl  { font-size:.7rem; letter-spacing:3px; color:var(--dim); margin-bottom:5px; }
+.state-val  { font-size:1.4rem; font-weight:700; transition:all .3s; }
+.sv-stop    { color:var(--red);   text-shadow:0 0 10px rgba(230,51,85,.4); }
+.sv-fwd     { color:var(--fwd);   text-shadow:0 0 10px rgba(0,184,230,.4); }
+.sv-rev     { color:var(--rev);   text-shadow:0 0 10px rgba(230,126,0,.4); }
+.state-sub  { font-size:.7rem; color:var(--dim); margin-top:4px; }
+
+.motor-wrap { display:flex; flex-direction:column; align-items:center; gap:6px; }
+.motor-ring {
+  width:64px; height:64px; border-radius:50%; border:3px solid var(--dim);
+  display:flex; align-items:center; justify-content:center;
+  font-size:1.4rem; font-weight:700; font-family:'Share Tech Mono',monospace;
+  color:var(--dim); transition:all .3s;
+}
+.motor-ring.fwd { border-color:var(--fwd); color:var(--fwd); box-shadow:0 0 18px rgba(0,184,230,.3); animation:rot-fwd .9s linear infinite; }
+.motor-ring.rev { border-color:var(--rev); color:var(--rev); box-shadow:0 0 18px rgba(230,126,0,.3); animation:rot-rev .9s linear infinite; }
+@keyframes rot-fwd { to { transform:rotate(360deg); } }
+@keyframes rot-rev { to { transform:rotate(-360deg); } }
+.motor-dir { font-size:.8rem; font-family:'Share Tech Mono',monospace; }
+
+.legend-row { display:flex; gap:14px; flex-wrap:wrap; }
+.leg-item   { display:flex; align-items:center; gap:5px; font-size:.75rem; font-family:'Share Tech Mono',monospace; }
+.leg-line   { width:22px; height:2px; }
+
+/* fault blink */
+.fault { display:none; padding:8px 16px; background:rgba(230,51,85,.1); border:1px solid var(--red); border-radius:4px; color:var(--red); font-weight:700; letter-spacing:2px; font-size:.8rem; animation:blink .5s step-end infinite; }
+.fault.on { display:block; }
+@keyframes blink { 50% { opacity:.2; } }
+
+svg text { font-family:'Share Tech Mono',monospace; user-select:none; }
+</style>
+</head>
+<body>
+
+<header>
+  <h1>⚡ Deux Sens de Marche — CEI 60617</h1>
+  <div class="led-row">
+    <div class="led-item"><div class="led g" id="l-reseau"></div><span>RÉSEAU</span></div>
+    <div class="led-item"><div class="led"   id="l-km1"></div><span>KM1</span></div>
+    <div class="led-item"><div class="led"   id="l-km2"></div><span>KM2</span></div>
+    <div class="led-item"><div class="led g" id="l-fr"></div><span>FR</span></div>
+  </div>
+</header>
+
+<div class="grid">
+
+  <!-- ═══════════════ SCHÉMA DE PUISSANCE ═══════════════ -->
+  <div class="card card-puissance">
+    <div class="card-title">⚡ Schéma de Puissance</div>
+    <svg id="svg-p" viewBox="0 0 520 620" width="100%">
+
+    <!-- ─── DEFS ─── -->
+    <defs>
+      <marker id="arr" markerWidth="5" markerHeight="5" refX="4" refY="2.5" orient="auto">
+        <polygon points="0,0 5,2.5 0,5" fill="#1e3050"/>
+      </marker>
+    </defs>
+
+    <!-- ─── BARRES DE PHASES ─── -->
+    <line x1="80"  y1="0"  x2="80"  y2="25" stroke="#1e3050" stroke-width="3"/>
+    <line x1="200" y1="0"  x2="200" y2="25" stroke="#1e3050" stroke-width="3"/>
+    <line x1="320" y1="0"  x2="320" y2="25" stroke="#1e3050" stroke-width="3"/>
+
+    <text x="80"  y="15" fill="#00b8e6" font-size="12" text-anchor="middle" font-weight="bold">L1</text>
+    <text x="200" y="15" fill="#00b8e6" font-size="12" text-anchor="middle" font-weight="bold">L2</text>
+    <text x="320" y="15" fill="#00b8e6" font-size="12" text-anchor="middle" font-weight="bold">L3</text>
+
+    <!-- ─── QS DISJONCTEUR ─── -->
+    <!-- Lignes arrivée -->
+    <line id="qs-w-l1" x1="80"  y1="25" x2="80"  y2="45" stroke="#1e3050" stroke-width="2.5"/>
+    <line id="qs-w-l2" x1="200" y1="25" x2="200" y2="45" stroke="#1e3050" stroke-width="2.5"/>
+    <line id="qs-w-l3" x1="320" y1="25" x2="320" y2="45" stroke="#1e3050" stroke-width="2.5"/>
+
+    <!-- Corps QS (rectangle encadrant les 3 pôles) -->
+    <rect x="55" y="45" width="290" height="10" rx="3" fill="#0a1628" stroke="#2a4060" stroke-width="1"/>
+    <text x="200" y="52" fill="#f0c030" font-size="8" text-anchor="middle">QS — DISJONCTEUR MOTEUR</text>
+
+    <!-- Pôle QS L1 : symbole disjoncteur CEI (rectangle avec barre) -->
+    <!-- CEI: petit carré avec barre diagonale = disjoncteur -->
+    <rect x="72" y="55" width="16" height="10" rx="1" fill="none" stroke="#f0c030" stroke-width="1.5"/>
+    <line x1="72" y1="65" x2="88" y2="55" stroke="#f0c030" stroke-width="1.5"/>
+
+    <rect x="192" y="55" width="16" height="10" rx="1" fill="none" stroke="#f0c030" stroke-width="1.5"/>
+    <line x1="192" y1="65" x2="208" y2="55" stroke="#f0c030" stroke-width="1.5"/>
+
+    <rect x="312" y="55" width="16" height="10" rx="1" fill="none" stroke="#f0c030" stroke-width="1.5"/>
+    <line x1="312" y1="65" x2="328" y2="55" stroke="#f0c030" stroke-width="1.5"/>
+
+    <!-- Lignes sortie QS → nœud de dérivation -->
+    <line id="qs-d-l1" x1="80"  y1="65" x2="80"  y2="95" stroke="#1e3050" stroke-width="2.5"/>
+    <line id="qs-d-l2" x1="200" y1="65" x2="200" y2="95" stroke="#1e3050" stroke-width="2.5"/>
+    <line id="qs-d-l3" x1="320" y1="65" x2="320" y2="95" stroke="#1e3050" stroke-width="2.5"/>
+
+    <!-- Nœuds de dérivation (vers KM1 et KM2) -->
+    <circle id="nd-l1" cx="80"  cy="95" r="3.5" fill="#1e3050"/>
+    <circle id="nd-l2" cx="200" cy="95" r="3.5" fill="#1e3050"/>
+    <circle id="nd-l3" cx="320" cy="95" r="3.5" fill="#1e3050"/>
+
+    <!-- Horizontale vers KM2 -->
+    <line id="dv-l1" x1="80"  y1="95" x2="400" y2="95" stroke="#1e3050" stroke-width="2"/>
+    <line id="dv-l2" x1="200" y1="95" x2="200" y2="95" stroke="#1e3050" stroke-width="1"/>
+    <circle id="nd-l2-dv" cx="200" cy="95" r="3.5" fill="#1e3050"/>
+    <line id="dv-l3-h" x1="320" y1="95" x2="320" y2="95" stroke="#1e3050" stroke-width="1"/>
+    <circle id="nd-l3-dv" cx="320" cy="95" r="3.5" fill="#1e3050"/>
+
+    <!-- Feed KM2 L1 from x=400, L2 from x=440 (inv L3), L3 from x=480 (inv L1) -->
+    <line id="km2-f1" x1="400" y1="95" x2="400" y2="125" stroke="#1e3050" stroke-width="2"/>
+    <line id="km2-f2" x1="200" y1="95" x2="200" y2="95" stroke="none"/><!-- reused nd-l2 -->
+
+    <!-- Branch to KM2: L1→400, L2→440, L3→480 -->
+    <!-- L2 feed to km2 at x=440 -->
+    <line id="dv2-l2" x1="200" y1="95" x2="440" y2="95" stroke="#1e3050" stroke-width="1.5"/>
+    <line id="dv2-l3" x1="320" y1="95" x2="480" y2="95" stroke="#1e3050" stroke-width="1.5"/>
+
+    <line id="km2-top-1" x1="400" y1="95" x2="400" y2="125" stroke="#1e3050" stroke-width="2"/>
+    <line id="km2-top-2" x1="440" y1="95" x2="440" y2="125" stroke="#1e3050" stroke-width="2"/>
+    <line id="km2-top-3" x1="480" y1="95" x2="480" y2="125" stroke="#1e3050" stroke-width="2"/>
+
+    <!-- ═══ KM1 — MARCHE AVANT (3 contacts NO de puissance) ═══ -->
+    <text x="200" y="120" fill="#00b8e6" font-size="9" text-anchor="middle">KM1 — MARCHE AVANT</text>
+
+    <!-- Ligne avant contact KM1 -->
+    <line id="km1-a-l1" x1="80"  y1="95"  x2="80"  y2="130" stroke="#1e3050" stroke-width="2.5"/>
+    <line id="km1-a-l2" x1="200" y1="95"  x2="200" y2="130" stroke="#1e3050" stroke-width="2.5"/>
+    <line id="km1-a-l3" x1="320" y1="95"  x2="320" y2="130" stroke="#1e3050" stroke-width="2.5"/>
+
+    <!-- KM1 Contact NO × 3  —  symbole CEI 60617 pôle de puissance -->
+    <!-- Contact NO = 2 barres fixes + lame mobile inclinée en position ouverte
+         Barre haute cx-8..cx+8 à cy-6
+         Barre basse  cx-8..cx+8 à cy+6
+         Lame OUVERTE: de (cx-5, cy-6) vers (cx+7, cy+0)  [n'atteint pas la barre basse]
+         Lame FERMÉE: de (cx-5, cy-6) vers (cx+5, cy+6)   [relie les deux barres] -->
+
+    <g id="km1-c1"><!-- pôle L1 cx=80 cy=148 -->
+      <line x1="80" y1="130" x2="80" y2="140" stroke="#1e3050" stroke-width="2.5" class="km1-wt"/>
+      <line x1="72" y1="140" x2="88" y2="140" stroke="#1e3050" stroke-width="2" class="km1-fb"/><!-- barre fixe haute -->
+      <line id="km1-bl1" x1="75" y1="140" x2="85" y2="146" stroke="#1e3050" stroke-width="2"/><!-- lame -->
+      <line x1="72" y1="156" x2="88" y2="156" stroke="#1e3050" stroke-width="2" class="km1-fb"/><!-- barre fixe basse -->
+      <line x1="80" y1="156" x2="80" y2="166" stroke="#1e3050" stroke-width="2.5" class="km1-wb"/>
+    </g>
+
+    <g id="km1-c2"><!-- pôle L2 cx=200 cy=148 -->
+      <line x1="200" y1="130" x2="200" y2="140" stroke="#1e3050" stroke-width="2.5" class="km1-wt"/>
+      <line x1="192" y1="140" x2="208" y2="140" stroke="#1e3050" stroke-width="2" class="km1-fb"/>
+      <line id="km1-bl2" x1="195" y1="140" x2="205" y2="146" stroke="#1e3050" stroke-width="2"/>
+      <line x1="192" y1="156" x2="208" y2="156" stroke="#1e3050" stroke-width="2" class="km1-fb"/>
+      <line x1="200" y1="156" x2="200" y2="166" stroke="#1e3050" stroke-width="2.5" class="km1-wb"/>
+    </g>
+
+    <g id="km1-c3"><!-- pôle L3 cx=320 cy=148 -->
+      <line x1="320" y1="130" x2="320" y2="140" stroke="#1e3050" stroke-width="2.5" class="km1-wt"/>
+      <line x1="312" y1="140" x2="328" y2="140" stroke="#1e3050" stroke-width="2" class="km1-fb"/>
+      <line id="km1-bl3" x1="315" y1="140" x2="325" y2="146" stroke="#1e3050" stroke-width="2"/>
+      <line x1="312" y1="156" x2="328" y2="156" stroke="#1e3050" stroke-width="2" class="km1-fb"/>
+      <line x1="320" y1="156" x2="320" y2="166" stroke="#1e3050" stroke-width="2.5" class="km1-wb"/>
+    </g>
+
+    <!-- ═══ KM2 — MARCHE ARRIÈRE ═══ -->
+    <text x="440" y="120" fill="#e67e00" font-size="9" text-anchor="middle">KM2 — MARCHE ARRIÈRE</text>
+
+    <g id="km2-c1"><!-- pôle L1 → (sortie ira vers W moteur : inversion) -->
+      <line x1="400" y1="125" x2="400" y2="140" stroke="#1e3050" stroke-width="2"/>
+      <line x1="392" y1="140" x2="408" y2="140" stroke="#1e3050" stroke-width="1.5"/>
+      <line id="km2-bl1" x1="395" y1="140" x2="405" y2="146" stroke="#1e3050" stroke-width="1.5"/>
+      <line x1="392" y1="156" x2="408" y2="156" stroke="#1e3050" stroke-width="1.5"/>
+      <line x1="400" y1="156" x2="400" y2="166" stroke="#1e3050" stroke-width="2"/>
+    </g>
+    <g id="km2-c2"><!-- pôle L2 → V (inchangé) -->
+      <line x1="440" y1="125" x2="440" y2="140" stroke="#1e3050" stroke-width="2"/>
+      <line x1="432" y1="140" x2="448" y2="140" stroke="#1e3050" stroke-width="1.5"/>
+      <line id="km2-bl2" x1="435" y1="140" x2="445" y2="146" stroke="#1e3050" stroke-width="1.5"/>
+      <line x1="432" y1="156" x2="448" y2="156" stroke="#1e3050" stroke-width="1.5"/>
+      <line x1="440" y1="156" x2="440" y2="166" stroke="#1e3050" stroke-width="2"/>
+    </g>
+    <g id="km2-c3"><!-- pôle L3 → (sortie ira vers U moteur : inversion) -->
+      <line x1="480" y1="125" x2="480" y2="140" stroke="#1e3050" stroke-width="2"/>
+      <line x1="472" y1="140" x2="488" y2="140" stroke="#1e3050" stroke-width="1.5"/>
+      <line id="km2-bl3" x1="475" y1="140" x2="485" y2="146" stroke="#1e3050" stroke-width="1.5"/>
+      <line x1="472" y1="156" x2="488" y2="156" stroke="#1e3050" stroke-width="1.5"/>
+      <line x1="480" y1="156" x2="480" y2="166" stroke="#1e3050" stroke-width="2"/>
+    </g>
+
+    <!-- ═══ Câblage inversion de phases KM2 ═══ -->
+    <!-- KM2 sortie: L1(400)→W(320bus), L2(440)→V(200bus), L3(480)→U(80bus)
+         Les sorties de KM2 rejoignent le même bus aval que KM1
+         Mais avec inversion: 400→320, 440→200, 480→80 -->
+    <!-- Lignes de croisement (la vraie inversion) -->
+    <!-- On trace après km2 les fils qui croisent -->
+    <line id="km2-x1-a" x1="400" y1="166" x2="400" y2="175" stroke="#1e3050" stroke-width="2"/>
+    <line id="km2-x2-a" x1="440" y1="166" x2="440" y2="175" stroke="#1e3050" stroke-width="2"/>
+    <line id="km2-x3-a" x1="480" y1="166" x2="480" y2="175" stroke="#1e3050" stroke-width="2"/>
+    <!-- Lignes croisées : L1(400)→U(80), L3(480)→W(320) -->
+    <line id="km2-cross-l1w" x1="400" y1="175" x2="320" y2="195" stroke="#1e3050" stroke-width="2"/>
+    <line id="km2-cross-l2v" x1="440" y1="175" x2="200" y2="195" stroke="#1e3050" stroke-width="1.5"/>
+    <line id="km2-cross-l3u" x1="480" y1="175" x2="80"  y2="195" stroke="#1e3050" stroke-width="2"/>
+    <!-- Annotation inversion -->
+    <text x="440" y="188" fill="#e67e00" font-size="7.5" text-anchor="middle" opacity="0.8">← INVERSION L1↔L3 →</text>
+
+    <!-- ═══ Nœuds de jonction KM1 + KM2 ═══ -->
+    <!-- Sorties KM1: 80(U), 200(V), 320(W) @ y=166 -->
+    <!-- Sorties KM2 croisées arrivent @ y=195 aux mêmes x -->
+    <line id="km1-down-u" x1="80"  y1="166" x2="80"  y2="195" stroke="#1e3050" stroke-width="2.5"/>
+    <line id="km1-down-v" x1="200" y1="166" x2="200" y2="195" stroke="#1e3050" stroke-width="2.5"/>
+    <line id="km1-down-w" x1="320" y1="166" x2="320" y2="195" stroke="#1e3050" stroke-width="2.5"/>
+
+    <circle id="jn-u" cx="80"  cy="195" r="3.5" fill="#1e3050"/>
+    <circle id="jn-v" cx="200" cy="195" r="3.5" fill="#1e3050"/>
+    <circle id="jn-w" cx="320" cy="195" r="3.5" fill="#1e3050"/>
+
+    <!-- Bus aval vers FR -->
+    <line id="bus-u" x1="80"  y1="195" x2="80"  y2="215" stroke="#1e3050" stroke-width="2.5"/>
+    <line id="bus-v" x1="200" y1="195" x2="200" y2="215" stroke="#1e3050" stroke-width="2.5"/>
+    <line id="bus-w" x1="320" y1="195" x2="320" y2="215" stroke="#1e3050" stroke-width="2.5"/>
+
+    <!-- ═══ FR — RELAIS THERMIQUE ═══ -->
+    <!-- Élément thermique CEI : ligne en zigzag -->
+    <text x="200" y="212" fill="#00cc66" font-size="9" text-anchor="middle">FR — RELAIS THERMIQUE</text>
+
+    <!-- Élément thermique U -->
+    <path id="fr-u" d="M80,215 L80,222 Q76,225 80,228 Q84,231 80,234 Q76,237 80,240 L80,247" fill="none" stroke="#00cc66" stroke-width="2"/>
+    <!-- Élément thermique V -->
+    <path id="fr-v" d="M200,215 L200,222 Q196,225 200,228 Q204,231 200,234 Q196,237 200,240 L200,247" fill="none" stroke="#00cc66" stroke-width="2"/>
+    <!-- Élément thermique W -->
+    <path id="fr-w" d="M320,215 L320,222 Q316,225 320,228 Q324,231 320,234 Q316,237 320,240 L320,247" fill="none" stroke="#00cc66" stroke-width="2"/>
+
+    <!-- Lignes FR → Moteur -->
+    <line id="fr-u-out" x1="80"  y1="247" x2="80"  y2="290" stroke="#1e3050" stroke-width="2.5"/>
+    <line id="fr-v-out" x1="200" y1="247" x2="200" y2="290" stroke="#1e3050" stroke-width="2.5"/>
+    <line id="fr-w-out" x1="320" y1="247" x2="320" y2="290" stroke="#1e3050" stroke-width="2.5"/>
+
+    <!-- Jonctions vers bornes moteur -->
+    <line id="mtr-u" x1="80"  y1="290" x2="170" y2="320" stroke="#1e3050" stroke-width="2.5"/>
+    <line id="mtr-v" x1="200" y1="290" x2="200" y2="320" stroke="#1e3050" stroke-width="2.5"/>
+    <line id="mtr-w" x1="320" y1="290" x2="230" y2="320" stroke="#1e3050" stroke-width="2.5"/>
+
+    <!-- Étiquettes bornes -->
+    <text x="80"  y="288" fill="#1e3050" font-size="9" text-anchor="middle">U</text>
+    <text x="200" y="288" fill="#1e3050" font-size="9" text-anchor="middle">V</text>
+    <text x="320" y="288" fill="#1e3050" font-size="9" text-anchor="middle">W</text>
+
+    <!-- ═══ MOTEUR M 3~ ═══ -->
+    <!-- Symbole CEI : cercle avec M et 3~ -->
+    <circle id="mtr-body" cx="200" cy="380" r="55" fill="#080d18" stroke="#1e3050" stroke-width="2.5"/>
+    <text id="mtr-m"    x="200" y="374" fill="#1e3050" font-size="20" text-anchor="middle" font-weight="bold">M</text>
+    <text id="mtr-type" x="200" y="393" fill="#1e3050" font-size="12" text-anchor="middle">3 ~</text>
+
+    <!-- Flèche sens de rotation (arc CEI) -->
+    <path id="mtr-arr" d="M162,360 A42,42 0 0,1 238,358" fill="none" stroke="#1e3050" stroke-width="1.5" marker-end="url(#arr)"/>
+
+    <!-- ─── LÉGENDE SYMBOLES ─── -->
+    <rect x="55" y="445" width="410" height="165" rx="4" fill="rgba(0,0,0,.4)" stroke="#1a2a45" stroke-width="1"/>
+    <text x="260" y="460" fill="#c0d4f0" font-size="9" text-anchor="middle" font-weight="bold">LÉGENDE — SYMBOLES CEI 60617</text>
+
+    <!-- Contact NO -->
+    <line x1="75"  y1="476" x2="95"  y2="476" stroke="#2a3d5a" stroke-width="1.5"/><!-- barre haute -->
+    <line x1="72"  y1="476" x2="78"  y2="484" stroke="#2a3d5a" stroke-width="1.5"/><!-- lame ouverte -->
+    <line x1="75"  y1="486" x2="95"  y2="486" stroke="#2a3d5a" stroke-width="1.5"/><!-- barre basse -->
+    <text x="100" y="484" fill="#c0d4f0" font-size="8">Contact NO (Normalement Ouvert)</text>
+
+    <!-- Contact NC -->
+    <line x1="75"  y1="500" x2="95"  y2="500" stroke="#2a3d5a" stroke-width="1.5"/>
+    <line x1="72"  y1="500" x2="78"  y2="510" stroke="#2a3d5a" stroke-width="1.5"/><!-- lame fermée -->
+    <line x1="78"  y1="499" x2="82"  y2="503" stroke="#2a3d5a" stroke-width="1.5"/><!-- indicateur NC -->
+    <line x1="75"  y1="510" x2="95"  y2="510" stroke="#2a3d5a" stroke-width="1.5"/>
+    <text x="100" y="508" fill="#c0d4f0" font-size="8">Contact NC (Normalement Fermé)</text>
+
+    <!-- Bobine -->
+    <rect x="75" y="520" width="20" height="10" rx="1" fill="none" stroke="#2a3d5a" stroke-width="1.5"/>
+    <text x="100" y="528" fill="#c0d4f0" font-size="8">Bobine de contacteur (A1–A2)</text>
+
+    <!-- Thermique -->
+    <path d="M75,545 L75,550 Q72,552 75,554 Q78,556 75,558 L75,562" fill="none" stroke="#2a3d5a" stroke-width="1.5"/>
+    <text x="100" y="556" fill="#c0d4f0" font-size="8">Élément thermique (FR)</text>
+
+    <!-- Bouton poussoir NO -->
+    <line x1="200" y1="476" x2="220" y2="476" stroke="#2a3d5a" stroke-width="1.5"/>
+    <line x1="197" y1="476" x2="203" y2="484" stroke="#2a3d5a" stroke-width="1.5"/>
+    <line x1="200" y1="486" x2="220" y2="486" stroke="#2a3d5a" stroke-width="1.5"/>
+    <path d="M204,470 A4,4 0 0,1 216,470" fill="none" stroke="#2a3d5a" stroke-width="1.5"/>
+    <line x1="210" y1="470" x2="210" y2="476" stroke="#2a3d5a" stroke-width="1.5"/>
+    <text x="225" y="484" fill="#c0d4f0" font-size="8">Bouton poussoir (BP NO)</text>
+
+    <!-- Bouton poussoir NC -->
+    <line x1="200" y1="500" x2="220" y2="500" stroke="#2a3d5a" stroke-width="1.5"/>
+    <line x1="197" y1="500" x2="203" y2="510" stroke="#2a3d5a" stroke-width="1.5"/>
+    <line x1="200" y1="502" x2="204" y2="506" stroke="#2a3d5a" stroke-width="1.5"/><!-- NC mark -->
+    <line x1="200" y1="510" x2="220" y2="510" stroke="#2a3d5a" stroke-width="1.5"/>
+    <path d="M204,494 A4,4 0 0,1 216,494" fill="none" stroke="#2a3d5a" stroke-width="1.5"/>
+    <line x1="210" y1="494" x2="210" y2="500" stroke="#2a3d5a" stroke-width="1.5"/>
+    <text x="225" y="508" fill="#c0d4f0" font-size="8">Bouton poussoir (BP NC)</text>
+
+    <!-- Disjoncteur -->
+    <rect x="200" y="522" width="14" height="8" rx="1" fill="none" stroke="#f0c030" stroke-width="1.5"/>
+    <line x1="200" y1="530" x2="214" y2="522" stroke="#f0c030" stroke-width="1.5"/>
+    <text x="225" y="529" fill="#c0d4f0" font-size="8">Disjoncteur (QS)</text>
+
+    <!-- Moteur -->
+    <circle cx="207" cy="550" r="8" fill="none" stroke="#2a3d5a" stroke-width="1.5"/>
+    <text x="207" y="553" fill="#2a3d5a" font-size="6" text-anchor="middle">M</text>
+    <text x="225" y="553" fill="#c0d4f0" font-size="8">Moteur asynchrone 3~</text>
+
+    </svg>
+  </div>
+
+  <!-- ═══════════════ SCHÉMA DE COMMANDE ═══════════════ -->
+  <div class="card card-commande">
+    <div class="card-title">🔌 Schéma de Commande</div>
+    <!--
+      Schéma en ÉCHELLE HORIZONTAL
+      Rail gauche  x=30  (Phase A commande)
+      Rail droit   x=510 (Neutre N)
+      
+      Rung 1 (KM1) y=80  → 170
+      Rung 2 (KM2) y=290 → 380
+
+      Chaque contact en mode horizontal :
+        - 2 barres fixes VERTICALES (les bornes)
+        - Lame mobile : inclinée (ouvert) ou horizontale (fermé)
+      
+      BP NC (Arrêt SB0) : contact NC avec marqueur
+      BP NO (SB1,SB2)  : contact NO avec arc de bouton
+      Contact NC locking: contact NC
+      Contact NO auto-maintien: contact NO
+      Bobine: rectangle
+      Contact NC FR: contact NC
+    -->
+    <svg id="svg-c" viewBox="0 0 550 620" width="100%">
+
+    <!-- Rails (barres d'alimentation commande) -->
+    <line x1="30"  y1="20" x2="30"  y2="580" stroke="#1e3050" stroke-width="3" id="c-rail-l"/>
+    <line x1="510" y1="20" x2="510" y2="580" stroke="#1e3050" stroke-width="3" id="c-rail-n"/>
+    <text x="30"  y="15" fill="#00b8e6" font-size="10" text-anchor="middle">L</text>
+    <text x="510" y="15" fill="#4a6080" font-size="10" text-anchor="middle">N</text>
+
+    <!-- ══════ RUNG 1 : Circuit KM1 ══════ -->
+    <text x="270" y="55" fill="#00b8e6" font-size="8.5" text-anchor="middle">— Circuit bobine KM1 (Marche Avant) —</text>
+
+    <!-- Horizontale principale du rung 1 y=90 -->
+    <!-- Segments de fil : rail L → NC_KM2 → NC_SB0 → (SB1‖auto-KM1) → bobine KM1 → NC_FR → rail N -->
+
+    <!-- Fil 1 : rail L → contact NC KM2 (verrou) -->
+    <line id="c1-w1" x1="30"  y1="90" x2="70"  y2="90" stroke="#1e3050" stroke-width="2"/>
+
+    <!-- Contact NC KM2 (verrouillage) CEI :
+         Barre fixe gauche à x=70 (y:84–96)
+         Barre fixe droite à x=90 (y:84–96)
+         Lame NC : horizontale de (70,90)→(90,90) + hachure indicatrice -->
+    <!-- barre gauche -->
+    <line x1="70" y1="84" x2="70" y2="96" stroke="#1e3050" stroke-width="2" id="c1-ncKM2-bg"/>
+    <!-- barre droite -->
+    <line x1="90" y1="84" x2="90" y2="96" stroke="#1e3050" stroke-width="2" id="c1-ncKM2-bd"/>
+    <!-- lame NC (rest=closed) -->
+    <line id="c1-ncKM2-lame" x1="70" y1="90" x2="90" y2="90" stroke="#1e3050" stroke-width="2"/>
+    <!-- indicateur NC (petite oblique sur la lame) -->
+    <line id="c1-ncKM2-ind" x1="77" y1="86" x2="83" y2="94" stroke="#1e3050" stroke-width="1.5"/>
+    <text x="80" y="104" fill="#e67e00" font-size="7" text-anchor="middle">NC KM2</text>
+
+    <!-- Fil 2 : NC KM2 → NC SB0 -->
+    <line id="c1-w2" x1="90" y1="90" x2="130" y2="90" stroke="#1e3050" stroke-width="2"/>
+
+    <!-- BP NC SB0 (Arrêt) CEI : NC + arc bouton
+         Barre g x=130, barre d x=150 -->
+    <line x1="130" y1="84" x2="130" y2="96" stroke="#e63355" stroke-width="2"/>
+    <line x1="150" y1="84" x2="150" y2="96" stroke="#e63355" stroke-width="2"/>
+    <!-- lame NC -->
+    <line id="c1-sb0-lame" x1="130" y1="90" x2="150" y2="90" stroke="#e63355" stroke-width="2"/>
+    <!-- indicateur NC -->
+    <line id="c1-sb0-ind" x1="137" y1="86" x2="143" y2="94" stroke="#e63355" stroke-width="1.5"/>
+    <!-- arc bouton (actuateur) CEI : arc + tige -->
+    <path d="M133,76 A7,7 0 0,1 147,76" fill="none" stroke="#e63355" stroke-width="1.5"/>
+    <line x1="140" y1="76" x2="140" y2="84" stroke="#e63355" stroke-width="1.5"/>
+    <text x="140" y="104" fill="#e63355" font-size="7" text-anchor="middle">SB0 — ARRÊT</text>
+
+    <!-- Fil 3 : SB0 → nœud parallèle -->
+    <line id="c1-w3" x1="150" y1="90" x2="185" y2="90" stroke="#1e3050" stroke-width="2"/>
+    <!-- Nœud de départ branche parallèle -->
+    <circle id="c1-noeud-top" cx="185" cy="90" r="3" fill="#1e3050"/>
+    <!-- Fil bas du nœud -->
+    <line id="c1-par-v1" x1="185" y1="90" x2="185" y2="140" stroke="#1e3050" stroke-width="1.5"/>
+
+    <!-- ── Branche haute : BP NO SB1 (Marche Avant) ── y=90 -->
+    <line id="c1-sb1-wl" x1="185" y1="90" x2="220" y2="90" stroke="#1e3050" stroke-width="1.5"/>
+    <!-- BP NO SB1 : barres + lame + arc -->
+    <line x1="220" y1="84" x2="220" y2="96" stroke="#00b8e6" stroke-width="2"/>
+    <line x1="240" y1="84" x2="240" y2="96" stroke="#00b8e6" stroke-width="2"/>
+    <line id="c1-sb1-lame" x1="220" y1="96" x2="240" y2="84" stroke="#00b8e6" stroke-width="2"/><!-- lame NO = inclinée -->
+    <!-- arc bouton -->
+    <path d="M223,76 A7,7 0 0,1 237,76" fill="none" stroke="#00b8e6" stroke-width="1.5"/>
+    <line x1="230" y1="76" x2="230" y2="84" stroke="#00b8e6" stroke-width="1.5"/>
+    <text x="230" y="104" fill="#00b8e6" font-size="7" text-anchor="middle">SB1 AV</text>
+    <line id="c1-sb1-wr" x1="240" y1="90" x2="270" y2="90" stroke="#1e3050" stroke-width="1.5"/>
+
+    <!-- ── Branche basse : Contact NO auto-maintien KM1 ── y=140 -->
+    <line id="c1-am-wl" x1="185" y1="140" x2="220" y2="140" stroke="#1e3050" stroke-width="1.5"/>
+    <line x1="220" y1="134" x2="220" y2="146" stroke="#1e3050" stroke-width="2" id="c1-amkm1-bg"/>
+    <line x1="240" y1="134" x2="240" y2="146" stroke="#1e3050" stroke-width="2" id="c1-amkm1-bd"/>
+    <line id="c1-amkm1-lame" x1="220" y1="146" x2="240" y2="134" stroke="#1e3050" stroke-width="2"/><!-- NO=ouvert -->
+    <text x="230" y="153" fill="#00b8e6" font-size="7" text-anchor="middle">NO KM1</text>
+    <text x="230" y="162" fill="#4a6080" font-size="6.5" text-anchor="middle">(auto-maint.)</text>
+    <line id="c1-am-wr" x1="240" y1="140" x2="270" y2="140" stroke="#1e3050" stroke-width="1.5"/>
+
+    <!-- Fermeture branches parallèles → nœud droit -->
+    <line id="c1-par-v2" x1="270" y1="90" x2="270" y2="140" stroke="#1e3050" stroke-width="1.5"/>
+    <circle id="c1-noeud-bot" cx="270" cy="90" r="3" fill="#1e3050"/>
+
+    <!-- Fil 4 : nœud → bobine KM1 -->
+    <line id="c1-w4" x1="270" y1="90" x2="340" y2="90" stroke="#1e3050" stroke-width="2"/>
+    <!-- Bobine KM1 CEI : rectangle -->
+    <rect id="c1-coil-km1" x="340" y="80" width="40" height="20" rx="2" fill="rgba(0,184,230,0.05)" stroke="#1e3050" stroke-width="2"/>
+    <text x="360" y="93" fill="#1e3050" font-size="8" text-anchor="middle" id="c1-coil-km1-lbl">KM1</text>
+    <!-- fils bobine -->
+    <line id="c1-w4b" x1="380" y1="90" x2="410" y2="90" stroke="#1e3050" stroke-width="2"/>
+
+    <!-- Contact NC FR (protection thermique) -->
+    <line x1="410" y1="84" x2="410" y2="96" stroke="#00cc66" stroke-width="2"/>
+    <line x1="430" y1="84" x2="430" y2="96" stroke="#00cc66" stroke-width="2"/>
+    <line id="c1-fr-lame" x1="410" y1="90" x2="430" y2="90" stroke="#00cc66" stroke-width="2"/><!-- NC fermé -->
+    <line id="c1-fr-ind"  x1="417" y1="86" x2="423" y2="94" stroke="#00cc66" stroke-width="1.5"/>
+    <text x="420" y="104" fill="#00cc66" font-size="7" text-anchor="middle">NC FR</text>
+
+    <!-- Fil → rail N -->
+    <line id="c1-w5" x1="430" y1="90" x2="510" y2="90" stroke="#1e3050" stroke-width="2"/>
+
+    <!-- Ligne de fermeture parallèle inférieure → rail N -->
+    <line id="c1-am-close" x1="270" y1="140" x2="340"  y2="140" stroke="#1e3050" stroke-width="1.5"/>
+    <!-- Les fils de la branche basse rejoignent la même bobine / rail via y=90 -->
+    <!-- trait vertical qui remonte de y=140 vers y=90 côté droit -->
+    <line id="c1-am-rclose" x1="340" y1="90" x2="340" y2="140" stroke="#1e3050" stroke-width="1.5"/>
+    <circle cx="340" cy="90" r="3" fill="#1e3050"/>
+
+    <!-- ══════ RUNG 2 : Circuit KM2 ══════ -->
+    <text x="270" y="265" fill="#e67e00" font-size="8.5" text-anchor="middle">— Circuit bobine KM2 (Marche Arrière) —</text>
+
+    <!-- Fil 1 : rail L → NC KM1 (verrou) -->
+    <line id="c2-w1" x1="30"  y1="300" x2="70"  y2="300" stroke="#1e3050" stroke-width="2"/>
+
+    <!-- Contact NC KM1 (verrouillage) -->
+    <line x1="70" y1="294" x2="70" y2="306" stroke="#1e3050" stroke-width="2"/>
+    <line x1="90" y1="294" x2="90" y2="306" stroke="#1e3050" stroke-width="2"/>
+    <line id="c2-ncKM1-lame" x1="70" y1="300" x2="90" y2="300" stroke="#1e3050" stroke-width="2"/>
+    <line id="c2-ncKM1-ind"  x1="77" y1="296" x2="83" y2="304" stroke="#1e3050" stroke-width="1.5"/>
+    <text x="80" y="314" fill="#00b8e6" font-size="7" text-anchor="middle">NC KM1</text>
+
+    <!-- Fil 2 : NC KM1 → NC SB0 -->
+    <line id="c2-w2" x1="90" y1="300" x2="130" y2="300" stroke="#1e3050" stroke-width="2"/>
+
+    <!-- BP NC SB0 -->
+    <line x1="130" y1="294" x2="130" y2="306" stroke="#e63355" stroke-width="2"/>
+    <line x1="150" y1="294" x2="150" y2="306" stroke="#e63355" stroke-width="2"/>
+    <line id="c2-sb0-lame" x1="130" y1="300" x2="150" y2="300" stroke="#e63355" stroke-width="2"/>
+    <line id="c2-sb0-ind"  x1="137" y1="296" x2="143" y2="304" stroke="#e63355" stroke-width="1.5"/>
+    <path d="M133,286 A7,7 0 0,1 147,286" fill="none" stroke="#e63355" stroke-width="1.5"/>
+    <line x1="140" y1="286" x2="140" y2="294" stroke="#e63355" stroke-width="1.5"/>
+    <text x="140" y="314" fill="#e63355" font-size="7" text-anchor="middle">SB0 — ARRÊT</text>
+
+    <!-- Fil 3 : SB0 → nœud parallèle -->
+    <line id="c2-w3" x1="150" y1="300" x2="185" y2="300" stroke="#1e3050" stroke-width="2"/>
+    <circle id="c2-noeud-top" cx="185" cy="300" r="3" fill="#1e3050"/>
+    <line id="c2-par-v1" x1="185" y1="300" x2="185" y2="350" stroke="#1e3050" stroke-width="1.5"/>
+
+    <!-- Branche haute : BP NO SB2 (Marche Arrière) -->
+    <line id="c2-sb2-wl" x1="185" y1="300" x2="220" y2="300" stroke="#1e3050" stroke-width="1.5"/>
+    <line x1="220" y1="294" x2="220" y2="306" stroke="#e67e00" stroke-width="2"/>
+    <line x1="240" y1="294" x2="240" y2="306" stroke="#e67e00" stroke-width="2"/>
+    <line id="c2-sb2-lame" x1="220" y1="306" x2="240" y2="294" stroke="#e67e00" stroke-width="2"/>
+    <path d="M223,286 A7,7 0 0,1 237,286" fill="none" stroke="#e67e00" stroke-width="1.5"/>
+    <line x1="230" y1="286" x2="230" y2="294" stroke="#e67e00" stroke-width="1.5"/>
+    <text x="230" y="314" fill="#e67e00" font-size="7" text-anchor="middle">SB2 AR</text>
+    <line id="c2-sb2-wr" x1="240" y1="300" x2="270" y2="300" stroke="#1e3050" stroke-width="1.5"/>
+
+    <!-- Branche basse : Contact NO auto-maintien KM2 -->
+    <line id="c2-am-wl" x1="185" y1="350" x2="220" y2="350" stroke="#1e3050" stroke-width="1.5"/>
+    <line x1="220" y1="344" x2="220" y2="356" stroke="#1e3050" stroke-width="2"/>
+    <line x1="240" y1="344" x2="240" y2="356" stroke="#1e3050" stroke-width="2"/>
+    <line id="c2-amkm2-lame" x1="220" y1="356" x2="240" y2="344" stroke="#1e3050" stroke-width="2"/>
+    <text x="230" y="363" fill="#e67e00" font-size="7" text-anchor="middle">NO KM2</text>
+    <text x="230" y="372" fill="#4a6080" font-size="6.5" text-anchor="middle">(auto-maint.)</text>
+    <line id="c2-am-wr" x1="240" y1="350" x2="270" y2="350" stroke="#1e3050" stroke-width="1.5"/>
+
+    <!-- Fermeture parallèle -->
+    <line id="c2-par-v2"  x1="270" y1="300" x2="270" y2="350" stroke="#1e3050" stroke-width="1.5"/>
+    <circle id="c2-noeud-bot" cx="270" cy="300" r="3" fill="#1e3050"/>
+
+    <!-- Fil 4 : nœud → bobine KM2 -->
+    <line id="c2-w4" x1="270" y1="300" x2="340" y2="300" stroke="#1e3050" stroke-width="2"/>
+    <rect id="c2-coil-km2" x="340" y="290" width="40" height="20" rx="2" fill="rgba(230,126,0,0.05)" stroke="#1e3050" stroke-width="2"/>
+    <text x="360" y="303" fill="#1e3050" font-size="8" text-anchor="middle" id="c2-coil-km2-lbl">KM2</text>
+    <line id="c2-w4b"  x1="380" y1="300" x2="410" y2="300" stroke="#1e3050" stroke-width="2"/>
+
+    <!-- NC FR -->
+    <line x1="410" y1="294" x2="410" y2="306" stroke="#00cc66" stroke-width="2"/>
+    <line x1="430" y1="294" x2="430" y2="306" stroke="#00cc66" stroke-width="2"/>
+    <line id="c2-fr-lame" x1="410" y1="300" x2="430" y2="300" stroke="#00cc66" stroke-width="2"/>
+    <line id="c2-fr-ind"  x1="417" y1="296" x2="423" y2="304" stroke="#00cc66" stroke-width="1.5"/>
+    <text x="420" y="314" fill="#00cc66" font-size="7" text-anchor="middle">NC FR</text>
+
+    <!-- Fil → rail N -->
+    <line id="c2-w5"      x1="430" y1="300" x2="510" y2="300" stroke="#1e3050" stroke-width="2"/>
+    <line id="c2-am-close"  x1="270" y1="350" x2="340"  y2="350" stroke="#1e3050" stroke-width="1.5"/>
+    <line id="c2-am-rclose" x1="340" y1="300" x2="340"  y2="350" stroke="#1e3050" stroke-width="1.5"/>
+    <circle cx="340" cy="300" r="3" fill="#1e3050"/>
+
+    <!-- ──────── LÉGENDE SCHÉMA DE COMMANDE ──────── -->
+    <rect x="30" y="450" width="475" height="145" rx="4" fill="rgba(0,0,0,.4)" stroke="#1a2a45" stroke-width="1"/>
+    <text x="267" y="466" fill="#c0d4f0" font-size="9" text-anchor="middle" font-weight="bold">PRINCIPE DU CIRCUIT DE COMMANDE</text>
+
+    <text x="45" y="483" fill="#4a6080" font-size="8">①</text><text x="57" y="483" fill="#c0d4f0" font-size="8">Contacts NC KM1/KM2 : verrouillage électrique croisé → impossible d'actionner KM1 et KM2 simultanément.</text>
+    <text x="45" y="496" fill="#4a6080" font-size="8">②</text><text x="57" y="496" fill="#c0d4f0" font-size="8">SB0 (NC) en série dans les deux circuits → coupure immédiate de tout mouvement.</text>
+    <text x="45" y="509" fill="#4a6080" font-size="8">③</text><text x="57" y="509" fill="#c0d4f0" font-size="8">SB1 / SB2 : contacts NO, impulsion suffisante (auto-maintien par NO KM1 / NO KM2 en parallèle).</text>
+    <text x="45" y="522" fill="#4a6080" font-size="8">④</text><text x="57" y="522" fill="#c0d4f0" font-size="8">Bobines KM1 / KM2 (A1–A2) : mise sous tension → fermeture contacts de puissance + auxiliaires.</text>
+    <text x="45" y="535" fill="#4a6080" font-size="8">⑤</text><text x="57" y="535" fill="#c0d4f0" font-size="8">NC FR en série dans chaque circuit : déclenchement thermique coupe tout mouvement immédiatement.</text>
+    <text x="45" y="548" fill="#4a6080" font-size="8">⑥</text><text x="57" y="548" fill="#c0d4f0" font-size="8">Inversion de rotation (KM2) : permutation de L1 et L3 sur les bornes U–W du moteur.</text>
+
+    </svg>
+  </div>
+
+  <!-- ═══════════════ PANNEAU DE CONTRÔLE ═══════════════ -->
+  <div class="card card-control">
+    <div style="display:flex;gap:14px;align-items:center;flex-wrap:wrap;">
+      <div style="text-align:center">
+        <div style="font-size:.7rem;letter-spacing:2px;color:var(--dim);margin-bottom:6px;">SB0</div>
+        <button class="btn btn-stop" onclick="stop()">⬛ ARRÊT</button>
+      </div>
+      <div style="text-align:center">
+        <div style="font-size:.7rem;letter-spacing:2px;color:var(--dim);margin-bottom:6px;">SB1</div>
+        <button class="btn btn-fwd" id="btn-fwd" onclick="fwd()">▶ MARCHE AVANT</button>
+      </div>
+      <div style="text-align:center">
+        <div style="font-size:.7rem;letter-spacing:2px;color:var(--dim);margin-bottom:6px;">SB2</div>
+        <button class="btn btn-rev" id="btn-rev" onclick="rev()">◀ MARCHE ARRIÈRE</button>
+      </div>
+    </div>
+
+    <div class="state-box">
+      <div class="state-lbl">ÉTAT MOTEUR</div>
+      <div class="state-val sv-stop" id="s-val">ARRÊT</div>
+      <div class="state-sub" id="s-sub" style="font-family:'Share Tech Mono',monospace;">KM1=0  KM2=0  FR=OK</div>
+    </div>
+
+    <div class="motor-wrap">
+      <div class="motor-ring" id="m-ring">M</div>
+      <div class="motor-dir"  id="m-dir" style="color:var(--dim);">⏹ STOP</div>
+      <div style="font-size:.7rem;color:var(--dim);font-family:'Share Tech Mono',monospace;">Moteur 3~</div>
+    </div>
+
+    <div>
+      <div class="fault" id="fault-box">⚠ DÉFAUT THERMIQUE</div>
+      <div class="legend-row" style="margin-top:8px;">
+        <div class="leg-item"><div class="leg-line" style="background:var(--fwd)"></div>Marche Avant (KM1)</div>
+        <div class="leg-item"><div class="leg-line" style="background:var(--rev)"></div>Marche Arrière (KM2)</div>
+        <div class="leg-item"><div class="leg-line" style="background:var(--green)"></div>Thermique OK</div>
+        <div class="leg-item"><div class="leg-line" style="background:var(--red)"></div>Arrêt / Défaut</div>
+      </div>
+    </div>
+  </div>
+
+</div>
+
+<script>
+// ══════════════════════════════════════════════
+//  ÉTAT DE LA SIMULATION
+// ══════════════════════════════════════════════
+const S = { km1:false, km2:false, fr:true };
+
+// Couleurs
+const COL = {
+  dim:   '#1e3050',
+  fwd:   '#00b8e6',
+  rev:   '#e67e00',
+  green: '#00cc66',
+  red:   '#e63355',
+  yellow:'#f0c030',
+  stop:  '#1e3050',
+};
+
+// ══ Attribut stroke helper ══
+function sc(id, c, w) {
+  const e = document.getElementById(id);
+  if (!e) return;
+  e.setAttribute('stroke', c);
+  if (w) e.setAttribute('stroke-width', w);
+}
+
+// ══ Fill helper ══
+function fc(id, c) {
+  const e = document.getElementById(id);
+  if (e) e.setAttribute('fill', c);
+}
+
+// ══ Blade helper : NO contact (open=diagonal, closed=horizontal) ══
+// Horizontal (left-to-right current flow) NO contact:
+//   barre g à x=xL, barre d à x=xR, y=y
+//   lame OPEN  : de (xL, y+6) → (xR, y-6)   [inclinée, ne transmet pas]
+//   lame CLOSED: de (xL, y)   → (xR, y)      [horizontale, transmet]
+function bladeNO(id, xL, xR, y, closed, color) {
+  const e = document.getElementById(id);
+  if (!e) return;
+  e.setAttribute('stroke', color);
+  e.setAttribute('stroke-width', '2');
+  if (closed) {
+    e.setAttribute('x1', xL); e.setAttribute('y1', y);
+    e.setAttribute('x2', xR); e.setAttribute('y2', y);
+  } else {
+    e.setAttribute('x1', xL); e.setAttribute('y1', String(y + 6));
+    e.setAttribute('x2', xR); e.setAttribute('y2', String(y - 6));
+  }
+}
+
+// ══ Blade helper : NC contact (closed=horizontal+mark, open=diagonal) ══
+// NC rest state = closed (horizontal lame)
+// NC activated  = open   (diagonal)
+function bladeNC(id_lame, id_ind, xL, xR, y, activated, color) {
+  const lame = document.getElementById(id_lame);
+  const ind  = document.getElementById(id_ind);
+  if (lame) {
+    lame.setAttribute('stroke', color);
+    lame.setAttribute('stroke-width', '2');
+    if (!activated) {
+      // NC rest = closed (horizontal)
+      lame.setAttribute('x1', xL); lame.setAttribute('y1', y);
+      lame.setAttribute('x2', xR); lame.setAttribute('y2', y);
+    } else {
+      // NC activated = open (diagonal)
+      lame.setAttribute('x1', xL); lame.setAttribute('y1', String(y + 6));
+      lame.setAttribute('x2', xR); lame.setAttribute('y2', String(y - 6));
+    }
+  }
+  if (ind) {
+    ind.setAttribute('stroke', color);
+    // indicateur NC toujours visible (petite oblique)
+    const xm = (xL + xR) / 2;
+    ind.setAttribute('x1', String(xm - 3)); ind.setAttribute('y1', String(y - 4));
+    ind.setAttribute('x2', String(xm + 3)); ind.setAttribute('y2', String(y + 4));
+  }
+}
+
+// ══ Power contact blade (vertical circuit) ══
+// NO vertical: barre haute (cy-8), barre basse (cy+8), cx
+// lame OPEN  : (cx-5, cy-8) → (cx+7, cy-2)   [inclinée, ne rejoint pas barre basse]
+// lame CLOSED: (cx-5, cy-8) → (cx+5, cy+8)   [connecte les deux barres]
+function bladePNO(id, cx, cy, closed, color) {
+  const e = document.getElementById(id);
+  if (!e) return;
+  e.setAttribute('stroke', color);
+  e.setAttribute('stroke-width', '2');
+  if (closed) {
+    e.setAttribute('x1', cx-5); e.setAttribute('y1', cy-8);
+    e.setAttribute('x2', cx+5); e.setAttribute('y2', cy+8);
+  } else {
+    e.setAttribute('x1', cx-5); e.setAttribute('y1', cy-8);
+    e.setAttribute('x2', cx+7); e.setAttribute('y2', cy-2);
+  }
+}
+
+// ══════════════════════════════════════════════
+//  MISE À JOUR SCHÉMA DE PUISSANCE
+// ══════════════════════════════════════════════
+function updatePower() {
+  const km1 = S.km1, km2 = S.km2, fr = S.fr;
+  const activeC  = km1 ? COL.fwd : km2 ? COL.rev : COL.dim;
+  const km1C  = km1 ? COL.fwd : COL.dim;
+  const km2C  = km2 ? COL.rev : COL.dim;
+  const frC   = fr  ? COL.green : COL.red;
+  const motorC = (km1 || km2) && fr ? activeC : COL.dim;
+
+  // Rails arrivée (toujours alimentés)
+  ['qs-w-l1','qs-w-l2','qs-w-l3'].forEach(id => sc(id, COL.fwd, '2.5'));
+  ['qs-d-l1','qs-d-l2','qs-d-l3'].forEach(id => sc(id, COL.fwd, '2.5'));
+  ['nd-l1','nd-l2','nd-l3','nd-l2-dv','nd-l3-dv'].forEach(id => fc(id, COL.fwd));
+
+  // Dérivations vers KM2
+  ['dv-l1','dv2-l2','dv2-l3','km2-top-1','km2-top-2','km2-top-3'].forEach(id => sc(id, COL.fwd));
+
+  // KM1 contacts + fils (NO → fermé si KM1 actif)
+  ['km1-a-l1','km1-a-l2','km1-a-l3'].forEach(id => sc(id, COL.fwd, '2.5'));
+
+  // Lames KM1 power contacts
+  bladePNO('km1-bl1', 80,  148, km1, km1C);
+  bladePNO('km1-bl2', 200, 148, km1, km1C);
+  bladePNO('km1-bl3', 320, 148, km1, km1C);
+
+  // Couleur barres fixes KM1
+  document.querySelectorAll('.km1-fb').forEach(e => e.setAttribute('stroke', km1 ? COL.fwd : COL.dim));
+  document.querySelectorAll('.km1-wt').forEach(e => e.setAttribute('stroke', COL.fwd));
+  document.querySelectorAll('.km1-wb').forEach(e => e.setAttribute('stroke', km1C));
+
+  // KM2 contacts
+  bladePNO('km2-bl1', 400, 148, km2, km2C);
+  bladePNO('km2-bl2', 440, 148, km2, km2C);
+  bladePNO('km2-bl3', 480, 148, km2, km2C);
+
+  // Fils croisés KM2
+  const crossC = km2 ? COL.rev : COL.dim;
+  ['km2-x1-a','km2-x2-a','km2-x3-a','km2-cross-l1w','km2-cross-l2v','km2-cross-l3u'].forEach(id => sc(id, crossC));
+
+  // Bus UVW aval
+  const busC = (km1 || km2) ? activeC : COL.dim;
+  ['km1-down-u','km1-down-v','km1-down-w'].forEach(id => sc(id, km1C));
+  ['jn-u','jn-v','jn-w'].forEach(id => fc(id, busC));
+  ['bus-u','bus-v','bus-w'].forEach(id => sc(id, busC));
+
+  // Éléments thermiques FR
+  ['fr-u','fr-v','fr-w'].forEach(id => {
+    const e = document.getElementById(id);
+    if (e) e.setAttribute('stroke', frC);
+  });
+
+  // Sortie FR → moteur
+  const outC = (km1 || km2) && fr ? activeC : COL.dim;
+  ['fr-u-out','fr-v-out','fr-w-out','mtr-u','mtr-v','mtr-w'].forEach(id => sc(id, outC));
+
+  // Corps moteur
+  const motorEl = document.getElementById('mtr-body');
+  if (motorEl) motorEl.setAttribute('stroke', motorC);
+  setTextColor('mtr-m',    motorC);
+  setTextColor('mtr-type', motorC);
+
+  const arrEl = document.getElementById('mtr-arr');
+  if (arrEl) {
+    arrEl.setAttribute('stroke', motorC);
+    // Changer la direction de la flèche selon le sens
+    if (km2) {
+      // Rotation inverse : arc dans l'autre sens
+      arrEl.setAttribute('d', 'M238,362 A42,42 0 0,0 162,360');
+    } else {
+      arrEl.setAttribute('d', 'M162,360 A42,42 0 0,1 238,358');
+    }
+    // Mettre à jour la couleur du marker
+    document.getElementById('arr').querySelectorAll('polygon').forEach(p => p.setAttribute('fill', motorC));
+  }
+}
+
+function setTextColor(id, c) {
+  const e = document.getElementById(id);
+  if (e) e.setAttribute('fill', c);
+}
+
+// ══════════════════════════════════════════════
+//  MISE À JOUR SCHÉMA DE COMMANDE
+// ══════════════════════════════════════════════
+function updateCmd() {
+  const km1 = S.km1, km2 = S.km2, fr = S.fr;
+
+  // ── Rails ──
+  sc('c-rail-l', COL.fwd,   '3');
+  sc('c-rail-n', COL.stop,  '3');
+
+  // ═══ RUNG 1 (KM1) ═══
+  // Source toujours disponible depuis rail L côté KM1 rung
+  // Fil 1 actif si NC KM2 non ouvert (= KM2 non actif)
+  const r1_src = !km2 && fr;  // le circuit KM1 est alimentable
+  const r1_run = km1;          // circuit complet = KM1 excité
+
+  const c1 = r1_src ? COL.fwd : COL.dim;
+  sc('c1-w1', r1_src ? COL.fwd : COL.dim);
+
+  // NC KM2 verrouillage
+  bladeNC('c1-ncKM2-lame','c1-ncKM2-ind', 70,90,90, km2, km2 ? COL.red : COL.fwd);
+  sc('c1-ncKM2-bg', r1_src ? COL.fwd : COL.dim);
+  sc('c1-ncKM2-bd', r1_src ? COL.fwd : COL.dim);
+
+  sc('c1-w2', r1_src ? COL.fwd : COL.dim);
+
+  // SB0 (NC)
+  bladeNC('c1-sb0-lame','c1-sb0-ind', 130,150,90, false, r1_src ? COL.fwd : COL.dim);
+
+  sc('c1-w3', r1_src ? COL.fwd : COL.dim);
+  fc('c1-noeud-top', r1_src ? COL.fwd : COL.dim);
+
+  // Branche SB1 (NO → fermé quand KM1 actif)
+  bladeNO('c1-sb1-lame', 220,240,90, km1, r1_src ? COL.fwd : COL.dim);
+  sc('c1-sb1-wl', r1_src ? COL.fwd : COL.dim);
+  sc('c1-sb1-wr', km1 ? COL.fwd : COL.dim);
+
+  // Branche auto-maintien KM1 (NO → fermé quand KM1 actif)
+  bladeNO('c1-amkm1-lame', 220,240,140, km1, r1_run ? COL.fwd : COL.dim);
+  sc('c1-am-wl', r1_run ? COL.fwd : COL.dim);
+  sc('c1-am-wr', r1_run ? COL.fwd : COL.dim);
+  sc('c1-par-v1', r1_src ? COL.fwd : COL.dim);
+  sc('c1-par-v2', r1_src ? COL.fwd : COL.dim);
+  fc('c1-noeud-bot', r1_src ? COL.fwd : COL.dim);
+  sc('c1-am-close',  r1_run ? COL.fwd : COL.dim);
+  sc('c1-am-rclose', r1_run ? COL.fwd : COL.dim);
+
+  // Fil 4 → bobine
+  sc('c1-w4',  km1 ? COL.fwd : COL.dim);
+  const coil1 = document.getElementById('c1-coil-km1');
+  if (coil1) {
+    coil1.setAttribute('stroke', km1 ? COL.fwd : COL.dim);
+    coil1.setAttribute('fill', km1 ? 'rgba(0,184,230,0.2)' : 'rgba(0,184,230,0.04)');
+  }
+  setTextColor('c1-coil-km1-lbl', km1 ? COL.fwd : COL.dim);
+  sc('c1-w4b', km1 ? COL.fwd : COL.dim);
+
+  // NC FR
+  bladeNC('c1-fr-lame','c1-fr-ind', 410,430,90, !fr, fr ? (km1 ? COL.fwd : COL.green) : COL.red);
+
+  sc('c1-w5', km1 && fr ? COL.fwd : COL.dim);
+
+  // ═══ RUNG 2 (KM2) ═══
+  const r2_src = !km1 && fr;
+  const r2_run = km2;
+
+  sc('c2-w1', r2_src ? COL.rev : COL.dim);
+
+  // NC KM1 verrouillage
+  bladeNC('c2-ncKM1-lame','c2-ncKM1-ind', 70,90,300, km1, km1 ? COL.red : (r2_src ? COL.rev : COL.dim));
+
+  sc('c2-w2', r2_src ? COL.rev : COL.dim);
+
+  // SB0 rung2
+  bladeNC('c2-sb0-lame','c2-sb0-ind', 130,150,300, false, r2_src ? COL.rev : COL.dim);
+
+  sc('c2-w3', r2_src ? COL.rev : COL.dim);
+  fc('c2-noeud-top', r2_src ? COL.rev : COL.dim);
+
+  bladeNO('c2-sb2-lame', 220,240,300, km2, r2_src ? COL.rev : COL.dim);
+  sc('c2-sb2-wl', r2_src ? COL.rev : COL.dim);
+  sc('c2-sb2-wr', km2 ? COL.rev : COL.dim);
+
+  bladeNO('c2-amkm2-lame', 220,240,350, km2, r2_run ? COL.rev : COL.dim);
+  sc('c2-am-wl', r2_run ? COL.rev : COL.dim);
+  sc('c2-am-wr', r2_run ? COL.rev : COL.dim);
+  sc('c2-par-v1', r2_src ? COL.rev : COL.dim);
+  sc('c2-par-v2', r2_src ? COL.rev : COL.dim);
+  fc('c2-noeud-bot', r2_src ? COL.rev : COL.dim);
+  sc('c2-am-close',  r2_run ? COL.rev : COL.dim);
+  sc('c2-am-rclose', r2_run ? COL.rev : COL.dim);
+
+  sc('c2-w4',  km2 ? COL.rev : COL.dim);
+  const coil2 = document.getElementById('c2-coil-km2');
+  if (coil2) {
+    coil2.setAttribute('stroke', km2 ? COL.rev : COL.dim);
+    coil2.setAttribute('fill', km2 ? 'rgba(230,126,0,0.2)' : 'rgba(230,126,0,0.04)');
+  }
+  setTextColor('c2-coil-km2-lbl', km2 ? COL.rev : COL.dim);
+  sc('c2-w4b', km2 ? COL.rev : COL.dim);
+
+  bladeNC('c2-fr-lame','c2-fr-ind', 410,430,300, !fr, fr ? (km2 ? COL.rev : COL.green) : COL.red);
+  sc('c2-w5', km2 && fr ? COL.rev : COL.dim);
+}
+
+// ══════════════════════════════════════════════
+//  MISE À JOUR UI GÉNÉRALE
+// ══════════════════════════════════════════════
+function updateUI() {
+  updatePower();
+  updateCmd();
+
+  // LEDs
+  document.getElementById('l-km1').className = 'led' + (S.km1 ? ' b' : '');
+  document.getElementById('l-km2').className = 'led' + (S.km2 ? ' o' : '');
+  document.getElementById('l-fr') .className = 'led' + (S.fr  ? ' g' : ' r');
+
+  // State box
+  const sv  = document.getElementById('s-val');
+  const sub = document.getElementById('s-sub');
+  if (!S.fr) {
+    sv.textContent = 'DÉFAUT FR';
+    sv.className = 'state-val sv-stop';
+    sub.textContent = 'KM1=0  KM2=0  FR=TRIP';
+  } else if (S.km1) {
+    sv.textContent = 'MARCHE AVANT';
+    sv.className = 'state-val sv-fwd';
+    sub.textContent = 'KM1=1  KM2=0  FR=OK';
+  } else if (S.km2) {
+    sv.textContent = 'MARCHE ARRIÈRE';
+    sv.className = 'state-val sv-rev';
+    sub.textContent = 'KM1=0  KM2=1  FR=OK';
+  } else {
+    sv.textContent = 'ARRÊT';
+    sv.className = 'state-val sv-stop';
+    sub.textContent = 'KM1=0  KM2=0  FR=OK';
+  }
+
+  // Motor ring
+  const ring = document.getElementById('m-ring');
+  const dir  = document.getElementById('m-dir');
+  ring.className = 'motor-ring' + (S.km1 ? ' fwd' : S.km2 ? ' rev' : '');
+  ring.style.color = S.km1 ? 'var(--fwd)' : S.km2 ? 'var(--rev)' : 'var(--dim)';
+  ring.style.borderColor = S.km1 ? 'var(--fwd)' : S.km2 ? 'var(--rev)' : 'var(--dim)';
+  dir.textContent = S.km1 ? '↻ AVANT' : S.km2 ? '↺ ARRIÈRE' : '⏹ STOP';
+  dir.style.color = S.km1 ? 'var(--fwd)' : S.km2 ? 'var(--rev)' : 'var(--dim)';
+
+  // Fault
+  document.getElementById('fault-box').className = 'fault' + (!S.fr ? ' on' : '');
+
+  // Boutons
+  document.getElementById('btn-fwd').disabled = S.km2 || !S.fr;
+  document.getElementById('btn-rev').disabled = S.km1 || !S.fr;
+}
+
+// ══════════════════════════════════════════════
+//  ACTIONS
+// ══════════════════════════════════════════════
+function fwd() {
+  if (!S.fr || S.km2) return;
+  S.km1 = true; S.km2 = false;
+  updateUI();
+}
+function rev() {
+  if (!S.fr || S.km1) return;
+  S.km2 = true; S.km1 = false;
+  updateUI();
+}
+function stop() {
+  S.km1 = false; S.km2 = false;
+  if (!S.fr) {
+    // Réarmement FR après arrêt
+    setTimeout(() => { S.fr = true; updateUI(); }, 1200);
+  }
+  updateUI();
+}
+
+// Init
+updateUI();
+</script>
+</body>
+</html>

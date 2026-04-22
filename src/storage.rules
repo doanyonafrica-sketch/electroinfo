@@ -1,0 +1,137 @@
+rules_version = '2';
+service firebase.storage {
+  match /b/{bucket}/o {
+    
+    // ============================================
+    // HELPER FUNCTIONS
+    // ============================================
+    
+    // Vérifier si l'utilisateur est authentifié
+    function isSignedIn() {
+      return request.auth != null;
+    }
+    
+    // Vérifier si l'utilisateur est admin
+    function isAdmin() {
+      return isSignedIn() && 
+             firestore.get(/databases/(default)/documents/users/$(request.auth.uid)).data.role == 'admin';
+    }
+    
+    // Vérifier le type de fichier image
+    function isImage() {
+      return request.resource.contentType.matches('image/.*');
+    }
+    
+    // Vérifier le type de fichier PDF
+    function isPDF() {
+      return request.resource.contentType == 'application/pdf';
+    }
+    
+    // Vérifier la taille du fichier (en bytes)
+    function isValidSize(maxSizeMB) {
+      return request.resource.size < maxSizeMB * 1024 * 1024;
+    }
+    
+    // ============================================
+    // IMAGES D'ARTICLES
+    // Chemin: /articles/{articleId}/{fileName}
+    // ============================================
+    match /articles/{articleId}/{fileName} {
+      // Lecture : tout le monde
+      allow read: if true;
+      
+      // Upload : seulement les admins
+      allow create: if isAdmin() && 
+                       isImage() && 
+                       isValidSize(5); // Max 5MB
+      
+      // Mise à jour : seulement les admins
+      allow update: if isAdmin() && 
+                       isImage() && 
+                       isValidSize(5);
+      
+      // Suppression : seulement les admins
+      allow delete: if isAdmin();
+    }
+    
+    // ============================================
+    // PDFs DE COURS
+    // Chemin: /courses/{courseId}/sequences/{seqId}/{fileName}
+    // ============================================
+    match /courses/{courseId}/sequences/{seqId}/{fileName} {
+      // Lecture : tout le monde
+      allow read: if true;
+      
+      // Upload : seulement les admins
+      allow create: if isAdmin() && 
+                       isPDF() && 
+                       isValidSize(50); // Max 50MB pour les PDFs
+      
+      // Mise à jour : seulement les admins
+      allow update: if isAdmin() && 
+                       isPDF() && 
+                       isValidSize(50);
+      
+      // Suppression : seulement les admins
+      allow delete: if isAdmin();
+    }
+    
+    // ============================================
+    // AVATARS UTILISATEURS
+    // Chemin: /users/{userId}/avatar.{ext}
+    // ============================================
+    match /users/{userId}/{fileName} {
+      // Lecture : tout le monde
+      allow read: if true;
+      
+      // Upload : propriétaire ou admin
+      allow create: if (isSignedIn() && request.auth.uid == userId || isAdmin()) &&
+                       isImage() && 
+                       isValidSize(2); // Max 2MB pour avatar
+      
+      // Mise à jour : propriétaire ou admin
+      allow update: if (isSignedIn() && request.auth.uid == userId || isAdmin()) &&
+                       isImage() && 
+                       isValidSize(2);
+      
+      // Suppression : propriétaire ou admin
+      allow delete: if isSignedIn() && request.auth.uid == userId || isAdmin();
+    }
+    
+    // ============================================
+    // FICHIERS TEMPORAIRES
+    // Chemin: /temp/{userId}/{fileName}
+    // ============================================
+    match /temp/{userId}/{fileName} {
+      // Lecture : propriétaire seulement
+      allow read: if isSignedIn() && request.auth.uid == userId;
+      
+      // Upload : propriétaire seulement
+      allow create: if isSignedIn() && 
+                       request.auth.uid == userId && 
+                       isValidSize(10); // Max 10MB pour temp
+      
+      // Suppression : propriétaire ou admin
+      allow delete: if isSignedIn() && request.auth.uid == userId || isAdmin();
+    }
+    
+    // ============================================
+    // FICHIERS PUBLICS (logo, favicon, etc.)
+    // Chemin: /public/{fileName}
+    // ============================================
+    match /public/{fileName} {
+      // Lecture : tout le monde
+      allow read: if true;
+      
+      // Écriture : seulement les admins
+      allow write: if isAdmin();
+    }
+    
+    // ============================================
+    // FALLBACK : Tout le reste est refusé
+    // ============================================
+    match /{allPaths=**} {
+      allow read, write: if false;
+    }
+  }
+}

@@ -1,0 +1,183 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Cours | ElectroInfo</title>
+    <meta name="description" content="Cours d'électricité industrielle par diplôme et matière">
+    <link rel="icon" type="image/x-icon" href="/images/favicon.ico">
+    <link rel="icon" type="image/png" sizes="48x48" href="/images/logo-small.png">
+    <link rel="apple-touch-icon" sizes="180x180" href="/images/apple-touch-icon.png">
+    <link rel="stylesheet" href="/styles.css">
+    <link rel="stylesheet" href="/courses-styles.css">
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
+</head>
+<body>
+
+<!-- Navigation -->
+<nav class="navbar">
+    <div class="container">
+        <div class="nav-brand">
+            <img src="/images/logo-small.png" alt="Logo Electroinfo" class="nav-logo">
+            <span>ELECTROINFO</span>
+        </div>
+        <button class="mobile-toggle" id="mobileToggle"><i class="fas fa-bars"></i></button>
+        <div class="nav-menu" id="mobileMenu">
+            <div class="nav-links">
+                <a href="/" class="nav-link">Accueil</a>
+                <a href="/courses" class="nav-link active">Cours</a>
+                <a href="/about" class="nav-link">À propos</a>
+                <a href="/contact" class="nav-link">Contact</a>
+            </div>
+            <div class="nav-actions">
+                <button id="newsletterBtn" class="btn btn-outline">
+                    <i class="fas fa-envelope"></i><span class="btn-text">Newsletter</span>
+                </button>
+                <a href="/auth" id="loginBtn" class="btn btn-primary">
+                    <i class="fas fa-sign-in-alt"></i><span class="btn-text">Connexion</span>
+                </a>
+                <div id="userMenu" class="user-menu hidden">
+                    <button class="user-btn" id="userMenuToggle">
+                        <img id="userAvatar" src="" alt="Avatar" class="avatar">
+                        <span id="userName" class="user-name"></span>
+                        <i class="fas fa-chevron-down"></i>
+                    </button>
+                    <div class="dropdown hidden" id="userDropdown">
+                        <div class="dropdown-header">
+                            <img id="userAvatarDropdown" src="" alt="Avatar" class="avatar-large">
+                            <div>
+                                <div class="dropdown-name" id="userNameDropdown"></div>
+                                <div class="dropdown-email" id="userEmailDropdown"></div>
+                            </div>
+                        </div>
+                        <hr>
+                        <a href="/profile" class="dropdown-item"><i class="fas fa-user"></i> Mon Profil</a>
+                        <hr id="adminDivider" class="hidden">
+                        <a href="/admin" id="adminLink" class="dropdown-item hidden"><i class="fas fa-cog"></i> Administration</a>
+                        <hr>
+                        <button id="logoutBtn" class="dropdown-item logout"><i class="fas fa-sign-out-alt"></i> Déconnexion</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</nav>
+
+<!-- VUE 1 : Sélection du diplôme -->
+<div id="view-diplomes" class="courses-view active-view">
+    <div class="courses-hero">
+        <div class="courses-hero-content">
+            <h1 class="courses-hero-title">
+                <i class="fas fa-bolt"></i> Nos Cours
+            </h1>
+            <p class="courses-hero-sub">Choisissez votre niveau de diplôme pour accéder aux matières</p>
+        </div>
+    </div>
+
+    <div class="diplomes-container">
+        <div class="diplomes-grid">
+            <div class="diplome-card" data-diplome="CAP">
+                <div class="diplome-icon"><i class="fas fa-certificate"></i></div>
+                <div class="diplome-label">CAP</div>
+                <div class="diplome-desc">Certificat d'Aptitude Professionnelle</div>
+                <div class="diplome-arrow"><i class="fas fa-arrow-right"></i></div>
+            </div>
+            <div class="diplome-card" data-diplome="BEP">
+                <div class="diplome-icon"><i class="fas fa-award"></i></div>
+                <div class="diplome-label">BEP</div>
+                <div class="diplome-desc">Brevet d'Études Professionnelles</div>
+                <div class="diplome-arrow"><i class="fas fa-arrow-right"></i></div>
+            </div>
+            <div class="diplome-card" data-diplome="BAC PRO">
+                <div class="diplome-icon"><i class="fas fa-graduation-cap"></i></div>
+                <div class="diplome-label">BAC PRO</div>
+                <div class="diplome-desc">Baccalauréat Professionnel</div>
+                <div class="diplome-arrow"><i class="fas fa-arrow-right"></i></div>
+            </div>
+            <div class="diplome-card" data-diplome="BTS">
+                <div class="diplome-icon"><i class="fas fa-university"></i></div>
+                <div class="diplome-label">BTS</div>
+                <div class="diplome-desc">Brevet de Technicien Supérieur</div>
+                <div class="diplome-arrow"><i class="fas fa-arrow-right"></i></div>
+            </div>
+            <div class="diplome-card" data-diplome="LICENCE">
+                <div class="diplome-icon"><i class="fas fa-book-open"></i></div>
+                <div class="diplome-label">LICENCE</div>
+                <div class="diplome-desc">Licence Professionnelle</div>
+                <div class="diplome-arrow"><i class="fas fa-arrow-right"></i></div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- VUE 2 : Sélection du niveau -->
+<div id="view-niveaux" class="courses-view">
+    <div class="matieres-header">
+        <button class="back-btn" id="backToDiplomesFromNiveaux">
+            <i class="fas fa-arrow-left"></i> Retour
+        </button>
+        <h2 id="niveaux-title">Choisir un niveau — BAC PRO</h2>
+    </div>
+    <div class="niveaux-container">
+        <p class="niveaux-subtitle">Sélectionnez votre niveau pour accéder aux matières</p>
+        <div class="niveaux-grid" id="niveaux-grid">
+            <!-- Injecté par JS -->
+        </div>
+    </div>
+</div>
+
+<!-- VUE 3 : Liste des matières -->
+<div id="view-matieres" class="courses-view">
+    <div class="matieres-header">
+        <button class="back-btn" id="backToNiveaux">
+            <i class="fas fa-arrow-left"></i> Retour
+        </button>
+        <h2 id="matieres-title">Matières — BAC PRO · Débutant</h2>
+    </div>
+    <div class="matieres-container">
+        <div id="matieres-loading" class="loading-state">
+            <i class="fas fa-spinner fa-spin"></i>
+            <p>Chargement des matières...</p>
+        </div>
+        <div id="matieres-grid" class="matieres-grid hidden"></div>
+        <div id="matieres-empty" class="empty-courses hidden">
+            <i class="fas fa-book"></i>
+            <p>Aucune matière disponible</p>
+            <small>Les matières pour ce niveau seront bientôt disponibles.</small>
+            <button class="back-btn-empty" id="backFromEmpty">
+                <i class="fas fa-arrow-left"></i> Choisir un autre niveau
+            </button>
+        </div>
+    </div>
+</div>
+
+<footer class="footer">
+    <div class="container">
+        <div class="footer-content">
+            <div class="footer-section">
+                <h3 class="footer-title"><i class="fas fa-bolt"></i> ElectroInfo</h3>
+                <p class="footer-description">Formation en électricité industrielle au Togo</p>
+                <div class="social-links">
+                    <a href="#" aria-label="Facebook"><i class="fab fa-facebook"></i></a>
+                    <a href="#" aria-label="Twitter"><i class="fab fa-twitter"></i></a>
+                    <a href="#" aria-label="LinkedIn"><i class="fab fa-linkedin"></i></a>
+                    <a href="#" aria-label="YouTube"><i class="fab fa-youtube"></i></a>
+                </div>
+            </div>
+            <div class="footer-section">
+                <h4 class="footer-subtitle">Navigation</h4>
+                <ul class="footer-links">
+                    <li><a href="/">Accueil</a></li>
+                    <li><a href="/courses">Cours</a></li>
+                    <li><a href="/about">À propos</a></li>
+                    <li><a href="/contact">Contact</a></li>
+                </ul>
+            </div>
+        </div>
+        <div class="footer-bottom"><p>&copy; 2025 ElectroInfo. Tous droits réservés.</p></div>
+    </div>
+</footer>
+
+<script type="module" src="/courses.js"></script>
+</body>
+</html>

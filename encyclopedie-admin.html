@@ -1,0 +1,846 @@
+<!DOCTYPE html>
+<html lang="fr" data-theme="dark">
+<head>
+  <meta charset="UTF-8"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <meta name="robots" content="noindex, nofollow"/>
+  <title>Admin Encyclopédie — ElectroInfo</title>
+  <link href="https://fonts.googleapis.com/css2?family=Syne:wght@700;800&family=DM+Sans:opsz,wght@9..40,400;9..40,500&family=DM+Mono:wght@400&display=swap" rel="stylesheet"/>
+  <style>
+    :root{--bg:#0d0f14;--surface:#141820;--surface2:#1c2230;--border:#252d3d;--accent:#3b82f6;--accent2:#f59e0b;--green:#22c55e;--red:#ef4444;--purple:#8b5cf6;--text:#e2e8f0;--muted:#8892a4;--tag-bg:#1e2a40;--r:10px;--fh:'Syne',sans-serif;--fb:'DM Sans',sans-serif;--fm:'DM Mono',monospace;}
+    *,*::before,*::after{box-sizing:border-box;margin:0;padding:0;}
+    body{font-family:var(--fb);background:var(--bg);color:var(--text);min-height:100vh;}
+    button{cursor:pointer;border:none;font-family:inherit;}
+    input,select,textarea{font-family:var(--fb);}
+
+    /* NAV */
+    .nav{background:linear-gradient(135deg,#1e3a8a 0%,#1e40af 100%);border-bottom:none;box-shadow:0 2px 16px rgba(0,0,0,.18);height:60px;padding:0 24px;display:flex;align-items:center;justify-content:space-between;}
+    .brand{font-family:var(--fh);font-weight:800;font-size:1rem;display:flex;align-items:center;gap:10px;color:#fff;text-decoration:none;}
+    .brand img{height:32px;width:auto;}
+    .brand .admin-badge{background:rgba(255,255,255,.15);border:1px solid rgba(255,255,255,.3);color:rgba(255,255,255,.85);font-size:.72rem;font-weight:600;padding:2px 9px;border-radius:20px;letter-spacing:.04em;}
+    .nav-back{font-size:.82rem;color:rgba(255,255,255,.75);text-decoration:none;display:flex;align-items:center;gap:5px;padding:.4rem .85rem;border-radius:20px;border:1.5px solid rgba(255,255,255,.3);transition:all .2s;}
+    .nav-back:hover{color:#fff;background:rgba(255,255,255,.12);border-color:rgba(255,255,255,.5);}
+
+    /* LAYOUT */
+    .wrap{display:flex;max-width:1260px;margin:0 auto;gap:22px;padding:26px 20px 80px;}
+
+    /* SIDEBAR LISTE */
+    .panel-list{width:272px;flex-shrink:0;}
+    .panel-head{font-family:var(--fh);font-weight:700;font-size:.76rem;letter-spacing:.07em;text-transform:uppercase;color:var(--accent);margin-bottom:12px;display:flex;align-items:center;justify-content:space-between;}
+    .btn-new{background:var(--accent);color:#fff;padding:7px 12px;border-radius:7px;font-size:.79rem;font-weight:600;transition:opacity .2s;}
+    .btn-new:hover{opacity:.85;}
+    .ali{background:var(--surface);border:1px solid var(--border);border-radius:8px;padding:10px 13px;cursor:pointer;transition:border-color .2s,background .2s;margin-bottom:6px;}
+    .ali:hover{border-color:var(--accent);background:var(--surface2);}
+    .ali.active{border-color:var(--accent);background:var(--tag-bg);}
+    .ali-title{font-family:var(--fh);font-weight:700;font-size:.86rem;margin-bottom:3px;}
+    .ali-meta{font-size:.72rem;color:var(--muted);display:flex;align-items:center;gap:6px;}
+    .ali-tag{font-size:.63rem;font-weight:700;text-transform:uppercase;padding:1px 6px;border-radius:3px;}
+    .ali-tag.composant{background:#1e3a5f;color:#60a5fa;}
+    .ali-tag.electricite{background:#3d2a00;color:#f59e0b;}
+
+    /* FORMULAIRE */
+    .panel-form{flex:1;min-width:0;}
+
+    /* ── BLOC GÉNÉRATION IA ── */
+    .ai-block{background:linear-gradient(135deg,rgba(139,92,246,.12),rgba(59,130,246,.08));border:1.5px solid rgba(139,92,246,.35);border-radius:var(--r);padding:20px;margin-bottom:20px;}
+    .ai-title{font-family:var(--fh);font-weight:700;font-size:.9rem;display:flex;align-items:center;gap:8px;margin-bottom:6px;}
+    .ai-title .badge{background:var(--purple);color:#fff;font-size:.65rem;font-weight:700;padding:2px 7px;border-radius:20px;letter-spacing:.04em;}
+    .ai-desc{font-size:.81rem;color:var(--muted);margin-bottom:14px;line-height:1.5;}
+    .ai-row{display:flex;gap:10px;align-items:flex-end;}
+    .ai-row .form-group{flex:1;}
+    .btn-generate{background:var(--purple);color:#fff;padding:10px 20px;border-radius:8px;font-size:.86rem;font-weight:600;display:flex;align-items:center;gap:7px;white-space:nowrap;transition:opacity .2s;flex-shrink:0;}
+    .btn-generate:hover{opacity:.85;}
+    .btn-generate:disabled{opacity:.5;cursor:not-allowed;}
+    .ai-progress{margin-top:12px;display:none;}
+    .ai-progress.show{display:block;}
+    .ai-steps{display:flex;flex-direction:column;gap:6px;}
+    .ai-step{display:flex;align-items:center;gap:9px;font-size:.81rem;color:var(--muted);padding:6px 10px;border-radius:6px;transition:all .3s;}
+    .ai-step.active{color:var(--purple);background:rgba(139,92,246,.1);}
+    .ai-step.done{color:var(--green);background:rgba(34,197,94,.08);}
+    .ai-step .step-icon{font-size:.9rem;min-width:18px;}
+    .progress-bar{height:3px;background:var(--border);border-radius:2px;margin-top:10px;overflow:hidden;}
+    .progress-fill{height:100%;background:linear-gradient(90deg,var(--purple),var(--accent));border-radius:2px;width:0%;transition:width .6s ease;}
+
+    /* FORM CARD */
+    .form-card{background:var(--surface);border:1px solid var(--border);border-radius:var(--r);padding:22px;}
+    .form-title{font-family:var(--fh);font-weight:800;font-size:1.05rem;letter-spacing:-.02em;margin-bottom:18px;display:flex;align-items:center;gap:10px;}
+    .form-row{display:grid;grid-template-columns:1fr 1fr;gap:13px;margin-bottom:13px;}
+    .form-row.single{grid-template-columns:1fr;}
+    .form-group{display:flex;flex-direction:column;gap:5px;}
+    label{font-size:.73rem;font-weight:600;color:var(--muted);letter-spacing:.04em;text-transform:uppercase;}
+    input[type=text],select,textarea{background:var(--surface2);border:1.5px solid var(--border);border-radius:8px;padding:9px 12px;color:var(--text);font-size:.86rem;outline:none;transition:border-color .2s,box-shadow .2s;width:100%;}
+    input[type=text]:focus,select:focus,textarea:focus{border-color:var(--accent);box-shadow:0 0 0 3px rgba(59,130,246,.12);}
+    textarea{resize:vertical;min-height:72px;line-height:1.55;}
+
+    /* SECTIONS */
+    .section-builder{margin-top:18px;}
+    .sec-head{font-family:var(--fh);font-weight:700;font-size:.78rem;letter-spacing:.06em;text-transform:uppercase;color:var(--muted);margin-bottom:10px;display:flex;align-items:center;justify-content:space-between;}
+    .sec-card{background:var(--surface2);border:1px solid var(--border);border-radius:8px;padding:13px;margin-bottom:9px;position:relative;}
+    .sec-remove{position:absolute;top:9px;right:9px;width:24px;height:24px;border-radius:6px;background:rgba(239,68,68,.12);color:var(--red);display:flex;align-items:center;justify-content:center;font-size:.72rem;transition:background .2s;}
+    .sec-remove:hover{background:var(--red);color:#fff;}
+    .btn-add-sec{background:var(--surface2);border:1.5px dashed var(--border);border-radius:8px;padding:9px;width:100%;font-size:.81rem;color:var(--muted);transition:all .2s;margin-bottom:18px;}
+    .btn-add-sec:hover{border-color:var(--accent);color:var(--accent);}
+
+    /* INFOBOX */
+    .ib-row-admin{display:flex;gap:8px;margin-bottom:7px;align-items:center;}
+    .ib-row-admin input{flex:1;}
+    .btn-rm{width:26px;height:26px;flex-shrink:0;border-radius:6px;background:rgba(239,68,68,.12);color:var(--red);display:flex;align-items:center;justify-content:center;font-size:.72rem;transition:background .2s;}
+    .btn-rm:hover{background:var(--red);color:#fff;}
+
+    /* ACTIONS */
+    .form-actions{display:flex;gap:9px;margin-top:22px;padding-top:16px;border-top:1px solid var(--border);}
+    .btn-save{background:var(--accent);color:#fff;padding:10px 22px;border-radius:8px;font-size:.87rem;font-weight:600;transition:opacity .2s;flex:1;}
+    .btn-save:hover{opacity:.85;}
+    .btn-delete{background:rgba(239,68,68,.12);color:var(--red);border:1px solid rgba(239,68,68,.3);padding:10px 16px;border-radius:8px;font-size:.87rem;font-weight:600;transition:all .2s;}
+    .btn-delete:hover{background:var(--red);color:#fff;border-color:var(--red);}
+    .btn-preview{background:var(--surface2);color:var(--muted);border:1px solid var(--border);padding:10px 16px;border-radius:8px;font-size:.87rem;transition:all .2s;}
+    .btn-preview:hover{border-color:var(--accent);color:var(--accent);}
+
+    /* ÉTATS */
+    .state-empty{text-align:center;padding:60px 20px;color:var(--muted);font-size:.88rem;}
+    .state-empty .icon{font-size:2.4rem;margin-bottom:12px;}
+    .spinner{width:26px;height:26px;border:3px solid var(--border);border-top-color:var(--accent);border-radius:50%;animation:spin .8s linear infinite;margin:0 auto;}
+    @keyframes spin{to{transform:rotate(360deg);}}
+
+    /* TOAST */
+    .toast{position:fixed;bottom:24px;left:50%;transform:translateX(-50%) translateY(20px);background:var(--surface);border:1px solid var(--border);border-radius:8px;padding:10px 18px;font-size:.83rem;color:var(--text);box-shadow:0 6px 20px rgba(0,0,0,.4);opacity:0;transition:opacity .25s,transform .25s;pointer-events:none;z-index:500;}
+    .toast.show{opacity:1;transform:translateX(-50%) translateY(0);}
+
+    /* GÉNÉRATION EN LOT */
+    .batch-block{background:linear-gradient(135deg,rgba(34,197,94,.08),rgba(59,130,246,.06));border:1.5px solid rgba(34,197,94,.3);border-radius:var(--r);padding:20px;margin-bottom:16px;}
+    .batch-title{font-family:var(--fh);font-weight:700;font-size:.88rem;display:flex;align-items:center;gap:8px;margin-bottom:6px;}
+    .batch-desc{font-size:.79rem;color:var(--muted);margin-bottom:12px;line-height:1.5;}
+    .btn-batch{background:var(--green);color:#fff;padding:10px 18px;border-radius:8px;font-size:.84rem;font-weight:600;display:flex;align-items:center;gap:7px;white-space:nowrap;transition:opacity .2s;flex-shrink:0;}
+    .btn-batch:hover{opacity:.85;}
+    .btn-batch:disabled{opacity:.4;cursor:not-allowed;}
+    .batch-queue{margin-top:14px;display:none;}
+    .batch-queue.show{display:block;}
+    .bq-item{display:flex;align-items:center;gap:9px;font-size:.8rem;padding:5px 10px;border-radius:6px;color:var(--muted);margin-bottom:4px;}
+    .bq-item.pending{color:var(--muted);}
+    .bq-item.running{color:var(--purple);background:rgba(139,92,246,.08);}
+    .bq-item.done{color:var(--green);background:rgba(34,197,94,.07);}
+    .bq-item.error{color:var(--red);background:rgba(239,68,68,.07);}
+    .bq-item.skip{color:var(--accent2);background:rgba(245,158,11,.07);}
+    .bq-icon{min-width:16px;text-align:center;}
+    .batch-global-bar{height:4px;background:var(--border);border-radius:2px;margin-top:12px;overflow:hidden;}
+    .batch-global-fill{height:100%;background:linear-gradient(90deg,var(--green),var(--accent));border-radius:2px;width:0%;transition:width .5s ease;}
+    .batch-summary{font-size:.78rem;color:var(--muted);margin-top:8px;text-align:right;}
+
+    @media(max-width:720px){.wrap{flex-direction:column;}.panel-list{width:100%;}}
+  </style>
+</head>
+<body>
+
+<nav class="nav">
+  <a href="/" class="brand">
+    <img src="images/logo-small.png" alt="ElectroInfo">
+    ELECTROINFO
+    <span class="admin-badge">Admin Encyclopédie</span>
+  </a>
+  <a href="/encyclopedie" class="nav-back">← Voir l'encyclopédie</a>
+</nav>
+
+<div class="toast" id="toast"></div>
+
+<div class="wrap">
+
+  <!-- LISTE DES FICHES -->
+  <div class="panel-list">
+    <div class="panel-head">
+      <span>Fiches <span id="count-badge" style="color:var(--muted);font-weight:400"></span></span>
+      <button class="btn-new" onclick="newArticle()">+ Nouvelle</button>
+    </div>
+    <div id="article-list">
+      <div style="text-align:center;padding:30px 0"><div class="spinner"></div></div>
+    </div>
+  </div>
+
+  <!-- FORMULAIRE + IA -->
+  <div class="panel-form">
+
+    <!-- BLOC GÉNÉRATION EN LOT -->
+    <div class="batch-block">
+      <div class="batch-title">
+        🚀 Génération en lot
+        <span class="badge" style="background:var(--green);">NOUVEAU</span>
+      </div>
+      <div class="batch-desc">
+        Entre plusieurs sujets séparés par des virgules. L'IA génère et enregistre chaque fiche automatiquement, l'une après l'autre. Les fiches déjà existantes sont ignorées.
+      </div>
+      <div class="ai-row">
+        <div class="form-group">
+          <label>Sujets à générer (séparés par virgule)</label>
+          <textarea id="batch-input" rows="2" placeholder="ex: Pont de Wheatstone, Amplificateur opérationnel, Thyristor, Relais électromagnétique, Moteur asynchrone…"></textarea>
+        </div>
+      </div>
+      <div style="display:flex;align-items:center;gap:10px;margin-top:10px;">
+        <div class="form-group" style="max-width:160px;">
+          <label>Catégorie par défaut</label>
+          <select id="batch-cat">
+            <option value="composant">⚡ Composant</option>
+            <option value="electricite">🔌 Électricité</option>
+          </select>
+        </div>
+        <button class="btn-batch" id="btn-batch" onclick="generateBatch()" style="margin-top:18px;">
+          🚀 Lancer la génération
+        </button>
+        <button style="margin-top:18px;padding:10px 14px;border-radius:8px;background:rgba(239,68,68,.12);color:var(--red);border:1px solid rgba(239,68,68,.2);font-size:.82rem;font-weight:600;display:none;" id="btn-batch-stop" onclick="stopBatch()">
+          ⏹ Arrêter
+        </button>
+      </div>
+      <div class="batch-queue" id="batch-queue">
+        <div class="batch-global-bar"><div class="batch-global-fill" id="batch-fill"></div></div>
+        <div class="batch-summary" id="batch-summary"></div>
+        <div id="batch-items" style="margin-top:10px;max-height:240px;overflow-y:auto;"></div>
+      </div>
+    </div>
+
+    <!-- BLOC IA (toujours visible) -->
+    <div class="ai-block">
+      <div class="ai-title">
+        ✨ Génération automatique
+        <span class="badge">IA</span>
+      </div>
+      <div class="ai-desc">
+        Entre un nom de composant ou concept électrique, l'IA génère toute la fiche (définition, sections H2/H3, formules, infobox, références) et remplit le formulaire automatiquement. Tu n'as plus qu'à vérifier et enregistrer.
+      </div>
+      <div class="ai-row">
+        <div class="form-group">
+          <label>Nom du sujet à générer</label>
+          <input type="text" id="ai-input" placeholder="ex: Transistor MOSFET, Pont diviseur, Loi de Kirchhoff…" onkeydown="if(event.key==='Enter')generateAI()"/>
+        </div>
+        <div class="form-group" style="max-width:140px;">
+          <label>Catégorie</label>
+          <select id="ai-cat">
+            <option value="composant">⚡ Composant</option>
+            <option value="electricite">🔌 Électricité</option>
+          </select>
+        </div>
+        <button class="btn-generate" id="btn-gen" onclick="generateAI()">
+          <span id="gen-icon">✨</span> Générer
+        </button>
+      </div>
+
+      <div class="ai-progress" id="ai-progress">
+        <div class="ai-steps">
+          <div class="ai-step" id="step-1"><span class="step-icon">🤔</span> Analyse du sujet…</div>
+          <div class="ai-step" id="step-2"><span class="step-icon">📝</span> Rédaction du contenu…</div>
+          <div class="ai-step" id="step-3"><span class="step-icon">🔧</span> Structuration des sections…</div>
+          <div class="ai-step" id="step-4"><span class="step-icon">✅</span> Remplissage du formulaire…</div>
+        </div>
+        <div class="progress-bar"><div class="progress-fill" id="progress-fill"></div></div>
+      </div>
+    </div>
+
+    <!-- FORMULAIRE MANUEL -->
+    <div id="form-area">
+      <div class="state-empty">
+        <div class="icon">📝</div>
+        <p>Génère une fiche avec l'IA ci-dessus,<br>sélectionne une fiche existante,<br>ou clique <strong>+ Nouvelle</strong> pour tout saisir manuellement.</p>
+      </div>
+    </div>
+
+  </div>
+</div>
+
+<script type="module">
+  import { initializeApp }  from "https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js";
+  import { getFirestore, collection, getDocs, doc, setDoc, deleteDoc, query, orderBy }
+                            from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
+
+  const CF_URL = 'https://europe-west1-electroino-app.cloudfunctions.net/generateFiche';
+
+  // ┌─────────────────────────────────────────┐
+  // │  REMPLACE ICI avec ta config Firebase   │
+  // └─────────────────────────────────────────┘
+const firebaseConfig = {
+  apiKey: "AIzaSyCuFgzytJXD6jt4HUW9LVSD_VpGuFfcEAk",
+  authDomain: "electroino-app.firebaseapp.com",
+  projectId: "electroino-app",
+  storageBucket: "electroino-app.firebasestorage.app",
+  messagingSenderId: "864058526638",
+  appId: "1:864058526638:web:17b821633c7cc99be1563f"
+};
+
+  const app = initializeApp(firebaseConfig);
+  const db  = getFirestore(app);
+
+  let DB        = [];
+  let editingId = null;
+
+  // ══════════════════════════════════════════
+  // CHARGEMENT FIRESTORE
+  // ══════════════════════════════════════════
+  async function load() {
+    try {
+      const snap = await getDocs(query(collection(db, 'encyclopedie'), orderBy('title')));
+      DB = snap.docs.map(d => ({ id: d.id, ...d.data() }));
+    } catch(e) {
+      toast('⚠️ Firebase non configuré — mode local');
+      DB = [];
+    }
+    renderList();
+  }
+
+  function renderList() {
+    document.getElementById('count-badge').textContent = `(${DB.length})`;
+    const autoCount = DB.filter(a => a.autoGenerated).length;
+    // Badge fiches auto
+    let autoNotif = '';
+    if (autoCount > 0) {
+      autoNotif = `<div style="margin-bottom:10px;padding:8px 10px;background:rgba(139,92,246,.12);border:1px solid rgba(139,92,246,.3);border-radius:7px;font-size:.75rem;color:#a78bfa;display:flex;align-items:center;gap:6px;">
+        ✨ <span>${autoCount} fiche${autoCount>1?'s':''} auto-générée${autoCount>1?'s':''} par l'IA</span>
+      </div>`;
+    }
+    document.getElementById('article-list').innerHTML = DB.length
+      ? autoNotif + DB.map(a => `
+          <div class="ali${editingId===a.id?' active':''}" onclick="editArticle('${a.id}')" style="position:relative;">
+            <div class="ali-title">${a.icon||''} ${a.title}${a.autoGenerated?'<span style="margin-left:6px;font-size:.6rem;font-weight:700;background:rgba(139,92,246,.2);color:#a78bfa;padding:1px 6px;border-radius:3px;vertical-align:middle;">IA</span>':''}</div>
+            <div class="ali-meta">
+              <span class="ali-tag ${a.tag}">${a.tag==='composant'?'Composant':'Électricité'}</span>
+              <span>${a.niveau||''}</span>
+              ${a.autoGenerated?`<span style="margin-left:auto;"><button onclick="event.stopPropagation();cancelAutoFiche('${a.id}')" style="background:rgba(239,68,68,.15);color:#f87171;border:none;border-radius:4px;padding:2px 7px;font-size:.68rem;font-weight:600;cursor:pointer;" title="Annuler et supprimer cette fiche">✕ Annuler</button></span>`:''}
+            </div>
+          </div>`).join('')
+      : '<div style="text-align:center;color:var(--muted);padding:20px;font-size:.84rem;">Aucune fiche encore.<br>Génère-en une avec l\'IA !</div>';
+  }
+
+  // Annuler une fiche auto-générée
+  window.cancelAutoFiche = async function(id) {
+    if (!confirm(`Supprimer la fiche auto-générée "${id}" de Firestore ?`)) return;
+    try {
+      await deleteDoc(doc(db, 'encyclopedie', id));
+    } catch(e) { console.warn('cancelAutoFiche:', e.message); }
+    DB = DB.filter(a => a.id !== id);
+    if (editingId === id) {
+      editingId = null;
+      const fp = document.getElementById('form-area') || document.getElementById('form-panel');
+      if (fp) fp.innerHTML = '<div style="padding:40px 20px;text-align:center;color:var(--muted);font-size:.88rem;">Fiche supprimée.</div>';
+    }
+    toast('🗑 Fiche auto-générée supprimée');
+    renderList();
+  };
+
+  // ══════════════════════════════════════════
+  // GÉNÉRATION IA
+  // ══════════════════════════════════════════
+  window.generateAI = async function() {
+    const sujet = document.getElementById('ai-input').value.trim();
+    const cat   = document.getElementById('ai-cat').value;
+    if (!sujet) { toast('⚠️ Entre un sujet à générer'); return; }
+
+    const btn = document.getElementById('btn-gen');
+    btn.disabled = true;
+    document.getElementById('gen-icon').textContent = '⏳';
+
+    const progress = document.getElementById('ai-progress');
+    progress.classList.add('show');
+    const fill = document.getElementById('progress-fill');
+
+    function setStep(n) {
+      for(let i=1;i<=4;i++){
+        const el = document.getElementById('step-'+i);
+        el.classList.remove('active','done');
+        if(i < n) el.classList.add('done');
+        if(i === n) el.classList.add('active');
+      }
+      fill.style.width = (n-1)*33 + '%';
+    }
+
+    setStep(1);
+
+    const prompt = `Tu es un expert en électronique et électricité. Génère une fiche encyclopédique complète en français pour : "${sujet}" (catégorie : ${cat}).
+
+Retourne UNIQUEMENT un objet JSON valide (sans markdown, sans backticks, sans commentaires) avec cette structure exacte :
+
+{
+  "id": "slug-en-minuscules-sans-espaces",
+  "icon": "un emoji représentatif",
+  "title": "Nom officiel du sujet",
+  "subtitle": "Description courte en 8 mots max",
+  "tag": "${cat}",
+  "niveau": "Débutant | Intermédiaire | Avancé",
+  "lecture": "X min",
+  "summary": "Résumé encyclopédique de 2-3 phrases, clair et précis.",
+  "infobox": [
+    {"k": "Clé", "v": "Valeur", "mono": false},
+    {"k": "Symbole / Formule", "v": "...", "mono": true}
+  ],
+  "sections": [
+    {
+      "h2": "Titre de section",
+      "id": "id-ancre",
+      "html": "<p class=\\"art-p\\">Contenu HTML riche avec <strong>gras</strong> pour les termes importants. Minimum 3 phrases.</p>",
+      "subs": [
+        {
+          "h3": "Titre sous-section",
+          "id": "id-ancre-sub",
+          "html": "<div class=\\"formula\\">FORMULE = ICI</div><p class=\\"art-p\\">Explication de la formule.</p>"
+        }
+      ]
+    }
+  ],
+  "refs": [
+    "Auteur, Titre, Éditeur, Année.",
+    "Norme IEC/NF applicable si pertinent."
+  ],
+  "related": ["id-article-lié-1", "id-article-lié-2"]
+}
+
+Règles importantes :
+- Minimum 4 sections H2, avec des sous-sections H3 quand pertinent
+- Mettre les formules dans <div class="formula">...</div>
+- Utiliser des balises HTML valides dans les champs html (p, strong, em, div)
+- Pour les liens internes utiliser : <span class="wl" onclick="openA('id-fiche')">texte</span>
+- IDs liés possibles parmi : resistance, condensateur, transistor, diode, inductance, tension, courant, puissance, loi-ohm, protection-diff, nf-c-15-100
+- Contenu technique précis, niveau lycée/BTS
+- Infobox : 4 à 7 lignes avec les infos clés (symbole, unité, formule, norme...)
+- Tout en français
+`;
+
+    try {
+      await new Promise(r => setTimeout(r, 500));
+      setStep(2);
+
+      const cfRes = await fetch(CF_URL, {
+        method:  'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body:    JSON.stringify({ query: sujet }),
+      });
+      if (!cfRes.ok) { const e = await cfRes.json().catch(()=>({})); throw new Error(e.error || `Erreur ${cfRes.status}`); }
+      const article = (await cfRes.json()).fiche;
+      if (!article) throw new Error('Réponse vide');
+
+      setStep(3);
+      await new Promise(r => setTimeout(r, 300));
+
+      setStep(4);
+      fill.style.width = '100%';
+      await new Promise(r => setTimeout(r, 400));
+
+      buildForm(article);
+      toast('✅ Fiche générée ! Vérifie et enregistre.');
+      document.getElementById('ai-input').value = '';
+
+    } catch(e) {
+      toast('❌ Erreur génération : ' + e.message);
+      console.error(e);
+    } finally {
+      btn.disabled = false;
+      document.getElementById('gen-icon').textContent = '✨';
+      progress.classList.remove('show');
+      for(let i=1;i<=4;i++) document.getElementById('step-'+i).classList.remove('active','done');
+      fill.style.width = '0%';
+    }
+  };
+
+  // ══════════════════════════════════════════
+  // FORMULAIRE
+  // ══════════════════════════════════════════
+  function buildForm(a = null) {
+    const isNew = !a?.id || !DB.find(x => x.id===a.id);
+    editingId = a?.id || null;
+    renderList();
+
+    const sections = a?.sections || [];
+    const infobox  = a?.infobox  || [];
+    const refs     = (a?.refs || []).join('\n');
+    const related  = (a?.related || []).join(', ');
+
+    document.getElementById('form-area').innerHTML = `
+      <div class="form-card">
+        <div class="form-title">
+          ${isNew ? '✨ Nouvelle fiche' : '✏️ ' + (a?.icon||'') + ' ' + (a?.title||'Édition')}
+          ${!isNew ? `<a href="encyclopedie.html#${a.id}" target="_blank" style="margin-left:auto;font-size:.75rem;color:var(--accent);font-weight:400;font-family:var(--fb);">↗ Voir en ligne</a>` : ''}
+        </div>
+
+        <div class="form-row">
+          <div class="form-group">
+            <label>ID unique *</label>
+            <input type="text" id="f-id" value="${a?.id||''}" placeholder="ex: transistor-mosfet" ${!isNew?'readonly style="opacity:.5"':''}/>
+          </div>
+          <div class="form-group">
+            <label>Icône (emoji)</label>
+            <input type="text" id="f-icon" value="${a?.icon||''}" placeholder="🔺"/>
+          </div>
+        </div>
+
+        <div class="form-row">
+          <div class="form-group">
+            <label>Titre *</label>
+            <input type="text" id="f-title" value="${escH(a?.title||'')}" placeholder="Transistor MOSFET"/>
+          </div>
+          <div class="form-group">
+            <label>Sous-titre</label>
+            <input type="text" id="f-subtitle" value="${escH(a?.subtitle||'')}" placeholder="Transistor à effet de champ…"/>
+          </div>
+        </div>
+
+        <div class="form-row">
+          <div class="form-group">
+            <label>Catégorie *</label>
+            <select id="f-tag">
+              <option value="composant"   ${a?.tag==='composant'   ?'selected':''}>⚡ Composant électronique</option>
+              <option value="electricite" ${a?.tag==='electricite' ?'selected':''}>🔌 Électricité</option>
+            </select>
+          </div>
+          <div class="form-group">
+            <label>Niveau</label>
+            <select id="f-niveau">
+              <option value="Débutant"      ${a?.niveau==='Débutant'     ?'selected':''}>Débutant</option>
+              <option value="Intermédiaire" ${a?.niveau==='Intermédiaire'?'selected':''}>Intermédiaire</option>
+              <option value="Avancé"        ${a?.niveau==='Avancé'       ?'selected':''}>Avancé</option>
+            </select>
+          </div>
+        </div>
+
+        <div class="form-row">
+          <div class="form-group">
+            <label>Durée de lecture</label>
+            <input type="text" id="f-lecture" value="${escH(a?.lecture||'')}" placeholder="5 min"/>
+          </div>
+          <div class="form-group">
+            <label>Articles liés (IDs, virgule)</label>
+            <input type="text" id="f-related" value="${escH(related)}" placeholder="condensateur, loi-ohm"/>
+          </div>
+        </div>
+
+        <div class="form-row single">
+          <div class="form-group">
+            <label>Résumé (intro encyclopédie) *</label>
+            <textarea id="f-summary" rows="3">${escH(a?.summary||'')}</textarea>
+          </div>
+        </div>
+
+        <!-- INFOBOX -->
+        <div style="margin-top:16px;">
+          <div class="sec-head">
+            <span>📊 Infobox</span>
+            <button class="btn-new" onclick="addIBRow()" style="font-size:.74rem;padding:5px 10px;">+ Ligne</button>
+          </div>
+          <div id="ib-rows">
+            ${infobox.map((r,i)=>`
+              <div class="ib-row-admin" id="ib-${i}">
+                <input type="text" placeholder="Clé (ex: Unité)" value="${escH(r.k||'')}"/>
+                <input type="text" placeholder="Valeur (ex: Ohm Ω)" value="${escH(r.v||'')}"/>
+                <input type="text" placeholder="mono?" value="${r.mono?'mono':''}" style="width:64px;flex:none;"/>
+                <button class="btn-rm" onclick="removeIBRow(this.parentElement)">✕</button>
+              </div>`).join('')}
+          </div>
+        </div>
+
+        <!-- SECTIONS -->
+        <div class="section-builder">
+          <div class="sec-head">
+            <span>📑 Sections (${sections.length})</span>
+            <button class="btn-new" onclick="addSection()" style="font-size:.74rem;padding:5px 10px;">+ Section</button>
+          </div>
+          <div id="sec-rows">
+            ${sections.map((s,i)=>secHTML(s,i)).join('')}
+          </div>
+          <button class="btn-add-sec" onclick="addSection()">+ Ajouter une section H2</button>
+        </div>
+
+        <!-- RÉFÉRENCES -->
+        <div class="form-row single" style="margin-top:0;">
+          <div class="form-group">
+            <label>Références (1 par ligne)</label>
+            <textarea id="f-refs" rows="3" placeholder="Ohm, G.S., Die galvanische Kette, 1827.\nIEC 60115-1:2020">${escH(refs)}</textarea>
+          </div>
+        </div>
+
+        <div class="form-actions">
+          <button class="btn-save" onclick="saveArticle()">💾 Enregistrer dans Firestore</button>
+          ${!isNew?`<button class="btn-preview" onclick="window.open('encyclopedie.html#${a.id}','_blank')">👁 Prévisualiser</button>`:''}
+          ${!isNew?`<button class="btn-delete" onclick="deleteArticle('${a.id}')">🗑 Supprimer</button>`:''}
+        </div>
+      </div>`;
+  }
+
+  function escH(s) {
+    return String(s).replace(/&/g,'&amp;').replace(/"/g,'&quot;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
+  }
+
+  function secHTML(s={}, i) {
+    return `<div class="sec-card" id="sec-${i}">
+      <button class="sec-remove" onclick="this.closest('.sec-card').remove()">✕</button>
+      <div class="form-row">
+        <div class="form-group">
+          <label>Titre H2 *</label>
+          <input type="text" class="sec-h2" value="${escH(s.h2||'')}" placeholder="Définition"/>
+        </div>
+        <div class="form-group">
+          <label>ID ancre *</label>
+          <input type="text" class="sec-id" value="${escH(s.id||'')}" placeholder="def"/>
+        </div>
+      </div>
+      <div class="form-group" style="margin-bottom:10px;">
+        <label>Contenu HTML</label>
+        <textarea class="sec-html" rows="4">${s.html||''}</textarea>
+      </div>
+      <div class="subs-container">
+        ${(s.subs||[]).map((sub,j)=>subHTML(sub,j)).join('')}
+      </div>
+      <button class="btn-add-sec" style="margin-bottom:0;" onclick="addSub(this)">+ Sous-section H3</button>
+    </div>`;
+  }
+
+  function subHTML(sub={}, j) {
+    return `<div class="sec-card" style="margin-top:9px;border-color:rgba(245,158,11,.3);">
+      <button class="sec-remove" onclick="this.closest('.sec-card').remove()">✕</button>
+      <div class="form-row">
+        <div class="form-group"><label>Titre H3</label><input type="text" class="sub-h3" value="${escH(sub.h3||'')}" placeholder="Sous-section"/></div>
+        <div class="form-group"><label>ID ancre</label><input type="text" class="sub-id" value="${escH(sub.id||'')}" placeholder="sub-id"/></div>
+      </div>
+      <div class="form-group">
+        <label>Contenu HTML</label>
+        <textarea class="sub-html" rows="3">${sub.html||''}</textarea>
+      </div>
+    </div>`;
+  }
+
+  window.addSection = function() {
+    const container = document.getElementById('sec-rows');
+    const idx = container.querySelectorAll('.sec-card').length;
+    const div = document.createElement('div');
+    div.innerHTML = secHTML({},idx);
+    container.appendChild(div.firstElementChild);
+  };
+
+  window.addSub = function(btn) {
+    const secCard = btn.closest('.sec-card');
+    const container = secCard.querySelector('.subs-container');
+    const idx = container.querySelectorAll('.sec-card').length;
+    const div = document.createElement('div');
+    div.innerHTML = subHTML({},idx);
+    container.appendChild(div.firstElementChild);
+  };
+
+  window.addIBRow = function() {
+    const container = document.getElementById('ib-rows');
+    const idx = container.children.length;
+    const div = document.createElement('div');
+    div.className = 'ib-row-admin';
+    div.id = 'ib-'+idx;
+    div.innerHTML = `<input type="text" placeholder="Clé"/><input type="text" placeholder="Valeur"/><input type="text" placeholder="mono?" style="width:64px;flex:none;"/><button class="btn-rm" onclick="removeIBRow(this.parentElement)">✕</button>`;
+    container.appendChild(div);
+  };
+
+  window.removeIBRow = function(el) { el.remove(); };
+
+  // ══════════════════════════════════════════
+  // LECTURE FORMULAIRE (approche DOM générique)
+  // ══════════════════════════════════════════
+  function readForm() {
+    const id = document.getElementById('f-id')?.value.trim().toLowerCase().replace(/\s+/g,'-');
+    if (!id) { toast('⚠️ ID requis'); return null; }
+    const title = document.getElementById('f-title')?.value.trim();
+    if (!title) { toast('⚠️ Titre requis'); return null; }
+
+    // Infobox
+    const infobox = [...document.querySelectorAll('#ib-rows .ib-row-admin')].map(row => {
+      const inputs = row.querySelectorAll('input');
+      return { k:inputs[0].value, v:inputs[1].value, mono: inputs[2].value.includes('mono') };
+    }).filter(r => r.k && r.v);
+
+    // Sections
+    const sections = [...document.querySelectorAll('#sec-rows > .sec-card')].map(card => {
+      const h2   = card.querySelector('.sec-h2')?.value || '';
+      const sid  = card.querySelector('.sec-id')?.value  || '';
+      const html = card.querySelector('.sec-html')?.value || '';
+      const subs = [...card.querySelectorAll('.subs-container > .sec-card')].map(sub => ({
+        h3:   sub.querySelector('.sub-h3')?.value  || '',
+        id:   sub.querySelector('.sub-id')?.value   || '',
+        html: sub.querySelector('.sub-html')?.value || '',
+      })).filter(s => s.h3);
+      return { h2, id:sid, html, subs };
+    }).filter(s => s.h2);
+
+    const refs    = document.getElementById('f-refs')?.value.split('\n').map(r=>r.trim()).filter(Boolean) || [];
+    const related = document.getElementById('f-related')?.value.split(',').map(r=>r.trim()).filter(Boolean) || [];
+
+    return {
+      id,
+      icon:     document.getElementById('f-icon')?.value.trim()     || '',
+      title,
+      subtitle: document.getElementById('f-subtitle')?.value.trim() || '',
+      tag:      document.getElementById('f-tag')?.value             || 'composant',
+      niveau:   document.getElementById('f-niveau')?.value          || 'Débutant',
+      lecture:  document.getElementById('f-lecture')?.value.trim()  || '',
+      summary:  document.getElementById('f-summary')?.value.trim()  || '',
+      infobox, sections, refs, related,
+      updatedAt: new Date().toISOString(),
+    };
+  }
+
+  // ══════════════════════════════════════════
+  // SAVE
+  // ══════════════════════════════════════════
+  window.saveArticle = async function() {
+    const data = readForm();
+    if (!data) return;
+    try {
+      const { id, ...rest } = data;
+      // Une fois sauvegardé manuellement, on retire le flag auto-généré
+      rest.autoGenerated = false;
+      await setDoc(doc(db, 'encyclopedie', id), rest, { merge: true });
+      toast('✅ Fiche "' + data.title + '" enregistrée !');
+      await load();
+      editingId = id;
+      const a = DB.find(x => x.id===id) || data;
+      buildForm(a);
+    } catch(e) {
+      toast('❌ Erreur Firestore : ' + e.message);
+    }
+  };
+
+  // ══════════════════════════════════════════
+  // DELETE
+  // ══════════════════════════════════════════
+  window.deleteArticle = async function(id) {
+    if (!confirm(`Supprimer la fiche "${id}" ? Irréversible.`)) return;
+    try {
+      await deleteDoc(doc(db, 'encyclopedie', id));
+      toast('🗑 Fiche supprimée');
+      editingId = null;
+      document.getElementById('form-area').innerHTML = `<div class="state-empty"><div class="icon">🗑</div><p>Fiche supprimée.</p></div>`;
+      await load();
+    } catch(e) {
+      toast('❌ Erreur : ' + e.message);
+    }
+  };
+
+  // ══════════════════════════════════════════
+  // ACTIONS GLOBALES
+  // ══════════════════════════════════════════
+  window.newArticle  = () => buildForm(null);
+  window.editArticle = id => {
+    const a = DB.find(x=>x.id===id);
+    if (a) buildForm(a);
+  };
+
+  function toast(msg, dur=3500) {
+    const t = document.getElementById('toast');
+    t.textContent = msg;
+    t.classList.add('show');
+    setTimeout(()=>t.classList.remove('show'), dur);
+  }
+
+  // Exposer buildForm pour l'IA
+  window._buildForm = buildForm;
+
+  // ══════════════════════════════════════════
+  // GÉNÉRATION EN LOT
+  // ══════════════════════════════════════════
+  let batchRunning = false;
+
+  window.stopBatch = function() {
+    batchRunning = false;
+    document.getElementById('btn-batch-stop').style.display = 'none';
+    document.getElementById('btn-batch').disabled = false;
+    toast('⏹ Génération en lot arrêtée');
+  };
+
+  window.generateBatch = async function() {
+    const raw = document.getElementById('batch-input').value.trim();
+    if (!raw) { toast('⚠️ Entre au moins un sujet'); return; }
+
+    const cat    = document.getElementById('batch-cat').value;
+    const sujets = raw.split(',').map(s => s.trim()).filter(Boolean);
+    if (!sujets.length) return;
+
+    // Vérifier lesquels existent déjà
+    const queue = sujets.map(s => ({
+      sujet: s,
+      exists: DB.some(a => a.title.toLowerCase() === s.toLowerCase()),
+      status: 'pending'
+    }));
+
+    // UI
+    const queueEl = document.getElementById('batch-queue');
+    const itemsEl = document.getElementById('batch-items');
+    const fillEl  = document.getElementById('batch-fill');
+    const summEl  = document.getElementById('batch-summary');
+    queueEl.classList.add('show');
+    document.getElementById('btn-batch').disabled = true;
+    document.getElementById('btn-batch-stop').style.display = 'flex';
+    batchRunning = true;
+
+    function renderQueue() {
+      itemsEl.innerHTML = queue.map((q,i) => {
+        const ico = q.status==='pending'?'○':q.status==='running'?'⟳':q.status==='done'?'✓':q.status==='skip'?'↷':'✗';
+        return `<div class="bq-item ${q.status}"><span class="bq-icon">${ico}</span>${q.sujet}${q.exists?' <em style="font-size:.72rem;">(déjà existant)</em>':''}</div>`;
+      }).join('');
+      itemsEl.scrollTop = itemsEl.scrollHeight;
+    }
+
+    // Marquer les existants comme skip dès le début
+    queue.forEach(q => { if (q.exists) q.status = 'skip'; });
+    renderQueue();
+
+    let done = 0, errors = 0, skipped = queue.filter(q=>q.exists).length;
+    const total = queue.length;
+
+    for (let i = 0; i < queue.length; i++) {
+      if (!batchRunning) break;
+      const item = queue[i];
+      if (item.status === 'skip') { done++; continue; }
+
+      item.status = 'running';
+      renderQueue();
+      fillEl.style.width = `${Math.round((i/total)*100)}%`;
+      summEl.textContent = `${i+1}/${total} — ${done} générée(s), ${errors} erreur(s), ${skipped} ignorée(s)`;
+
+      try {
+        const cfRes = await fetch(CF_URL, {
+          method:  'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body:    JSON.stringify({ query: item.sujet }),
+        });
+        if (!cfRes.ok) { const e = await cfRes.json().catch(()=>({})); throw new Error(e.error || `Erreur ${cfRes.status}`); }
+        const fiche = (await cfRes.json()).fiche;
+        if (!fiche || !fiche.id || !fiche.title || !fiche.sections) throw new Error('Fiche incomplète');
+        fiche.tag = cat;
+
+        // Enregistrer Firestore
+        await setDoc(doc(db, 'encyclopedie', fiche.id), fiche, { merge: true });
+        const idx = DB.findIndex(x => x.id === fiche.id);
+        if (idx >= 0) DB[idx] = fiche; else DB.push(fiche);
+
+        item.status = 'done';
+        done++;
+      } catch(e) {
+        console.error('Batch item:', item.sujet, e);
+        item.status = 'error';
+        errors++;
+      }
+
+      renderQueue();
+      fillEl.style.width = `${Math.round(((i+1)/total)*100)}%`;
+      summEl.textContent = `${i+1}/${total} — ${done} générée(s), ${errors} erreur(s), ${skipped} ignorée(s)`;
+
+      // Pause entre chaque appel pour éviter le rate limiting
+      if (i < queue.length - 1 && batchRunning) {
+        await new Promise(r => setTimeout(r, 1500));
+      }
+    }
+
+    batchRunning = false;
+    document.getElementById('btn-batch-stop').style.display = 'none';
+    document.getElementById('btn-batch').disabled = false;
+    fillEl.style.width = '100%';
+    DB.sort((a,b) => a.title.localeCompare(b.title,'fr'));
+    renderList();
+    toast(`✅ Lot terminé — ${done} fiche(s) générée(s), ${errors} erreur(s), ${skipped} ignorée(s)`);
+  };
+
+  load();
+</script>
+
+<script>
+  // Wrapper pour generateAI qui appelle la fonction du module
+  // (le module expose generateAI via window déjà)
+</script>
+
+</body>
+</html>

@@ -1,0 +1,75 @@
+rules_version = '2';
+service cloud.firestore {
+  match /databases/{database}/documents {
+
+    // ─── Fonctions ────────────────────────────────────────────
+    function isAuth() {
+      return request.auth != null;
+    }
+
+    function isAdmin() {
+      return isAuth() &&
+        get(/databases/$(database)/documents/users/$(request.auth.uid)).data.role
+          in ['admin', 'superadmin'];
+    }
+
+    function onlyViewsChanged() {
+      return request.resource.data.diff(resource.data)
+               .affectedKeys().hasOnly(['views']);
+    }
+
+    // ─── ARTICLES ─────────────────────────────────────────────
+    match /articles/{articleId} {
+      allow read: if true;
+      allow create: if isAdmin();
+      allow delete: if isAdmin();
+      // Admin peut tout modifier, visiteur peut seulement incrémenter les vues
+      allow update: if isAdmin() || onlyViewsChanged();
+    }
+
+    // ─── RÉACTIONS (likes) ────────────────────────────────────
+    match /reactions/{articleId} {
+      allow read: if true;
+      allow create: if true;
+      allow update: if true;
+      allow delete: if isAdmin();
+    }
+
+    // ─── COMMENTAIRES ─────────────────────────────────────────
+    match /comments/{commentId} {
+      allow read: if true;
+      allow create: if isAuth();
+      allow update: if isAuth() &&
+        (request.auth.uid == resource.data.authorId || isAdmin());
+      allow delete: if isAuth() &&
+        (request.auth.uid == resource.data.authorId || isAdmin());
+    }
+
+    // ─── USERS ────────────────────────────────────────────────
+    match /users/{userId} {
+      allow read: if isAuth() && (request.auth.uid == userId || isAdmin());
+      allow create: if isAuth() && request.auth.uid == userId;
+      allow update: if isAuth() && (request.auth.uid == userId || isAdmin());
+      allow delete: if isAdmin();
+    }
+
+    // ─── NEWSLETTER ───────────────────────────────────────────
+    match /newsletter/{docId} {
+      allow read: if isAdmin();
+      allow create: if true;
+      allow delete: if isAdmin();
+    }
+
+    // ─── ADMINS ───────────────────────────────────────────────
+    match /admins/{adminId} {
+      allow read, write: if isAdmin();
+    }
+
+    // ─── COURSES ──────────────────────────────────────────────
+    match /courses/{courseId} {
+      allow read: if true;
+      allow create, update, delete: if isAdmin();
+    }
+
+  }
+}

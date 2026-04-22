@@ -1,0 +1,142 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Matière | ElectroInfo</title>
+    <meta name="description" content="Détail de la matière">
+    <link rel="icon" type="image/x-icon" href="/images/favicon.ico">
+    <link rel="icon" type="image/png" sizes="48x48" href="/images/logo-small.png">
+    <link rel="apple-touch-icon" sizes="180x180" href="/images/apple-touch-icon.png">
+    <link rel="stylesheet" href="/styles.css">
+    <link rel="stylesheet" href="/courses-styles.css">
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
+</head>
+<body>
+
+<nav class="navbar">
+    <div class="container">
+        <div class="nav-brand">
+            <img src="/images/logo-small.png" alt="Logo Electroinfo" class="nav-logo">
+            <span>ELECTROINFO</span>
+        </div>
+        <button class="mobile-toggle" id="mobileToggle"><i class="fas fa-bars"></i></button>
+        <div class="nav-menu" id="mobileMenu">
+            <div class="nav-links">
+                <a href="/" class="nav-link">Accueil</a>
+                <a href="/courses" class="nav-link active">Cours</a>
+                <a href="/about" class="nav-link">À propos</a>
+                <a href="/contact" class="nav-link">Contact</a>
+            </div>
+            <div class="nav-actions">
+                <button id="newsletterBtn" class="btn btn-outline">
+                    <i class="fas fa-envelope"></i><span class="btn-text">Newsletter</span>
+                </button>
+                <a href="/auth" id="loginBtn" class="btn btn-primary">
+                    <i class="fas fa-sign-in-alt"></i><span class="btn-text">Connexion</span>
+                </a>
+                <div id="userMenu" class="user-menu hidden">
+                    <button class="user-btn" id="userMenuToggle">
+                        <img id="userAvatar" src="" alt="Avatar" class="avatar">
+                        <span id="userName" class="user-name"></span>
+                        <i class="fas fa-chevron-down"></i>
+                    </button>
+                    <div class="dropdown hidden" id="userDropdown">
+                        <div class="dropdown-header">
+                            <img id="userAvatarDropdown" src="" alt="Avatar" class="avatar-large">
+                            <div>
+                                <div class="dropdown-name" id="userNameDropdown"></div>
+                                <div class="dropdown-email" id="userEmailDropdown"></div>
+                            </div>
+                        </div>
+                        <hr>
+                        <a href="/profile" class="dropdown-item"><i class="fas fa-user"></i> Mon Profil</a>
+                        <hr id="adminDivider" class="hidden">
+                        <a href="/admin" id="adminLink" class="dropdown-item hidden"><i class="fas fa-cog"></i> Administration</a>
+                        <hr>
+                        <button id="logoutBtn" class="dropdown-item logout"><i class="fas fa-sign-out-alt"></i> Déconnexion</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</nav>
+
+<!-- Loading -->
+<div id="loadingState" class="loading-state">
+    <i class="fas fa-spinner fa-spin"></i>
+    <p>Chargement de la matière...</p>
+</div>
+
+<!-- Erreur -->
+<div id="errorState" class="error-state hidden">
+    <i class="fas fa-exclamation-triangle"></i>
+    <p>Matière introuvable</p>
+    <a href="/courses" class="btn btn-primary"><i class="fas fa-arrow-left"></i> Retour aux cours</a>
+</div>
+
+<!-- Contenu matière -->
+<div id="matiereContainer" class="hidden">
+
+    <!-- Header -->
+    <div class="matiere-hero" id="matiereHero">
+        <div class="matiere-hero-content">
+            <a href="/courses" class="back-link">
+                <i class="fas fa-arrow-left"></i> Retour aux cours
+            </a>
+            <div class="matiere-meta">
+                <span class="diplome-badge" id="matiereDiplome">BAC PRO</span>
+                <span class="niveau-badge" id="matiereNiveau">Débutant</span>
+            </div>
+            <h1 id="matiereTitle">Titre de la matière</h1>
+            <p id="matiereDescription" class="matiere-desc"></p>
+            <div class="matiere-stats">
+                <span><i class="fas fa-layer-group"></i> <span id="seqCount">0</span> séquence(s)</span>
+                <span><i class="fas fa-file-alt"></i> <span id="seanceCount">0</span> séance(s)</span>
+            </div>
+        </div>
+    </div>
+
+    <!-- Corps -->
+    <div class="matiere-body">
+        <!-- Sidebar nav séquences -->
+        <aside class="sequences-sidebar">
+            <div class="sidebar-title"><i class="fas fa-list"></i> Séquences</div>
+            <div id="sequencesNav"></div>
+        </aside>
+
+        <!-- Séquences + séances -->
+        <main class="sequences-main">
+            <div id="sequencesContainer"></div>
+            <div id="emptySequences" class="empty-state hidden">
+                <i class="fas fa-inbox"></i>
+                <p>Aucune séquence disponible</p>
+            </div>
+        </main>
+    </div>
+</div>
+
+<footer class="footer">
+    <div class="container">
+        <div class="footer-content">
+            <div class="footer-section">
+                <h3 class="footer-title"><i class="fas fa-bolt"></i> ElectroInfo</h3>
+                <p class="footer-description">Formation en électricité industrielle au Togo</p>
+            </div>
+            <div class="footer-section">
+                <h4 class="footer-subtitle">Navigation</h4>
+                <ul class="footer-links">
+                    <li><a href="/">Accueil</a></li>
+                    <li><a href="/courses">Cours</a></li>
+                    <li><a href="/about">À propos</a></li>
+                    <li><a href="/contact">Contact</a></li>
+                </ul>
+            </div>
+        </div>
+        <div class="footer-bottom"><p>&copy; 2025 ElectroInfo. Tous droits réservés.</p></div>
+    </div>
+</footer>
+
+<script type="module" src="/courses.js"></script>
+</body>
+</html>

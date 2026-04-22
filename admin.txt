@@ -1,0 +1,887 @@
+// admin.js - Script d'administration SÉCURISÉ AVEC SLUGS
+import { initializeApp } from 'https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js';
+import { getAuth, onAuthStateChanged, signOut } from 'https://www.gstatic.com/firebasejs/10.7.1/firebase-auth.js';
+import { getFirestore, collection, addDoc, getDocs, doc, getDoc, updateDoc, deleteDoc, query, orderBy, serverTimestamp, where } from 'https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js';
+
+// Configuration Firebase
+const firebaseConfig = {
+    apiKey: "AIzaSyCuFgzytJXD6jt4HUW9LVSD_VpGuFfcEAk",
+    authDomain: "electroino-app.firebaseapp.com",
+    projectId: "electroino-app",
+    storageBucket: "electroino-app.firebasestorage.app",
+    messagingSenderId: "864058526638",
+    appId: "1:864058526638:web:17b821633c7cc99be1563f"
+};
+
+const app = initializeApp(firebaseConfig);
+const auth = getAuth(app);
+const db = getFirestore(app);
+
+// Variables globales
+let currentUser = null;
+let quillEditor = null;
+let editMode = false;
+let currentEditId = null;
+let articleToDelete = null;
+
+// Éléments DOM
+const loadingSection = document.getElementById('loadingSection');
+const accessDenied   = document.getElementById('accessDenied');
+const adminDashboard = document.getElementById('adminDashboard');
+const articleForm    = document.getElementById('articleForm');
+const newsletterList = document.getElementById('newsletterList');
+
+// ============================================
+// 🧹 NETTOYAGE QUILL UNIQUEMENT
+// ⚠️  Ne jamais appeler sur du HTML brut
+// ============================================
+function cleanQuillHTML(html) {
+    return html
+        .replace(/class="ql-[^"]*"/g, '')
+        .replace(/<p>\s*<br\s*\/?>\s*<\/p>/gi, '')
+        .replace(/<p>\s*&nbsp;\s*<\/p>/gi, '')
+        .replace(/<p>\s*<\/p>/gi, '')
+        .replace(/<br\s*\/?>\s*<\/p>/gi, '</p>')
+        .replace(/(<br\s*\/?>){2,}/gi, '<br>')
+        .replace(/\s+/g, ' ')
+        .replace(/>\s+</g, '><')
+        .trim();
+}
+
+function getContentSize(content) {
+    return new TextEncoder().encode(content).length;
+}
+
+function truncateContent(html, maxBytes = 950000) {
+    const encoder = new TextEncoder();
+    const encoded = encoder.encode(html);
+    if (encoded.length <= maxBytes) return html;
+    console.warn(`⚠️ Contenu trop long: ${encoded.length} bytes.`);
+    let truncated = html.substring(0, Math.floor(html.length * maxBytes / encoded.length));
+    const lastTag   = truncated.lastIndexOf('<');
+    const lastClose = truncated.lastIndexOf('>');
+    if (lastTag > lastClose) truncated = truncated.substring(0, lastTag);
+    return truncated + '\n<p><em style="color:#e74c3c;">[⚠️ Contenu tronqué — article trop long]</em></p>';
+}
+
+// ============================================
+// 🆕 SLUGS
+// ============================================
+function generateSlug(title) {
+    return title
+        .toLowerCase()
+        .normalize('NFD')
+        .replace(/[\u0300-\u036f]/g, '')
+        .replace(/[^a-z0-9\s-]/g, '')
+        .trim()
+        .replace(/\s+/g, '-')
+        .replace(/-+/g, '-')
+        .substring(0, 100);
+}
+
+async function isSlugUnique(slug, excludeId = null) {
+    const snapshot = await getDocs(query(collection(db, 'articles'), where('slug', '==', slug)));
+    if (snapshot.empty) return true;
+    if (excludeId) return snapshot.docs[0].id === excludeId;
+    return false;
+}
+
+async function generateUniqueSlug(title, excludeId = null) {
+    const base = generateSlug(title);
+    let slug = base, counter = 1;
+    while (!(await isSlugUnique(slug, excludeId))) slug = `${base}-${counter++}`;
+    return slug;
+}
+
+// ============================================
+// 🔐 AUTH
+// ============================================
+onAuthStateChanged(auth, async (user) => {
+    if (!user) { window.location.href = 'auth.html?redirect=admin.html'; return; }
+    try {
+        const userDoc  = await getDoc(doc(db, 'users', user.uid));
+        if (!userDoc.exists()) { showAccessDenied(); return; }
+        const userData = userDoc.data();
+        if (userData.role !== 'admin' && userData.role !== 'superadmin') { showAccessDenied(); return; }
+        currentUser = user;
+        showAdminDashboard(user, userData);
+        initQuillEditor();
+        loadArticles();
+        loadStatistics();
+        loadNewsletterSubscribers();
+    } catch (error) {
+        console.error('Erreur auth:', error);
+        showAccessDenied();
+    }
+});
+
+function showAccessDenied() {
+    loadingSection.classList.add('hidden');
+    accessDenied.classList.remove('hidden');
+    adminDashboard.classList.add('hidden');
+}
+
+function showAdminDashboard(user, userData) {
+    loadingSection.classList.add('hidden');
+    accessDenied.classList.add('hidden');
+    adminDashboard.classList.remove('hidden');
+    const displayName = userData.name || user.displayName || user.email.split('@')[0];
+    const avatarUrl   = user.photoURL || `https://ui-avatars.com/api/?name=${encodeURIComponent(displayName)}&background=1e40af&color=fff`;
+    document.getElementById('adminName').textContent = displayName;
+    document.getElementById('adminAvatar').src = avatarUrl;
+}
+
+document.getElementById('logoutBtn')?.addEventListener('click', async () => {
+    try { await signOut(auth); window.location.href = 'index.html'; }
+    catch (e) { console.error(e); }
+});
+
+// ============================================
+// 📸 COMPRESSION IMAGE
+// ============================================
+async function compressImage(file, maxWidth = 1200, quality = 0.85) {
+    return new Promise((resolve) => {
+        const reader = new FileReader();
+        reader.onload = (e) => {
+            const img = new Image();
+            img.onload = () => {
+                const canvas = document.createElement('canvas');
+                let w = img.width, h = img.height;
+                if (w > maxWidth) { h = (h * maxWidth) / w; w = maxWidth; }
+                canvas.width = w; canvas.height = h;
+                canvas.getContext('2d').drawImage(img, 0, 0, w, h);
+                const compressed = canvas.toDataURL('image/jpeg', quality);
+                console.log(`📸 ${w}x${h}, ${Math.round((compressed.length*3)/4/1024)} KB`);
+                resolve(compressed);
+            };
+            img.src = e.target.result;
+        };
+        reader.readAsDataURL(file);
+    });
+}
+
+function customImageHandler() {
+    const input = document.createElement('input');
+    input.type = 'file'; input.accept = 'image/*';
+    input.onchange = async () => {
+        const file = input.files[0];
+        if (!file) return;
+        const quality = await showImageQualityDialog(file.size / (1024*1024));
+        if (quality === null) return;
+        showNotification('🔄 Compression...', 'info');
+        try {
+            const compressed = await compressImage(file, quality.maxWidth, quality.quality);
+            const range = quillEditor.getSelection(true);
+            quillEditor.insertEmbed(range.index, 'image', compressed);
+            quillEditor.setSelection(range.index + 1);
+            setTimeout(makeImagesResizable, 100);
+            showNotification('✅ Image ajoutée !', 'success');
+        } catch (e) {
+            showNotification('❌ Erreur image', 'error');
+        }
+    };
+    input.click();
+}
+
+function makeImagesResizable() {
+    quillEditor.root.querySelectorAll('img').forEach(img => {
+        if (img.classList.contains('resizable')) return;
+        img.classList.add('resizable');
+        img.style.cursor = 'nwse-resize';
+        img.style.maxWidth = '100%';
+        img.style.height = 'auto';
+        img.addEventListener('dblclick', e => { e.preventDefault(); showResizeDialog(img); });
+        img.addEventListener('contextmenu', e => { e.preventDefault(); showImageOptions(img); });
+    });
+}
+
+async function showImageQualityDialog(originalSizeMB) {
+    return new Promise((resolve) => {
+        const modal = document.createElement('div');
+        modal.className = 'modal';
+        modal.innerHTML = `
+            <div class="modal-overlay"></div>
+            <div class="modal-content" style="max-width:500px;">
+                <div class="modal-header"><h3><i class="fas fa-image"></i> Compression image</h3></div>
+                <div class="modal-body">
+                    <p>Taille originale: <strong>${originalSizeMB.toFixed(2)} MB</strong></p>
+                    <div class="form-group"><label>Qualité</label>
+                        <select id="imageQuality" class="input">
+                            <option value="high">Haute (1200px, 85%)</option>
+                            <option value="medium" selected>Moyenne (800px, 75%)</option>
+                            <option value="low">Basse (600px, 65%)</option>
+                            <option value="custom">Personnalisée...</option>
+                        </select>
+                    </div>
+                    <div id="customSettings" style="display:none;">
+                        <div class="form-group"><label>Largeur max (px)</label><input type="number" id="customWidth" class="input" value="800" min="200" max="2000"></div>
+                        <div class="form-group"><label>Qualité (%)</label><input type="range" id="customQuality" class="input" value="75" min="20" max="100"><span id="qualityValue">75%</span></div>
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button id="cancelImageBtn" class="btn btn-secondary">Annuler</button>
+                    <button id="confirmImageBtn" class="btn btn-primary"><i class="fas fa-check"></i> Ajouter</button>
+                </div>
+            </div>`;
+        document.body.appendChild(modal);
+        modal.classList.remove('hidden');
+        const qs = modal.querySelector('#imageQuality');
+        const cs = modal.querySelector('#customSettings');
+        const cq = modal.querySelector('#customQuality');
+        const qv = modal.querySelector('#qualityValue');
+        qs.addEventListener('change', () => { cs.style.display = qs.value === 'custom' ? 'block' : 'none'; });
+        cq.addEventListener('input',  () => { qv.textContent = cq.value + '%'; });
+        modal.querySelector('#cancelImageBtn').onclick  = () => { modal.remove(); resolve(null); };
+        modal.querySelector('#confirmImageBtn').onclick = () => {
+            const presets = { high:{maxWidth:1200,quality:.85}, medium:{maxWidth:800,quality:.75}, low:{maxWidth:600,quality:.65} };
+            const config  = qs.value === 'custom'
+                ? { maxWidth: parseInt(modal.querySelector('#customWidth').value), quality: parseInt(cq.value)/100 }
+                : presets[qs.value];
+            modal.remove(); resolve(config);
+        };
+    });
+}
+
+function showResizeDialog(img) {
+    const cw = img.style.width ? parseInt(img.style.width) : img.naturalWidth;
+    const modal = document.createElement('div');
+    modal.className = 'modal';
+    modal.innerHTML = `
+        <div class="modal-overlay"></div>
+        <div class="modal-content" style="max-width:400px;">
+            <div class="modal-header"><h3>Redimensionner</h3></div>
+            <div class="modal-body">
+                <div class="form-group"><label>Largeur (px ou %)</label><input type="text" id="imageWidth" class="input" value="${cw}"></div>
+                <div style="display:flex;gap:.5rem;flex-wrap:wrap;">
+                    <button class="btn btn-sm btn-outline" onclick="document.getElementById('imageWidth').value='25%'">25%</button>
+                    <button class="btn btn-sm btn-outline" onclick="document.getElementById('imageWidth').value='50%'">50%</button>
+                    <button class="btn btn-sm btn-outline" onclick="document.getElementById('imageWidth').value='75%'">75%</button>
+                    <button class="btn btn-sm btn-outline" onclick="document.getElementById('imageWidth').value='100%'">100%</button>
+                    <button class="btn btn-sm btn-outline" onclick="document.getElementById('imageWidth').value='400'">400px</button>
+                    <button class="btn btn-sm btn-outline" onclick="document.getElementById('imageWidth').value='800'">800px</button>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button id="cancelResize" class="btn btn-secondary">Annuler</button>
+                <button id="confirmResize" class="btn btn-primary">Appliquer</button>
+            </div>
+        </div>`;
+    document.body.appendChild(modal);
+    modal.classList.remove('hidden');
+    modal.querySelector('#cancelResize').onclick  = () => modal.remove();
+    modal.querySelector('#confirmResize').onclick = () => {
+        img.style.width = modal.querySelector('#imageWidth').value.trim();
+        img.style.height = 'auto';
+        modal.remove();
+        showNotification('✅ Image redimensionnée !', 'success');
+    };
+}
+
+function showImageOptions(img) {
+    const modal = document.createElement('div');
+    modal.className = 'modal';
+    modal.innerHTML = `
+        <div class="modal-overlay"></div>
+        <div class="modal-content" style="max-width:400px;">
+            <div class="modal-header"><h3>Options image</h3></div>
+            <div class="modal-body" style="display:flex;flex-direction:column;gap:.5rem;">
+                <button class="btn btn-primary"   onclick="this.closest('.modal').dispatchEvent(new CustomEvent('resize'))">Redimensionner</button>
+                <button class="btn btn-secondary" onclick="this.closest('.modal').dispatchEvent(new CustomEvent('align-left'))">Gauche</button>
+                <button class="btn btn-secondary" onclick="this.closest('.modal').dispatchEvent(new CustomEvent('align-center'))">Centrer</button>
+                <button class="btn btn-secondary" onclick="this.closest('.modal').dispatchEvent(new CustomEvent('align-right'))">Droite</button>
+                <button class="btn btn-danger"    onclick="this.closest('.modal').dispatchEvent(new CustomEvent('delete'))">Supprimer</button>
+            </div>
+            <div class="modal-footer"><button id="closeOptions" class="btn btn-secondary">Fermer</button></div>
+        </div>`;
+    document.body.appendChild(modal);
+    modal.classList.remove('hidden');
+    modal.querySelector('#closeOptions').onclick = () => modal.remove();
+    modal.addEventListener('resize',       () => { modal.remove(); showResizeDialog(img); });
+    modal.addEventListener('align-left',   () => { img.style.display='block'; img.style.marginLeft='0'; img.style.marginRight='auto'; modal.remove(); });
+    modal.addEventListener('align-center', () => { img.style.display='block'; img.style.margin='auto'; modal.remove(); });
+    modal.addEventListener('align-right',  () => { img.style.display='block'; img.style.marginLeft='auto'; img.style.marginRight='0'; modal.remove(); });
+    modal.addEventListener('delete',       () => { if (confirm('Supprimer ?')) { img.remove(); modal.remove(); } });
+}
+
+// ============================================
+// QUILL EDITOR
+// ============================================
+function initQuillEditor() {
+    if (typeof Quill === 'undefined') return;
+    quillEditor = new Quill('#editor', {
+        theme: 'snow',
+        modules: {
+            toolbar: {
+                container: [
+                    [{ header: [1,2,3,false] }],
+                    ['bold','italic','underline','strike'],
+                    ['blockquote','code-block'],
+                    [{ list:'ordered' },{ list:'bullet' }],
+                    [{ color:[] },{ background:[] }],
+                    ['link','image','video'],
+                    ['clean']
+                ],
+                handlers: { video: insertYouTubeVideo, image: customImageHandler }
+            }
+        },
+        placeholder: 'Rédigez votre article ici...'
+    });
+    quillEditor.on('text-change', () => makeImagesResizable());
+    window._quillEditorRef = quillEditor;
+}
+
+// ============================================
+// 🎥 YOUTUBE
+// ============================================
+function insertYouTubeVideo() {
+    const url = prompt('URL YouTube :');
+    if (!url) return;
+    const id = extractYouTubeID(url);
+    if (!id) { showNotification('URL YouTube invalide', 'error'); return; }
+    const html = `<div class="video-wrapper" style="position:relative;padding-bottom:56.25%;height:0;margin:2rem 0;">
+        <iframe src="https://www.youtube.com/embed/${id}?enablejsapi=1" frameborder="0"
+            allow="accelerometer;autoplay;clipboard-write;encrypted-media;gyroscope;picture-in-picture"
+            allowfullscreen style="position:absolute;top:0;left:0;width:100%;height:100%;"></iframe>
+    </div>`;
+    const range = quillEditor.getSelection(true);
+    quillEditor.clipboard.dangerouslyPasteHTML(range.index, html);
+    quillEditor.setSelection(range.index + 1);
+    showNotification('Vidéo ajoutée !', 'success');
+}
+
+function extractYouTubeID(url) {
+    let m;
+    m = url.match(/[?&]v=([^&]+)/); if (m) return m[1];
+    m = url.match(/youtu\.be\/([^?]+)/); if (m) return m[1];
+    m = url.match(/youtube\.com\/embed\/([^?]+)/); if (m) return m[1];
+    if (url.length === 11 && /^[a-zA-Z0-9_-]+$/.test(url)) return url;
+    return null;
+}
+
+// ============================================
+// 📝 SOUMISSION DU FORMULAIRE
+// ✅ FIX PRINCIPAL : HTML brut n'est plus nettoyé
+// ============================================
+articleForm?.addEventListener('submit', async (e) => {
+    e.preventDefault();
+    console.log('📝 Soumission...');
+
+    try {
+        let content = '';
+        const editorMode = window.articleEditorMode || 'quill';
+
+        // ─────────────────────────────────────────
+        // MODE HTML BRUT (CodeMirror)
+        // ✅ Lecture directe, AUCUN nettoyage
+        // ─────────────────────────────────────────
+        if (editorMode === 'html') {
+            content = window.articleCmInstance
+                ? window.articleCmInstance.getValue()
+                : document.getElementById('content').value;
+
+            const textOnly = content.replace(/<[^>]*>/g, '').replace(/&nbsp;/g, ' ').trim();
+            if (!textOnly) {
+                showNotification('⚠️ Le contenu est vide', 'error');
+                return;
+            }
+            // Synchroniser le champ caché
+            document.getElementById('content').value = content;
+
+        // ─────────────────────────────────────────
+        // MODE WYSIWYG
+        // ─────────────────────────────────────────
+        } else if (editorMode === 'wy') {
+            content = document.getElementById('wyBody')?.innerHTML || '';
+            const wyText = document.getElementById('wyBody')?.textContent?.trim() || '';
+            if (!wyText) {
+                showNotification('⚠️ Le contenu est vide', 'error');
+                return;
+            }
+            document.getElementById('content').value = content;
+
+        // ─────────────────────────────────────────
+        // MODE QUILL
+        // ✅ Nettoyage uniquement ici
+        // ─────────────────────────────────────────
+        } else {
+            if (!quillEditor) {
+                showNotification('❌ Éditeur non initialisé. Rechargez la page.', 'error');
+                return;
+            }
+            content = quillEditor.root.innerHTML;
+            content = cleanQuillHTML(content);
+
+            const contentSize = getContentSize(content);
+            if (contentSize > 950000) {
+                const ok = confirm(
+                    `⚠️ Article très long (${Math.round(contentSize/1024)} KB).\n` +
+                    `Limite Firebase : 1MB.\n\nOK = tronquer / Annuler = réduire manuellement`
+                );
+                if (!ok) { showNotification('⚠️ Publication annulée.', 'warning'); return; }
+                content = truncateContent(content);
+            }
+
+            const textContent = quillEditor.getText().trim();
+            if (!textContent) {
+                showNotification('⚠️ Le contenu est vide', 'error');
+                return;
+            }
+            document.getElementById('content').value = content;
+        }
+
+        // ─────────────────────────────────────────
+        // Champs communs
+        // ─────────────────────────────────────────
+        const title   = document.getElementById('title').value.trim();
+        const category = document.getElementById('category').value;
+        const imageUrl = document.getElementById('imageUrl').value.trim();
+        const summary  = document.getElementById('summary').value.trim();
+        const featured = document.getElementById('featured').checked;
+        const tags     = document.getElementById('tags').value.split(',').map(t => t.trim()).filter(Boolean);
+
+        const publicationStatus = document.getElementById('publicationStatus').value;
+        let scheduledDate = null;
+
+        if (publicationStatus === 'scheduled') {
+            const dateValue = document.getElementById('scheduleDate').value;
+            const timeValue = document.getElementById('scheduleTime').value;
+            if (!dateValue || !timeValue) {
+                showNotification('⚠️ Définissez une date et heure de publication', 'error');
+                return;
+            }
+            scheduledDate = new Date(dateValue + 'T' + timeValue);
+            if (scheduledDate <= new Date()) {
+                showNotification('⚠️ La date doit être dans le futur', 'error');
+                return;
+            }
+        }
+
+        if (!title)   { showNotification('⚠️ Le titre est obligatoire', 'error'); return; }
+        if (!summary) { showNotification('⚠️ Le résumé est obligatoire', 'error'); return; }
+
+        const slug         = await generateUniqueSlug(title, editMode ? currentEditId : null);
+        const translations = window.__translations || (window.getTranslationsData ? window.getTranslationsData() : {});
+
+        const articleData = {
+            title, slug, category,
+            imageUrl: imageUrl || null,
+            summary, content, featured, tags,
+            translations,
+            contentType: editorMode,         // ✅ type d'éditeur sauvegardé
+            status: publicationStatus,
+            author: {
+                uid:   currentUser.uid,
+                name:  currentUser.displayName || currentUser.email,
+                email: currentUser.email
+            }
+        };
+
+        if (publicationStatus === 'scheduled' && scheduledDate) {
+            articleData.scheduledFor = scheduledDate;
+            articleData.publishedAt  = null;
+        } else if (publicationStatus === 'published') {
+            articleData.publishedAt  = serverTimestamp();
+            articleData.scheduledFor = null;
+        } else {
+            articleData.publishedAt  = null;
+            articleData.scheduledFor = null;
+        }
+
+        const totalSize = getContentSize(JSON.stringify(articleData));
+        if (totalSize > 1000000) {
+            showNotification('❌ Article trop volumineux', 'error');
+            alert('Réduisez les images ou le texte, ou divisez en plusieurs articles.');
+            return;
+        }
+
+        if (editMode && currentEditId) {
+            await updateDoc(doc(db, 'articles', currentEditId), { ...articleData, updatedAt: serverTimestamp() });
+            const txt = publicationStatus === 'draft' ? 'brouillon enregistré' : publicationStatus === 'scheduled' ? 'publication programmée' : 'modifié';
+            showNotification(`✅ Article ${txt} !`, 'success');
+            cancelEdit();
+        } else {
+            const docRef = await addDoc(collection(db, 'articles'), {
+                ...articleData, createdAt: serverTimestamp(),
+                views: 0, commentsCount: 0, reactions: { like:0, love:0, star:0 }
+            });
+            console.log('✅ Article créé:', docRef.id);
+            const txt = publicationStatus === 'draft' ? 'Brouillon enregistré' : publicationStatus === 'scheduled' ? 'Publication programmée' : 'Article publié';
+            showNotification(`✅ ${txt} !`, 'success');
+            articleForm.reset();
+            if (quillEditor) quillEditor.setText('');
+            if (window.articleCmInstance) window.articleCmInstance.setValue('');
+            const wyBody = document.getElementById('wyBody');
+            if (wyBody) wyBody.innerHTML = '';
+            document.getElementById('content').value = '';
+            document.getElementById('publicationStatus').value = 'published';
+            if (window.toggleScheduleFields) window.toggleScheduleFields();
+        }
+
+        loadArticles();
+        loadStatistics();
+
+    } catch (error) {
+        console.error('❌ Erreur publication:', error);
+        let msg = 'Erreur lors de la publication';
+        if (error.code === 'invalid-argument' && error.message.includes('longer than'))
+            msg = 'Article trop volumineux. Réduisez le contenu ou les images.';
+        showNotification(`❌ ${msg}: ${error.message}`, 'error');
+    }
+});
+
+// ============================================
+// 📋 CHARGEMENT DES ARTICLES
+// ============================================
+async function loadArticles() {
+    try {
+        ['publishedArticlesList','scheduledArticlesList','draftsArticlesList'].forEach(id => {
+            document.getElementById(id).innerHTML = '<div class="loading"><i class="fas fa-spinner fa-spin"></i><p>Chargement...</p></div>';
+        });
+
+        const snapshot = await getDocs(query(collection(db, 'articles'), orderBy('createdAt', 'desc')));
+        const published = [], scheduled = [], drafts = [];
+
+        snapshot.forEach(d => {
+            const status = d.data().status || 'published';
+            const item   = { id: d.id, data: d.data() };
+            if (status === 'published') published.push(item);
+            else if (status === 'scheduled') scheduled.push(item);
+            else if (status === 'draft') drafts.push(item);
+        });
+
+        document.getElementById('publishedCount').textContent = published.length;
+        document.getElementById('scheduledCount').textContent = scheduled.length;
+        document.getElementById('draftsCount').textContent    = drafts.length;
+
+        if (typeof window.loadArticlesEnhanced === 'function') {
+            await window.loadArticlesEnhanced(snapshot); return;
+        }
+
+        window.__pendingSnapshot = snapshot;
+        window.dispatchEvent(new CustomEvent('articlesLoaded', { detail: snapshot }));
+
+        displayArticlesInSection('publishedArticlesList', published,  'publié');
+        displayArticlesInSection('scheduledArticlesList', scheduled,  'programmé');
+        displayArticlesInSection('draftsArticlesList',    drafts,     'brouillon');
+
+    } catch (error) {
+        console.error('Erreur chargement:', error);
+        document.getElementById('publishedArticlesList').innerHTML =
+            '<div class="empty-state"><i class="fas fa-exclamation-triangle"></i><p>Erreur de chargement</p></div>';
+    }
+}
+
+function displayArticlesInSection(sectionId, articles, type) {
+    const container = document.getElementById(sectionId);
+    if (articles.length === 0) {
+        const cfg = {
+            'publié':     { icon:'check-circle', msg:'Aucun article publié',    hint:'Publiez votre premier article !' },
+            'programmé':  { icon:'clock',        msg:'Aucun article programmé', hint:'Programmez une publication future' },
+            'brouillon':  { icon:'file-alt',     msg:'Aucun brouillon',         hint:'Enregistrez vos articles en brouillon' }
+        }[type] || { icon:'file', msg:'Aucun article', hint:'' };
+        container.innerHTML = `<div class="empty-state"><i class="fas fa-${cfg.icon}"></i><p>${cfg.msg}</p><small>${cfg.hint}</small></div>`;
+        return;
+    }
+    container.innerHTML = '';
+    articles.forEach(item => container.appendChild(createArticleItem(item.id, item.data)));
+}
+
+export function createArticleItem(id, article) {
+    const div  = document.createElement('div');
+    div.className = 'admin-article-item';
+    const date = article.createdAt
+        ? new Date(article.createdAt.toDate()).toLocaleDateString('fr-FR',{day:'numeric',month:'long',year:'numeric'})
+        : 'Non daté';
+    const featuredBadge = article.featured ? '<span class="badge badge-yellow"><i class="fas fa-star"></i> Vedette</span>' : '';
+    const status = article.status || 'published';
+    let statusBadge = '';
+    if (status === 'draft') {
+        statusBadge = '<span class="badge badge-gray"><i class="fas fa-file-alt"></i> Brouillon</span>';
+    } else if (status === 'scheduled') {
+        const sd = article.scheduledFor ? new Date(article.scheduledFor.toDate()).toLocaleDateString('fr-FR',{day:'numeric',month:'short',hour:'2-digit',minute:'2-digit'}) : '';
+        statusBadge = `<span class="badge badge-orange"><i class="fas fa-clock"></i> Programmé ${sd}</span>`;
+    } else {
+        statusBadge = '<span class="badge badge-green"><i class="fas fa-check-circle"></i> Publié</span>';
+    }
+    const slugInfo     = article.slug ? `<br><small style="color:#6b7280;"><i class="fas fa-link"></i> /article/${article.slug}</small>` : '';
+    const publishNowBtn = status !== 'published'
+        ? `<button class="btn btn-sm btn-success" onclick="publishNow('${id}')"><i class="fas fa-rocket"></i> Publier</button>`
+        : '';
+    div.innerHTML = `
+        <div class="article-info">
+            <h3>${escapeHtml(article.title)} ${featuredBadge} ${statusBadge}</h3>
+            ${slugInfo}
+            <p class="article-meta">
+                <span class="badge badge-${getCategoryClass(article.category)}">${escapeHtml(article.category)}</span>
+                <span>${date}</span>
+                <span><i class="fas fa-eye"></i> ${article.views||0}</span>
+                <span><i class="fas fa-comment"></i> ${article.commentsCount||0}</span>
+            </p>
+        </div>
+        <div class="article-actions">
+            ${publishNowBtn}
+            <button class="btn btn-sm btn-success" onclick="generateSharePage('${id}')"><i class="fas fa-share-alt"></i> Partage</button>
+            <button class="btn btn-sm btn-primary" onclick="editArticle('${id}')"><i class="fas fa-edit"></i> Modifier</button>
+            <button class="btn btn-sm btn-danger"  onclick="showDeleteModal('${id}')"><i class="fas fa-trash"></i> Supprimer</button>
+        </div>`;
+    return div;
+}
+
+// ============================================
+// 🚀 PUBLIER IMMÉDIATEMENT
+// ============================================
+window.publishNow = async function(articleId) {
+    if (!confirm('Publier cet article immédiatement ?')) return;
+    try {
+        await updateDoc(doc(db, 'articles', articleId), { status:'published', publishedAt: serverTimestamp(), scheduledFor: null });
+        showNotification('✅ Article publié !', 'success');
+        loadArticles(); loadStatistics();
+    } catch (e) { showNotification('❌ Erreur publication', 'error'); }
+};
+
+// ============================================
+// ✏️ MODIFIER ARTICLE
+// ✅ FIX : charge dans le bon éditeur selon contentType
+// ============================================
+window.editArticle = async function(articleId) {
+    try {
+        const docSnap = await getDoc(doc(db, 'articles', articleId));
+        if (!docSnap.exists()) { showNotification('Article introuvable', 'error'); return; }
+        const article = docSnap.data();
+
+        document.getElementById('title').value    = article.title;
+        document.getElementById('category').value = article.category;
+        document.getElementById('imageUrl').value = article.imageUrl || '';
+        document.getElementById('summary').value  = article.summary;
+        document.getElementById('featured').checked = article.featured || false;
+        document.getElementById('tags').value     = (article.tags || []).join(', ');
+
+        if (window.fillTranslationFields) window.fillTranslationFields(article);
+
+        const status = article.status || 'published';
+        document.getElementById('publicationStatus').value = status;
+        if (status === 'scheduled' && article.scheduledFor) {
+            const sd = new Date(article.scheduledFor.toDate());
+            document.getElementById('scheduleDate').value = sd.toISOString().split('T')[0];
+            document.getElementById('scheduleTime').value = sd.toTimeString().slice(0,5);
+        }
+        if (window.toggleScheduleFields) window.toggleScheduleFields();
+
+        // ✅ Basculer sur le bon éditeur selon contentType sauvegardé
+        const savedType = article.contentType || 'quill';
+        if (typeof window.switchArticleEditorMode === 'function') {
+            window.switchArticleEditorMode(savedType);
+        }
+
+        setTimeout(() => {
+            if (savedType === 'html') {
+                if (window.articleCmInstance) {
+                    window.articleCmInstance.setValue(article.content || '');
+                    window.articleCmInstance.refresh();
+                    // ✅ Synchroniser aussi le champ caché
+                    document.getElementById('content').value = article.content || '';
+                }
+            } else if (savedType === 'wy') {
+                const wyBody = document.getElementById('wyBody');
+                if (wyBody) {
+                    wyBody.innerHTML = article.content || '';
+                    document.getElementById('content').value = article.content || '';
+                }
+            } else {
+                if (quillEditor) quillEditor.root.innerHTML = article.content || '';
+            }
+        }, 150);
+
+        editMode = true;
+        currentEditId = articleId;
+        document.getElementById('formTitle').textContent    = 'Modifier l\'article';
+        document.getElementById('submitBtnText').textContent = 'Mettre à jour';
+        window.scrollTo({ top:0, behavior:'smooth' });
+
+    } catch (error) {
+        console.error('Erreur chargement article:', error);
+        showNotification('Erreur lors du chargement', 'error');
+    }
+};
+
+window.cancelEdit = function() {
+    editMode = false; currentEditId = null;
+    document.getElementById('formTitle').textContent     = 'Nouvel Article';
+    document.getElementById('submitBtnText').textContent = 'Publier';
+    document.getElementById('publicationStatus').value   = 'published';
+    if (window.toggleScheduleFields) window.toggleScheduleFields();
+    articleForm.reset();
+    if (quillEditor) quillEditor.setText('');
+    if (window.articleCmInstance) window.articleCmInstance.setValue('');
+    const wyBody = document.getElementById('wyBody');
+    if (wyBody) wyBody.innerHTML = '';
+    document.getElementById('content').value = '';
+};
+
+// ============================================
+// 🗑️ SUPPRESSION
+// ============================================
+window.showDeleteModal = function(articleId) {
+    articleToDelete = articleId;
+    document.getElementById('deleteModal').classList.remove('hidden');
+};
+document.getElementById('cancelDelete')?.addEventListener('click', () => {
+    document.getElementById('deleteModal').classList.add('hidden');
+    articleToDelete = null;
+});
+document.getElementById('confirmDelete')?.addEventListener('click', async () => {
+    if (!articleToDelete) return;
+    try {
+        await deleteDoc(doc(db, 'articles', articleToDelete));
+        showNotification('Article supprimé', 'success');
+        document.getElementById('deleteModal').classList.add('hidden');
+        articleToDelete = null;
+        loadArticles(); loadStatistics();
+    } catch (e) { showNotification('Erreur suppression', 'error'); }
+});
+
+// ============================================
+// 📊 STATISTIQUES
+// ============================================
+async function loadStatistics() {
+    try {
+        const snap = await getDocs(collection(db, 'articles'));
+        let total = snap.size, pub = 0, sched = 0, draft = 0;
+        snap.forEach(d => {
+            const s = d.data().status || 'published';
+            if (s === 'published') pub++;
+            else if (s === 'scheduled') sched++;
+            else if (s === 'draft') draft++;
+        });
+        document.getElementById('totalArticles').textContent      = total;
+        document.getElementById('publishedArticles').textContent  = pub;
+        document.getElementById('scheduledArticles').textContent  = sched;
+        document.getElementById('draftArticles').textContent      = draft;
+    } catch (e) { console.error('Erreur stats:', e); }
+}
+
+// ============================================
+// 📧 NEWSLETTER
+// ============================================
+async function loadNewsletterSubscribers() {
+    try {
+        newsletterList.innerHTML = '<div class="loading"><i class="fas fa-spinner fa-spin"></i><p>Chargement...</p></div>';
+        const snap = await getDocs(collection(db, 'newsletter'));
+        if (snap.empty) { newsletterList.innerHTML = '<p class="empty-text">Aucun abonné</p>'; return; }
+        newsletterList.innerHTML = '';
+        snap.forEach(d => {
+            const sub  = d.data();
+            const date = sub.subscribedAt ? new Date(sub.subscribedAt.toDate()).toLocaleDateString('fr-FR') : 'N/A';
+            const div  = document.createElement('div');
+            div.className = 'newsletter-item';
+            div.innerHTML = `<span class="newsletter-email">${escapeHtml(sub.email)}</span><span class="newsletter-date">${date}</span>`;
+            newsletterList.appendChild(div);
+        });
+    } catch (e) { newsletterList.innerHTML = '<p class="empty-text text-danger">Erreur de chargement</p>'; }
+}
+
+window.exportNewsletterCSV = async function() {
+    try {
+        const snap = await getDocs(collection(db, 'newsletter'));
+        if (snap.empty) { showNotification('Aucun abonné', 'info'); return; }
+        let csv = 'Email,Date\n';
+        snap.forEach(d => {
+            const sub  = d.data();
+            const date = sub.subscribedAt ? new Date(sub.subscribedAt.toDate()).toLocaleDateString('fr-FR') : 'N/A';
+            csv += `${sub.email},${date}\n`;
+        });
+        const a = Object.assign(document.createElement('a'), {
+            href: URL.createObjectURL(new Blob([csv], { type:'text/csv' })),
+            download: `newsletter-${new Date().toISOString().split('T')[0]}.csv`
+        });
+        a.click(); URL.revokeObjectURL(a.href);
+        showNotification('Export réussi !', 'success');
+    } catch (e) { showNotification('Erreur export', 'error'); }
+};
+
+// ============================================
+// 🔗 PAGE DE PARTAGE
+// ============================================
+window.generateSharePage = async function(articleId) {
+    try {
+        showNotification('🔄 Génération...', 'info');
+        const snap = await getDoc(doc(db, 'articles', articleId));
+        if (!snap.exists()) { showNotification('❌ Article introuvable', 'error'); return; }
+        const article = snap.data();
+        const slug    = article.slug || articleId;
+        const title   = escapeHtml(article.title || 'Article');
+        const desc    = escapeHtml(article.summary || 'Découvrez cet article sur Électro-Actu');
+        const img     = escapeHtml(article.imageUrl || 'https://electroinfo.online/images/logo.png');
+        const shareUrl = `https://electroinfo.online/share/${slug}.html`;
+        const html = `<!DOCTYPE html><html lang="fr"><head><meta charset="UTF-8">
+<title>${title} | Électro-Actu</title><meta name="description" content="${desc}">
+<meta property="og:type" content="article"><meta property="og:title" content="${title}">
+<meta property="og:description" content="${desc}"><meta property="og:image" content="${img}">
+<meta property="og:url" content="${shareUrl}">
+<meta name="twitter:card" content="summary_large_image"><meta name="twitter:title" content="${title}">
+<meta name="twitter:image" content="${img}">
+<meta http-equiv="refresh" content="0;url=/article/${slug}">
+<script>window.location.href="/article/${slug}";<\/script>
+<style>body{font-family:sans-serif;display:flex;align-items:center;justify-content:center;min-height:100vh;background:linear-gradient(135deg,#667eea,#764ba2);color:white;text-align:center;}</style>
+</head><body><div><h1>${title}</h1><p>Chargement...</p></div></body></html>`;
+        const a = Object.assign(document.createElement('a'), {
+            href: URL.createObjectURL(new Blob([html], { type:'text/html;charset=utf-8' })),
+            download: `${slug}.html`
+        });
+        document.body.appendChild(a); a.click(); document.body.removeChild(a);
+        URL.revokeObjectURL(a.href);
+        if (navigator.clipboard) navigator.clipboard.writeText(shareUrl).catch(()=>{});
+        showNotification('✅ Fichier téléchargé !', 'success');
+        alert(`✅ Page de partage générée !\n\nFichier : ${slug}.html\nURL : ${shareUrl}\n\nCopiez ce fichier dans le dossier /share/ et déployez.`);
+    } catch (e) { showNotification('❌ Erreur génération', 'error'); }
+};
+
+// ============================================
+// 🔄 MIGRATION SLUGS
+// ============================================
+window.migrateOldArticles = async function() {
+    if (!confirm('Ajouter des slugs à tous les articles qui n\'en ont pas ?')) return;
+    showNotification('🔄 Migration...', 'info');
+    const snap = await getDocs(collection(db, 'articles'));
+    let migrated = 0, errors = 0;
+    for (const d of snap.docs) {
+        if (!d.data().slug) {
+            try {
+                const slug = await generateUniqueSlug(d.data().title, d.id);
+                await updateDoc(doc(db, 'articles', d.id), { slug });
+                migrated++;
+            } catch (e) { errors++; }
+        }
+    }
+    showNotification(`✅ ${migrated} migrés${errors ? `, ${errors} erreurs` : ''}`, 'success');
+    loadArticles();
+};
+
+// ============================================
+// 🛠️ UTILITAIRES
+// ============================================
+function getCategoryClass(cat) {
+    return { INNOVATION:'blue', SÉCURITÉ:'red', NOUVEAUTÉ:'green', TUTO:'orange', DOMOTIQUE:'purple' }[cat] || 'blue';
+}
+
+function escapeHtml(text) {
+    const d = document.createElement('div');
+    d.textContent = text;
+    return d.innerHTML;
+}
+
+function showNotification(message, type = 'info') {
+    const n = document.getElementById('notification');
+    n.textContent = message;
+    n.className = `notification ${type}`;
+    n.classList.remove('hidden');
+    setTimeout(() => n.classList.add('hidden'), 3000);
+}
+
+// ============================================
+// ✅ EXPOSER window.getTranslationsData
+// pour compatibilité avec le système de traduction
+// ============================================
+window.getTranslationsData = function() {
+    return window.__translations || {};
+};

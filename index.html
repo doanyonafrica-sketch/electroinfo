@@ -1,0 +1,643 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+    <!-- ✅ TITRE & DESCRIPTION optimisés pour Google -->
+    <title>ElectroInfo — Cours d'Électricité, Bâtiment, Domotique & Robotique | Francophonie</title>
+    <meta name="description" content="ElectroInfo : actualités, articles et cours d'électricité industrielle, bâtiment, domotique et robotique pour BAC PRO, BEP, CAP, BTS et Licence. Ressources gratuites pour étudiants et techniciens francophones du monde entier.">
+    <meta name="keywords" content="électricité industrielle, cours électricité francophonie, domotique, robotique, bâtiment, BAC PRO électricité, BTS électrotechnique, BEP électricité, CAP électricité, innovations électriques, sécurité électrique, ElectroInfo, Afrique francophone">
+    <meta name="author" content="ElectroInfo">
+    <meta name="robots" content="index, follow">
+    <link rel="canonical" href="https://electroinfo.online/">
+
+    <!-- Favicons -->
+    <link rel="icon" type="image/x-icon" href="/images/favicon.ico">
+    <link rel="icon" type="image/png" sizes="48x48" href="/images/logo-small.png">
+    <link rel="icon" type="image/png" sizes="512x512" href="/images/logo.png">
+    <link rel="apple-touch-icon" sizes="180x180" href="/images/apple-touch-icon.png">
+
+    <!-- ✅ PWA — Manifest & Mobile -->
+    <link rel="manifest" href="/manifest.json">
+    <meta name="theme-color" content="#1e40af">
+    <meta name="mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="default">
+    <meta name="apple-mobile-web-app-title" content="ElectroInfo">
+
+    <!-- ✅ Open Graph complet -->
+    <meta property="og:type" content="website">
+    <meta property="og:title" content="ElectroInfo — Cours d'Électricité, Bâtiment, Domotique & Robotique">
+    <meta property="og:description" content="Votre portail d'expertise en électricité industrielle, bâtiment, domotique et robotique. Cours et ressources pour BAC PRO, BEP, CAP, BTS et Licence — monde francophone.">
+    <meta property="og:image" content="https://electroinfo.online/images/logo.png">
+    <meta property="og:url" content="https://electroinfo.online/">
+    <meta property="og:site_name" content="ElectroInfo">
+    <meta property="og:locale" content="fr_FR">
+
+    <!-- ✅ Twitter Card -->
+    <meta name="twitter:card" content="summary_large_image">
+    <meta name="twitter:title" content="ElectroInfo — Cours d'Électricité, Bâtiment, Domotique & Robotique">
+    <meta name="twitter:description" content="Actualités, articles et cours d'électricité industrielle, bâtiment, domotique et robotique. BAC PRO, BTS, BEP, CAP, Licence — Francophonie.">
+    <meta name="twitter:image" content="https://electroinfo.online/images/logo.png">
+
+    <!-- ✅ JSON-LD : Organisation -->
+    <script type="application/ld+json">
+    {
+      "@context": "https://schema.org",
+      "@type": "Organization",
+      "name": "ElectroInfo",
+      "url": "https://electroinfo.online",
+      "logo": "https://electroinfo.online/images/logo.png",
+      "description": "Portail d'actualités et de cours d'électricité industrielle, bâtiment, domotique et robotique pour le monde francophone",
+      "contactPoint": {
+        "@type": "ContactPoint",
+        "contactType": "customer support",
+        "url": "https://electroinfo.online/contact"
+      }
+    }
+    </script>
+
+    <!-- ✅ JSON-LD : WebSite (active la barre de recherche Google) -->
+    <script type="application/ld+json">
+    {
+      "@context": "https://schema.org",
+      "@type": "WebSite",
+      "name": "ElectroInfo",
+      "url": "https://electroinfo.online",
+      "description": "Actualités et cours d'électricité industrielle, bâtiment, domotique et robotique pour étudiants et techniciens francophones du monde entier",
+      "inLanguage": "fr",
+      "potentialAction": {
+        "@type": "SearchAction",
+        "target": "https://electroinfo.online/articles?q={search_term_string}",
+        "query-input": "required name=search_term_string"
+      }
+    }
+    </script>
+
+    <!-- ✅ JSON-LD : Contenu statique lisible par Google même sans JS -->
+    <script type="application/ld+json">
+    {
+      "@context": "https://schema.org",
+      "@type": "ItemList",
+      "name": "Sections principales d'ElectroInfo",
+      "itemListElement": [
+        {
+          "@type": "ListItem",
+          "position": 1,
+          "name": "Actualités électricité industrielle",
+          "url": "https://electroinfo.online/articles",
+          "description": "Les dernières actualités, innovations et tutoriels en électricité industrielle, bâtiment, domotique et robotique"
+        },
+        {
+          "@type": "ListItem",
+          "position": 2,
+          "name": "Cours d'électricité BAC PRO, BEP, CAP, BTS, Licence",
+          "url": "https://electroinfo.online/courses",
+          "description": "Cours complets d'électricité pour toutes les formations professionnelles francophones"
+        },
+        {
+          "@type": "ListItem",
+          "position": 3,
+          "name": "Tutoriels pratiques électricité",
+          "url": "https://electroinfo.online/articles?category=TUTO",
+          "description": "Guides pratiques et tutoriels pour maîtriser les techniques électriques"
+        },
+        {
+          "@type": "ListItem",
+          "position": 4,
+          "name": "Sécurité électrique et normes",
+          "url": "https://electroinfo.online/articles?category=SÉCURITÉ",
+          "description": "Normes, réglementations et bonnes pratiques de sécurité électrique"
+        }
+      ]
+    }
+    </script>
+
+    <!-- Styles -->
+    <link rel="stylesheet" href="home.css">
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
+</head>
+<body>
+
+    <!-- Navigation -->
+    <nav class="navbar">
+        <div class="container">
+
+            <!-- Logo -->
+            <div class="nav-brand">
+                <img src="images/logo-small.png" alt="Logo ElectroInfo" class="nav-logo">
+                <span>ELECTROINFO</span>
+            </div>
+
+            <!-- 🌍 Sélecteur de langue (toujours visible) -->
+            <div id="langSwitcher" class="lang-switcher">
+                <button id="langCurrentBtn" class="lang-current-btn" onclick="toggleLangDropdown()" aria-label="Changer la langue">
+                    🇫🇷 FR
+                </button>
+                <div class="lang-dropdown" id="langDropdown">
+                    <button class="lang-option" data-lang="ewe" onclick="setLang('ewe')">🌍 Eʋegbe</button>
+                    <button class="lang-option lang-active" data-lang="fr" onclick="setLang('fr')">🇫🇷 Français</button>
+                    <button class="lang-option" data-lang="en" onclick="setLang('en')">🇬🇧 English</button>
+                </div>
+            </div>
+
+            <!-- Hamburger (visible mobile uniquement) -->
+            <button class="mobile-toggle" id="mobileToggle" aria-label="Menu" aria-expanded="false">
+                <i class="fas fa-bars"></i>
+            </button>
+
+            <!-- Menu principal (collapse sur mobile) -->
+            <div class="nav-menu" id="mobileMenu">
+
+                <!-- Liens -->
+                <div class="nav-links">
+                    <a href="/" class="nav-link active" data-i18n="nav_home">Accueil</a>
+                    <a href="/articles" class="nav-link" data-i18n="nav_articles">Articles</a>
+                    <a href="/encyclopedie" class="nav-link" data-i18n="nav_encyclopedia">Encyclopédie</a>
+                    <a href="/courses" class="nav-link" data-i18n="nav_courses">Cours</a>
+                    <a href="/about" class="nav-link" data-i18n="nav_about">À propos</a>
+                    <a href="/contact" class="nav-link" data-i18n="nav_contact">Contact</a>
+                </div>
+
+                <!-- Actions connexion / user -->
+                <div class="nav-actions">
+
+                    <!-- Non connecté -->
+                    <a href="/auth" id="loginBtn" class="btn btn-primary">
+                        <i class="fas fa-sign-in-alt"></i>
+                        <span class="btn-text" data-i18n="nav_login">Connexion</span>
+                    </a>
+
+                    <!-- Connecté -->
+                    <div id="userMenu" class="user-menu hidden">
+                        <button class="user-btn" id="userMenuToggle">
+                            <img id="userAvatar" src="" alt="Avatar" class="avatar">
+                            <span id="userName" class="user-name"></span>
+                            <i class="fas fa-chevron-down"></i>
+                        </button>
+                        <div class="dropdown hidden" id="userDropdown">
+                            <div class="dropdown-header">
+                                <img id="userAvatarDropdown" src="" alt="Avatar" class="avatar-large">
+                                <div>
+                                    <strong id="userNameDropdown"></strong>
+                                    <p id="userEmailDropdown"></p>
+                                </div>
+                            </div>
+                            <div class="dropdown-divider"></div>
+                            <a href="/profile" class="dropdown-item">
+                                <i class="fas fa-user"></i> <span data-i18n="nav_profile">Mon profil</span>
+                            </a>
+                            <div class="dropdown-divider hidden" id="adminDivider"></div>
+                            <a href="/admin" class="dropdown-item hidden" id="adminLink">
+                                <i class="fas fa-cog"></i> <span data-i18n="nav_admin">Administration</span>
+                            </a>
+                            <div class="dropdown-divider"></div>
+                            <button class="dropdown-item" id="logoutBtn">
+                                <i class="fas fa-sign-out-alt"></i> <span data-i18n="nav_logout">Déconnexion</span>
+                            </button>
+                        </div>
+                    </div>
+
+                </div>
+            </div><!-- /.nav-menu -->
+
+        </div>
+    </nav>
+
+    <!-- ✅ Contenu statique lisible par Google (invisible visuellement) -->
+    <div style="position:absolute; width:1px; height:1px; overflow:hidden; clip:rect(0,0,0,0);" aria-hidden="true">
+        <h1>ElectroInfo — Cours d'Électricité Industrielle, Bâtiment, Domotique & Robotique</h1>
+        <p>ElectroInfo est votre portail d'expertise en électricité industrielle, bâtiment, domotique et robotique pour le monde francophone. Nous proposons des actualités, des articles techniques et des cours complets pour les formations BAC PRO, BEP, CAP, BTS et Licence en électricité et électrotechnique.</p>
+        <nav>
+            <a href="/articles">Articles et actualités électricité</a>
+            <a href="/courses">Cours d'électricité BAC PRO, BEP, CAP, BTS, Licence</a>
+            <a href="/articles?category=TUTO">Tutoriels pratiques électricité</a>
+            <a href="/articles?category=SÉCURITÉ">Sécurité électrique et normes</a>
+            <a href="/articles?category=INNOVATION">Innovations en électricité industrielle</a>
+            <a href="/about">À propos d'ElectroInfo</a>
+            <a href="/contact">Contact</a>
+        </nav>
+    </div>
+
+    <!-- Hero Section -->
+    <section class="hero-home">
+        <div class="hero-content">
+            <div class="hero-badge">
+                <i class="fas fa-bolt"></i>
+                Plateforme électrotechnique francophone
+            </div>
+            <h1>
+                <span data-i18n="hero_title">Bienvenue sur ElectroInfo</span>
+            </h1>
+            <p class="subtitle" data-i18n="hero_subtitle">Votre portail d'expertise en électricité industrielle. Actualités, cours complets et ressources pour professionnels et étudiants.</p>
+            <div class="hero-cta">
+                <a href="/articles" class="btn-hero-primary">
+                    <i class="fas fa-newspaper"></i> <span data-i18n="hero_btn_articles">Découvrir les articles</span>
+                </a>
+                <a href="/courses" class="btn-hero-secondary">
+                    <i class="fas fa-graduation-cap"></i> <span data-i18n="hero_btn_courses">Voir les cours</span>
+                </a>
+            </div>
+            <div class="hero-stats">
+                <div class="hero-stat">
+                    <span class="hero-stat-value">500+</span>
+                    <span class="hero-stat-label">Articles</span>
+                </div>
+                <div class="hero-stat">
+                    <span class="hero-stat-value">12k</span>
+                    <span class="hero-stat-label">Lecteurs</span>
+                </div>
+                <div class="hero-stat">
+                    <span class="hero-stat-value">5</span>
+                    <span class="hero-stat-label">Niveaux de formation</span>
+                </div>
+                <div class="hero-stat">
+                    <span class="hero-stat-value">3</span>
+                    <span class="hero-stat-label">Langues</span>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Features Section -->
+    <section class="features-section">
+        <div class="container">
+            <div class="section-header">
+                <h2 data-i18n="features_title">Ce que nous proposons</h2>
+                <p data-i18n="features_subtitle">Tout ce dont vous avez besoin pour exceller dans le domaine de l'électricité</p>
+            </div>
+
+            <div class="features-grid">
+                <div class="feature-card" onclick="window.location.href='/articles'">
+                    <div class="feature-icon"><i class="fas fa-newspaper"></i></div>
+                    <h3 data-i18n="feat_news_title">Actualités</h3>
+                    <p data-i18n="feat_news_desc">Les dernières innovations et tendances en électricité industrielle, mises à jour régulièrement.</p>
+                </div>
+
+                <div class="feature-card" onclick="window.location.href='/courses'">
+                    <div class="feature-icon"><i class="fas fa-graduation-cap"></i></div>
+                    <h3 data-i18n="feat_courses_title">Cours Complets</h3>
+                    <p data-i18n="feat_courses_desc">Formations pour BAC PRO, BEP, CAP, BTS et Licence en électricité et électrotechnique.</p>
+                </div>
+
+                <div class="feature-card" onclick="window.location.href='/articles?category=TUTO'">
+                    <div class="feature-icon"><i class="fas fa-tools"></i></div>
+                    <h3 data-i18n="feat_tuto_title">Tutoriels</h3>
+                    <p data-i18n="feat_tuto_desc">Guides pratiques et tutoriels détaillés pour maîtriser les techniques électriques.</p>
+                </div>
+
+                <div class="feature-card" onclick="window.location.href='/articles?category=SÉCURITÉ'">
+                    <div class="feature-icon"><i class="fas fa-shield-alt"></i></div>
+                    <h3 data-i18n="feat_security_title">Sécurité</h3>
+                    <p data-i18n="feat_security_desc">Normes, réglementations et bonnes pratiques pour travailler en toute sécurité.</p>
+                </div>
+
+                <div class="feature-card" onclick="openNewsletterModal()">
+                    <div class="feature-icon"><i class="fas fa-envelope"></i></div>
+                    <h3 data-i18n="feat_newsletter_title">Newsletter</h3>
+                    <p data-i18n="feat_newsletter_desc">Recevez les derniers articles et actualités directement dans votre boîte mail.</p>
+                </div>
+
+                <div class="feature-card" onclick="window.location.href='/about'">
+                    <div class="feature-icon"><i class="fas fa-users"></i></div>
+                    <h3 data-i18n="feat_community_title">Communauté</h3>
+                    <p data-i18n="feat_community_desc">Rejoignez une communauté de passionnés et professionnels de l'électricité.</p>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Latest Articles Section -->
+    <section class="latest-articles-section">
+        <div class="container">
+            <div class="section-header">
+                <h2 data-i18n="latest_title">Derniers Articles</h2>
+                <p data-i18n="latest_subtitle">Découvrez nos publications les plus récentes</p>
+            </div>
+
+            <div id="latestArticles" class="articles-preview">
+                <div class="loading">
+                    <i class="fas fa-spinner fa-spin"></i>
+                    <p>Chargement des articles...</p>
+                </div>
+            </div>
+
+            <div class="view-all-container">
+                <a href="/articles" class="btn btn-primary btn-lg">
+                    <i class="fas fa-th"></i> <span data-i18n="view_all">Voir tous les articles</span>
+                </a>
+            </div>
+        </div>
+    </section>
+
+    <!-- CTA Newsletter Section -->
+    <section class="cta-section">
+        <div class="cta-content">
+            <h2 data-i18n="cta_title">Restez informé</h2>
+            <p data-i18n="cta_subtitle">Abonnez-vous à notre newsletter pour recevoir les dernières actualités et nouveaux cours</p>
+            <form id="newsletterFormHome" class="newsletter-form-inline">
+                <input type="email" id="newsletterEmailHome" placeholder="votre@email.fr" required data-i18n-placeholder="newsletter_placeholder">
+                <button type="submit">
+                    <i class="fas fa-paper-plane"></i> <span data-i18n="newsletter_btn">S'abonner</span>
+                </button>
+            </form>
+        </div>
+    </section>
+
+    <!-- Footer -->
+    <footer class="footer">
+        <div class="container">
+            <div class="footer-content">
+                <div class="footer-section">
+                    <h3 class="footer-title">
+                        <i class="fas fa-bolt"></i> Electroinfo
+                    </h3>
+                    <p class="footer-description">
+                        <span data-i18n="footer_desc">Votre portail d'expertise en électricité et électronique. Nous parlons volt, ampère et watt sans concession.</span>
+                    </p>
+                    <div class="social-links">
+                        <a href="#" aria-label="Facebook"><i class="fab fa-facebook"></i></a>
+                        <a href="#" aria-label="Twitter"><i class="fab fa-twitter"></i></a>
+                        <a href="#" aria-label="LinkedIn"><i class="fab fa-linkedin"></i></a>
+                        <a href="#" aria-label="YouTube"><i class="fab fa-youtube"></i></a>
+                    </div>
+                </div>
+
+                <div class="footer-section">
+                    <h4 class="footer-subtitle" data-i18n="footer_nav">Navigation</h4>
+                    <ul class="footer-links">
+                        <li><a href="/">Accueil</a></li>
+                        <li><a href="/articles">Articles</a></li>
+                        <li><a href="/encyclopedie">Encyclopédie</a></li>
+                        <li><a href="/courses">Cours</a></li>
+                        <li><a href="/about">À propos</a></li>
+                        <li><a href="/contact">Contact</a></li>
+                    </ul>
+                </div>
+
+                <div class="footer-section">
+                    <h4 class="footer-subtitle" data-i18n="footer_resources">Ressources</h4>
+                    <ul class="footer-links">
+                        <li><a href="/articles?category=SÉCURITÉ">Sécurité</a></li>
+                        <li><a href="/articles?category=INNOVATION">Innovations</a></li>
+                        <li><a href="/articles?category=TUTO">Tutoriels</a></li>
+                        <li><a href="/archives">Archives</a></li>
+                    </ul>
+                </div>
+
+                <div class="footer-section">
+                    <h4 class="footer-subtitle" data-i18n="footer_legal">Informations Légales</h4>
+                    <ul class="footer-links">
+                        <li><a href="/privacy" data-i18n="footer_privacy">Politique de confidentialité</a></li>
+                        <li><a href="/terms" data-i18n="footer_terms">Conditions d'utilisation</a></li>
+                        <li><a href="/mentions-legales" data-i18n="footer_legal_mentions">Mentions légales</a></li>
+                        <li>
+                            <a href="#" onclick="window.CookieConsent.show(); return false;" class="footer-consent-link">
+                                <i class="fas fa-cookie-bite"></i> Gestion des cookies
+                            </a>
+                        </li>
+                    </ul>
+                </div>
+            </div>
+
+            <div class="footer-bottom">
+                <p><span data-i18n="footer_copyright">© 2025 Electroinfo. Tous droits réservés.</span>
+                <p class="footer-credit">
+                    Développé avec <i class="fas fa-heart" style="color: #dc2626;"></i> pour la communauté électrique francophone
+                </p>
+            </div>
+        </div>
+    </footer>
+
+    <!-- Newsletter Modal -->
+    <div id="newsletterModal" class="modal hidden">
+        <div class="modal-overlay" onclick="closeNewsletterModal()"></div>
+        <div class="modal-content">
+            <button class="modal-close" onclick="closeNewsletterModal()">
+                <i class="fas fa-times"></i>
+            </button>
+            <div class="modal-body">
+                <i class="fas fa-envelope modal-icon"></i>
+                <h2 data-i18n="modal_newsletter_title">Abonnez-vous à notre Newsletter</h2>
+                <p data-i18n="modal_newsletter_desc">Recevez les dernières actualités directement dans votre boîte mail.</p>
+                <form id="newsletterForm">
+                    <input type="email" id="newsletterEmail" required placeholder="votre@email.fr" data-i18n-placeholder="newsletter_placeholder" class="input">
+                    <button type="submit" class="btn btn-primary btn-block">
+                        <i class="fas fa-check"></i> <span data-i18n="modal_newsletter_btn">S'abonner</span>
+                    </button>
+                </form>
+            </div>
+        </div>
+    </div>
+
+    <!-- Script de consentement RGPD (charger en premier) -->
+    <script src="cookie-consent.js"></script>
+    
+    <!-- Script principal -->
+    <script type="module" src="home.js"></script>
+
+    <!-- Menu hamburger géré par home.js -->
+
+    <!-- Script inline pour la newsletter modal (fallback si home.js ne charge pas) -->
+    <script>
+        // Fonctions globales pour la newsletter
+        window.openNewsletterModal = function() {
+            document.getElementById('newsletterModal').classList.remove('hidden');
+        };
+
+        window.closeNewsletterModal = function() {
+            document.getElementById('newsletterModal').classList.add('hidden');
+            const form = document.getElementById('newsletterForm');
+            if (form) form.reset();
+        };
+
+        // Gestion du bouton newsletter dans la feature card
+        document.addEventListener('DOMContentLoaded', function() {
+            const newsletterBtns = document.querySelectorAll('[onclick="openNewsletterModal()"]');
+            newsletterBtns.forEach(btn => {
+                btn.addEventListener('click', function(e) {
+                    e.stopPropagation();
+                    window.openNewsletterModal();
+                });
+            });
+        });
+    </script>
+
+    <!-- ===== SYSTÈME DE TRADUCTION MULTILINGUE ===== -->
+    <script>
+    (function() {
+        const T = {
+            ewe: {
+                nav_home:'Ŋɔliƒe',
+                nav_articles:'Nuŋlɔɖiwo',
+                nav_encyclopedia:'Nusrɔsrɔ',
+                nav_courses:'Nunya Ɖeɖewo',
+                nav_about:'Míaƒe Ŋutinyenye',
+                nav_contact:'Ɖoɖo',
+                nav_login:'Yi ŋu',
+                nav_logout:'Tso ŋu',
+                nav_profile:'Míaƒe Ame Ŋutinyenye',
+                nav_admin:'Dɔwɔƒe Ŋutiŋuti',
+                hero_title:'Woezo ElectroInfo ŋu',
+                hero_subtitle:'Mia ƒe lɔlɔ̃ƒe le industrial electricity dɔwɔwɔ me. Nutiawo, nunya ɖeɖewo kple alɔɖeɖewo ame dɔwɔlawo kple wɔlawo ƒe nyuiwo.',
+                hero_btn_articles:'Kpɔ Nuŋlɔɖiwo',
+                hero_btn_courses:'Kpɔ Nunya Ɖeɖewo',
+                features_title:'Alɔɖeɖe si míe wɔ',
+                features_subtitle:'Nusiwo hã ame le electricity dɔwɔwɔ me',
+                feat_news_title:'Nutiawo',
+                feat_news_desc:'Dɔwɔwɔ yeye kple ƒoƒo lea le industrial electricity me, ŋgɔɖoɖo blibo.',
+                feat_courses_title:'Nunya Ɖeɖe Gãwo',
+                feat_courses_desc:'Ɖeɖewo ƒe BAC PRO, BEP, CAP, BTS kple Licence le electricity kple electrotechnique nunya me.',
+                feat_tuto_title:'Alɔse Ɖeɖewo',
+                feat_tuto_desc:'Alɔse ɖeɖewo kple nyatakaka vovowo ɖe electricity teƒewo wɔwɔ nyui ŋuti.',
+                feat_security_title:'Teƒe Nyui Dɔwɔwɔ',
+                feat_security_desc:'Normes, nyatakakawo kple dɔ wɔwɔ nyui ɖe teƒe nyui me.',
+                feat_newsletter_title:'Nuŋlɔɖi Tso Mí Gbɔ',
+                feat_newsletter_desc:'Ƒu nuŋlɔɖi yeye kple nutiawo siwo yɔu le ne email me.',
+                feat_community_title:'Haɖegbɔgbɔ',
+                feat_community_desc:'Ze ŋu ɖo haɖegbɔgbɔ si le electricity dɔwɔla kple wɔla dome.',
+                latest_title:'Nuŋlɔɖi Yeye Siwo',
+                latest_subtitle:'Kpɔ míaƒe nuŋlɔɖi yeye siwo',
+                view_all:'Kpɔ nuŋlɔɖi katã',
+                cta_title:'Nɔ ŋgɔ eye wòkpɔ nutiawo',
+                cta_subtitle:'Ze ŋu ɖo míaƒe nuŋlɔɖi tso mí gbɔ me ƒu nutiawo yeye kple nunya ɖeɖewo yeye',
+                newsletter_placeholder:'wò@email.com',
+                newsletter_btn:'Ŋu Do',
+                footer_desc:'Míaƒe lɔlɔ̃ƒe le electricity kple electronics dɔwɔwɔ me. Míe gbɔ volt, ampère kple watt nyuie.',
+                footer_nav:'Biabia Ŋutifafa',
+                footer_resources:'Alɔɖeɖewo',
+                footer_legal:'Ameŋutinyenye Nyatakakawo',
+                footer_follow:'Dze míadzi',
+                footer_privacy:'Ame Ŋutinyenye Ƒe Teƒe',
+                footer_terms:'Zãzã Ƒe Nyatakakawo',
+                footer_legal_mentions:'Kɔkɔɛ Nyatakakawo',
+                footer_cookies:'Cookie Ŋutiŋuti',
+                footer_copyright:'© 2025 ElectroInfo. Dɔ katã kpɔe.',
+                modal_newsletter_title:'Ze Ŋu Ɖo Míaƒe Nuŋlɔɖi Tso Mí Gbɔ Me',
+                modal_newsletter_desc:'Ƒu nutiawo yeye le ne email me.',
+                modal_newsletter_btn:'Ŋu Do',
+            },
+            fr: {
+                nav_home:"Accueil", nav_articles:"Articles", nav_encyclopedia:"Encyclopédie", nav_courses:"Cours",
+                nav_about:"À propos", nav_contact:"Contact", nav_login:"Connexion",
+                nav_logout:"Déconnexion", nav_profile:"Mon profil", nav_admin:"Administration",
+                hero_title:"Bienvenue sur ElectroInfo",
+                hero_subtitle:"Votre portail d'expertise en électricité industrielle, bâtiment, domotique et robotique. Actualités, cours complets et ressources pour professionnels et étudiants francophones.",
+                hero_btn_articles:"Découvrir les articles", hero_btn_courses:"Voir les cours",
+                features_title:"Ce que nous proposons",
+                features_subtitle:"Tout ce dont vous avez besoin pour exceller dans le domaine de l'électricité",
+                feat_news_title:"Actualités", feat_news_desc:"Les dernières innovations et tendances en électricité industrielle, bâtiment, domotique et robotique, mises à jour régulièrement.",
+                feat_courses_title:"Cours Complets", feat_courses_desc:"Formations pour BAC PRO, BEP, CAP, BTS et Licence en électricité industrielle, bâtiment, domotique et robotique.",
+                feat_tuto_title:"Tutoriels", feat_tuto_desc:"Guides pratiques et tutoriels détaillés pour maîtriser les techniques électriques.",
+                feat_security_title:"Sécurité", feat_security_desc:"Normes, réglementations et bonnes pratiques pour travailler en toute sécurité.",
+                feat_newsletter_title:"Newsletter", feat_newsletter_desc:"Recevez les derniers articles et actualités directement dans votre boîte mail.",
+                feat_community_title:"Communauté", feat_community_desc:"Rejoignez une communauté de passionnés et professionnels de l'électricité du monde francophone.",
+                latest_title:"Derniers Articles", latest_subtitle:"Découvrez nos publications les plus récentes",
+                view_all:"Voir tous les articles",
+                cta_title:"Restez informé",
+                cta_subtitle:"Abonnez-vous à notre newsletter pour recevoir les dernières actualités et nouveaux cours",
+                newsletter_btn:"S'abonner", newsletter_placeholder:"votre@email.fr",
+                footer_nav:"Navigation", footer_resources:"Ressources",
+                footer_legal:"Informations Légales", footer_follow:"Suivez-nous",
+                footer_privacy:"Politique de confidentialité", footer_terms:"Conditions d'utilisation",
+                footer_legal_mentions:"Mentions légales", footer_cookies:"Gestion des cookies",
+                footer_copyright:"© 2025 ElectroInfo. Tous droits réservés.",
+                footer_desc:"Votre portail d'expertise en électricité industrielle, bâtiment, domotique et robotique. Nous parlons volt, ampère et watt sans concession.",
+                modal_newsletter_title:"Abonnez-vous à notre Newsletter",
+                modal_newsletter_desc:"Recevez les dernières actualités directement dans votre boîte mail.",
+                modal_newsletter_btn:"S'abonner",
+            },
+            en: {
+                nav_home:"Home", nav_articles:"Articles", nav_encyclopedia:"Encyclopedia", nav_courses:"Courses",
+                nav_about:"About", nav_contact:"Contact", nav_login:"Login",
+                nav_logout:"Logout", nav_profile:"My Profile", nav_admin:"Administration",
+                hero_title:"Welcome to ElectroInfo",
+                hero_subtitle:"Your expertise portal for industrial electricity, building, home automation and robotics. News, complete courses and resources for French-speaking professionals and students worldwide.",
+                hero_btn_articles:"Explore Articles", hero_btn_courses:"View Courses",
+                features_title:"What We Offer",
+                features_subtitle:"Everything you need to excel in the field of electricity",
+                feat_news_title:"News", feat_news_desc:"The latest innovations and trends in industrial electricity, building, home automation and robotics, updated regularly.",
+                feat_courses_title:"Complete Courses", feat_courses_desc:"Training for BAC PRO, BEP, CAP, BTS and Licence in industrial electricity, building, home automation and robotics.",
+                feat_tuto_title:"Tutorials", feat_tuto_desc:"Practical guides and detailed tutorials to master electrical techniques.",
+                feat_security_title:"Safety", feat_security_desc:"Standards, regulations and best practices for safe working.",
+                feat_newsletter_title:"Newsletter", feat_newsletter_desc:"Receive the latest articles and news directly in your inbox.",
+                feat_community_title:"Community", feat_community_desc:"Join a community of French-speaking electricity enthusiasts and professionals.",
+                latest_title:"Latest Articles", latest_subtitle:"Discover our most recent publications",
+                view_all:"View all articles",
+                cta_title:"Stay Informed",
+                cta_subtitle:"Subscribe to our newsletter to receive the latest news and new courses",
+                newsletter_btn:"Subscribe", newsletter_placeholder:"your@email.com",
+                footer_nav:"Navigation", footer_resources:"Resources",
+                footer_legal:"Legal Information", footer_follow:"Follow Us",
+                footer_privacy:"Privacy Policy", footer_terms:"Terms of Use",
+                footer_legal_mentions:"Legal Notices", footer_cookies:"Cookie Settings",
+                footer_copyright:"© 2025 ElectroInfo. All rights reserved.",
+                footer_desc:"Your expertise portal in industrial electricity, building, home automation and robotics. We talk volts, amps and watts without compromise.",
+                modal_newsletter_title:"Subscribe to our Newsletter",
+                modal_newsletter_desc:"Receive the latest news directly in your inbox.",
+                modal_newsletter_btn:"Subscribe",
+            }
+        };
+        const LABELS = { ewe:'🌍 Eʋe', fr:'🇫🇷 FR', en:'🇬🇧 EN' };
+        const KEY = 'electroinfo_lang';
+
+        window.setLang = function(lang) {
+            localStorage.setItem(KEY, lang);
+            const d = T[lang]; if (!d) return;
+            // textes
+            document.querySelectorAll('[data-i18n]').forEach(el => {
+                const k = el.getAttribute('data-i18n');
+                if (d[k] !== undefined) el.textContent = d[k];
+            });
+            // placeholders
+            document.querySelectorAll('[data-i18n-placeholder]').forEach(el => {
+                const k = el.getAttribute('data-i18n-placeholder');
+                if (d[k] !== undefined) el.placeholder = d[k];
+            });
+            // bouton actif
+            const btn = document.getElementById('langCurrentBtn');
+            if (btn) btn.textContent = LABELS[lang];
+            document.querySelectorAll('.lang-option').forEach(o => {
+                o.classList.toggle('lang-active', o.dataset.lang === lang);
+            });
+            document.documentElement.lang = lang === 'ewe' ? 'ee' : lang;
+            // fermer dropdown
+            const dd = document.getElementById('langDropdown');
+            if (dd) dd.classList.remove('open');
+        };
+
+        window.toggleLangDropdown = function() {
+            const dd = document.getElementById('langDropdown');
+            if (dd) dd.classList.toggle('open');
+        };
+
+        // Fermer en cliquant ailleurs
+        document.addEventListener('click', function(e) {
+            if (!e.target.closest('#langSwitcher')) {
+                const dd = document.getElementById('langDropdown');
+                if (dd) dd.classList.remove('open');
+            }
+        });
+
+        // Appliquer la langue sauvegardée au chargement
+        document.addEventListener('DOMContentLoaded', function() {
+            const saved = localStorage.getItem(KEY) || 'fr';
+            setLang(saved);
+        });
+    })();
+    </script>
+
+    <!-- ✅ PWA — Enregistrement du Service Worker -->
+    <script>
+        if ('serviceWorker' in navigator) {
+            window.addEventListener('load', () => {
+                navigator.serviceWorker.register('/sw.js')
+                    .then(reg => console.log('[SW] ElectroInfo PWA enregistré :', reg.scope))
+                    .catch(err => console.warn('[SW] Échec enregistrement :', err));
+            });
+        }
+    </script>
+
+</body>
+</html>

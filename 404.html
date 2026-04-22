@@ -1,0 +1,34 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <title>ElectroInfo — Redirection</title>
+</head>
+<body>
+<script>
+    (function () {
+        var path   = window.location.pathname;
+        var search = window.location.search || '';
+        sessionStorage.setItem('redirect_path', path + search);
+        var parts   = path.split('/').filter(Boolean);
+        var segment = parts[0] || '';
+        var dest;
+        if (segment === 'matiere') {
+            dest = '/matiere.html';
+        } else if (segment === 'seance') {
+            dest = '/seance.html';
+        } else if (segment === 'article') {
+            dest = '/article-detail.html';
+        } else if (segment === 'course' || segment === 'course-detail') {
+            dest = '/matiere.html';
+        } else if (segment === 'session-detail') {
+            dest = '/seance.html';
+        } else {
+            dest = '/';
+        }
+        window.location.replace(dest);
+    })();
+</script>
+<noscript><p>Redirection… <a href="/">Retour à l'accueil</a></p></noscript>
+</body>
+</html>

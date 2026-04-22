@@ -1,0 +1,598 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+    <!-- Titre et description (mis à jour dynamiquement par JS) -->
+    <title>Article | ElectroInfo</title>
+    <meta name="description" content="Découvrez les dernières innovations en électricité industrielle">
+
+    <!-- Favicons -->
+    <link rel="icon" type="image/x-icon" href="/images/favicon.ico">
+    <link rel="icon" type="image/png" sizes="48x48" href="/images/logo-small.png">
+    <link rel="icon" type="image/png" sizes="512x512" href="/images/logo.png">
+    <link rel="apple-touch-icon" sizes="180x180" href="/images/apple-touch-icon.png">
+
+    <!-- Open Graph -->
+    <meta property="og:title" content="Article | ElectroInfo">
+    <meta property="og:description" content="Découvrez les dernières innovations en électricité industrielle">
+    <meta property="og:image" content="">
+    <meta property="og:url" content="https://electroinfo.online">
+    <meta property="og:type" content="article">
+
+    <!-- Twitter Card -->
+    <meta name="twitter:card" content="summary_large_image">
+    <meta name="twitter:title" content="Article | ElectroInfo">
+    <meta name="twitter:description" content="Découvrez les dernières innovations en électricité industrielle">
+    <meta name="twitter:image" content="">
+
+    <!-- Styles -->
+    <link rel="stylesheet" href="/article-styles.css">
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
+    <style>
+        .lang-switcher { position:relative; display:inline-flex; align-items:center; }
+        .lang-current-btn {
+            background:rgba(255,255,255,0.18); border:1.5px solid rgba(255,255,255,0.5);
+            color:white; padding:0.4rem 0.85rem; border-radius:2rem;
+            font-size:0.82rem; font-weight:700; cursor:pointer; transition:all 0.2s; white-space:nowrap;
+        }
+        .lang-current-btn:hover { background:rgba(255,255,255,0.3); }
+        .lang-dropdown {
+            display:none; position:absolute; top:calc(100% + 8px); right:0;
+            background:#fff; border-radius:0.75rem; box-shadow:0 8px 28px rgba(0,0,0,0.18);
+            overflow:hidden; z-index:99999; min-width:160px;
+        }
+        .lang-dropdown.open { display:block; animation:langIn 0.15s ease; }
+        @keyframes langIn { from{opacity:0;transform:translateY(-6px)} to{opacity:1;transform:translateY(0)} }
+        .lang-option {
+            display:flex; align-items:center; gap:0.5rem; width:100%;
+            padding:0.7rem 1.1rem; text-align:left; background:none; border:none;
+            font-size:0.9rem; font-weight:500; color:#374151; cursor:pointer; transition:background 0.15s;
+        }
+        .lang-option:hover { background:#f3f4f6; }
+        .lang-option.lang-active { background:#eff6ff; color:#1e40af; font-weight:700; }
+
+        /* ===== LECTEUR VIDÉO YOUTUBE ===== */
+        .yt-player {
+            position: relative;
+            padding-bottom: 56.25%;
+            height: 0;
+            overflow: hidden;
+            margin: 2rem 0;
+            cursor: pointer;
+            border-radius: 10px;
+            background: #000;
+        }
+        .yt-player img {
+            position: absolute;
+            top: 0; left: 0;
+            width: 100%; height: 100%;
+            object-fit: cover;
+            border-radius: 10px;
+            transition: opacity .2s;
+        }
+        .yt-player:hover img { opacity: .85; }
+        .yt-play-btn {
+            position: absolute;
+            top: 50%; left: 50%;
+            transform: translate(-50%, -50%);
+            pointer-events: none;
+            filter: drop-shadow(0 2px 8px rgba(0,0,0,.6));
+            transition: transform .15s;
+        }
+        .yt-player:hover .yt-play-btn { transform: translate(-50%, -50%) scale(1.12); }
+        .yt-player iframe {
+            position: absolute;
+            top: 0; left: 0;
+            width: 100%; height: 100%;
+            border: 0;
+            border-radius: 10px;
+        }
+        /* Fallback iframe directe */
+        .article-body iframe[src*="youtube"] {
+            display: block; width: 100%;
+            min-height: 200px; border: 0;
+            border-radius: 10px; margin: 2rem 0;
+        }
+    </style>
+</head>
+<body>
+
+        <!-- Navigation -->
+    <nav class="navbar">
+        <div class="container">
+            <div class="nav-brand">
+                <img src="/images/logo-small.png" alt="Logo ElectroInfo" class="nav-logo">
+                <span>ELECTROINFO</span>
+            </div>
+
+            <!-- Controls toujours visibles dans la barre (lang + thème + hamburger) -->
+            <div class="nav-controls" style="display:flex;align-items:center;gap:0.4rem;margin-left:auto;flex-shrink:0;">
+
+                <!-- 🌍 Sélecteur de langue -->
+                <div id="langSwitcher" class="lang-switcher">
+                    <button id="langCurrentBtn" class="lang-current-btn" onclick="toggleLangDropdown()" aria-label="Changer la langue">
+                        🌍 Eʋe
+                    </button>
+                    <div class="lang-dropdown" id="langDropdown">
+                        <button class="lang-option lang-active" data-lang="ewe" onclick="setLang('ewe')">🌍 Eʋegbe</button>
+                        <button class="lang-option" data-lang="fr" onclick="setLang('fr')">🇫🇷 Français</button>
+                        <button class="lang-option" data-lang="en" onclick="setLang('en')">🇬🇧 English</button>
+                    </div>
+                </div>
+
+                <!-- Bouton thème -->
+                <button id="themeToggle" class="theme-toggle-btn" aria-label="Changer le thème" title="Changer le thème">
+                    <i class="fas fa-moon" id="themeIcon"></i>
+                    <span class="theme-text" id="themeText" data-i18n="theme_dark">Sombre</span>
+                </button>
+
+                <!-- Bouton langue FR/EN requis par article-detail.js -->
+                <button id="langToggle" class="theme-toggle-btn" aria-label="Langue" onclick="toggleLanguage()" title="Changer la langue FR / EN" style="display:none;"></button>
+
+                <!-- Hamburger -->
+                <button class="mobile-toggle" id="mobileToggle" aria-label="Menu">
+                    <i class="fas fa-bars"></i>
+                </button>
+
+            </div>
+
+            <!-- Menu déroulant mobile (liens + connexion uniquement) -->
+            <div class="nav-menu" id="mobileMenu">
+                <div class="nav-links">
+                    <a href="/" class="nav-link" data-i18n="nav_home">Accueil</a>
+                    <a href="/articles" class="nav-link active" data-i18n="nav_articles">Articles</a>
+                    <a href="/courses" class="nav-link" data-i18n="nav_courses">Cours</a>
+                    <a href="/about" class="nav-link" data-i18n="nav_about">À propos</a>
+                    <a href="/contact" class="nav-link" data-i18n="nav_contact">Contact</a>
+                </div>
+                <div class="nav-actions">
+                    <a href="/auth" id="loginBtn" class="btn btn-primary">
+                        <i class="fas fa-sign-in-alt"></i>
+                        <span class="btn-text" data-i18n="nav_login">Connexion</span>
+                    </a>
+                    <div id="userMenu" class="user-menu hidden">
+                        <button class="user-btn" id="userMenuToggle">
+                            <img id="userAvatar" src="" alt="Avatar" class="avatar">
+                            <span id="userName" class="user-name"></span>
+                            <i class="fas fa-chevron-down"></i>
+                        </button>
+                        <div class="dropdown hidden" id="userDropdown">
+                            <div class="dropdown-header">
+                                <img id="userAvatarDropdown" src="" alt="Avatar" class="avatar-large">
+                                <div>
+                                    <strong id="userNameDropdown"></strong>
+                                    <p id="userEmailDropdown"></p>
+                                </div>
+                            </div>
+                            <div class="dropdown-divider"></div>
+                            <a href="/profile" class="dropdown-item"><i class="fas fa-user"></i> Mon Profil</a>
+                            <div class="dropdown-divider" id="adminDivider" style="display:none;"></div>
+                            <a href="/admin" id="adminLink" class="dropdown-item" style="display:none;"><i class="fas fa-cog"></i> Administration</a>
+                            <div class="dropdown-divider"></div>
+                            <button id="logoutBtn" class="dropdown-item logout"><i class="fas fa-sign-out-alt"></i> Déconnexion</button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+        </div>
+    </nav>
+    
+    <!-- Loading State -->
+    <div id="loadingState" class="loading-state">
+        <div class="loading-spinner">
+            <i class="fas fa-spinner fa-spin"></i>
+            <p data-i18n="loading_article">Chargement de l'article...</p>
+        </div>
+    </div>
+
+    <!-- Error State -->
+    <div id="errorState" class="error-state hidden">
+        <div class="error-content">
+            <i class="fas fa-exclamation-triangle"></i>
+            <h2 data-i18n="article_not_found">Article introuvable</h2>
+            <p data-i18n="article_not_found_desc">Désolé, cet article n'existe pas ou a été supprimé.</p>
+            <a href="/" class="btn btn-primary">
+                <i class="fas fa-home"></i> <span data-i18n="back_home">Retour à l'accueil</span>
+            </a>
+        </div>
+    </div>
+
+    <!-- Article Container -->
+    <main id="articleContainer" class="article-page hidden">
+
+        <!-- Article Hero -->
+        <div class="article-hero">
+            <img id="articleImage" src="" alt="" class="article-hero-image" loading="eager">
+            <div class="article-hero-overlay">
+                <div class="article-hero-content">
+                    <span id="categoryBadge" class="article-category-badge category-blue">INNOVATION</span>
+                    <h1 id="articleTitle" class="article-title-hero">Titre de l'article</h1>
+                </div>
+            </div>
+        </div>
+
+        <!-- Article Meta -->
+        <div class="article-meta-section">
+            <div class="article-container">
+                <div class="article-meta-content">
+                    <div class="article-author-info">
+                        <img id="authorAvatar" src="" alt="Avatar" class="author-avatar-large">
+                        <div class="author-details">
+                            <strong id="authorName" class="author-name">Auteur</strong>
+                            <div class="article-stats-section">
+                                <span class="article-stat">
+                                    <i class="fas fa-calendar"></i>
+                                    <span id="articleDate">Date</span>
+                                </span>
+                                <span class="article-stat">
+                                    <i class="fas fa-clock"></i>
+                                    <span id="readingTime">5 min de lecture</span>
+                                </span>
+                                <span class="article-stat">
+                                    <i class="fas fa-eye"></i>
+                                    <span id="viewsCount">0</span> vues
+                                </span>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Boutons de partage -->
+                    <div class="share-buttons">
+                        <button onclick="copyLink()" class="share-btn" data-i18n-title="share_copy" title="Copier le lien">
+                            <i class="fas fa-link"></i>
+                        </button>
+                        <a href="#" class="share-btn" data-i18n-title="share_twitter" title="Partager sur Twitter" target="_blank" id="twitterShare">
+                            <i class="fab fa-twitter"></i>
+                        </a>
+                        <a href="#" class="share-btn" data-i18n-title="share_linkedin" title="Partager sur LinkedIn" target="_blank" id="linkedinShare">
+                            <i class="fab fa-linkedin"></i>
+                        </a>
+                        <a href="#" class="share-btn" data-i18n-title="share_whatsapp" title="Partager sur WhatsApp" target="_blank" id="whatsappShare">
+                            <i class="fab fa-whatsapp"></i>
+                        </a>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Article Content -->
+        <div class="article-container">
+            <div class="article-main-content-full">
+
+                <!-- Corps de l'article -->
+                <div id="articleContent" class="article-body">
+                    <!-- Injecté par JavaScript -->
+                </div>
+
+                <!-- Réactions -->
+                <div class="article-actions-bar">
+                    <div class="reactions-container">
+                        <button class="reaction-btn" data-reaction="like">
+                            <i class="fas fa-thumbs-up"></i>
+                            <span id="likeCount">0</span>
+                        </button>
+                        <button class="reaction-btn" data-reaction="love">
+                            <i class="fas fa-heart"></i>
+                            <span id="loveCount">0</span>
+                        </button>
+                        <button class="reaction-btn" data-reaction="insight">
+                            <i class="fas fa-lightbulb"></i>
+                            <span id="insightCount">0</span>
+                        </button>
+                        <button class="reaction-btn" data-reaction="support">
+                            <i class="fas fa-hands-helping"></i>
+                            <span id="supportCount">0</span>
+                        </button>
+                    </div>
+                </div>
+
+                <!-- Tags -->
+                <div class="article-tags-section">
+                    <h3 class="tags-section-title">
+                        <i class="fas fa-tags"></i> <span data-i18n="tags_title">Tags</span>
+                    </h3>
+                    <div id="tagsContainer" class="tags-list">
+                        <!-- Injecté par JavaScript -->
+                    </div>
+                </div>
+
+                <!-- Commentaires -->
+                <div class="comments-section">
+                    <h3 class="comments-title">
+                        <i class="fas fa-comments"></i>
+                        <span data-i18n="comments_title">Commentaires</span> (<span id="commentsCount">0</span>)
+                    </h3>
+
+                    <form id="commentForm" class="comment-form">
+                        <div class="form-row">
+                            <div class="form-group">
+                                <input type="text" id="commentName" placeholder="Votre nom" data-i18n-placeholder="comment_name_placeholder" required class="input">
+                            </div>
+                            <div class="form-group">
+                                <input type="email" id="commentEmail" placeholder="Votre email" data-i18n-placeholder="comment_email_placeholder" required class="input">
+                            </div>
+                        </div>
+                        <div class="form-group">
+                            <textarea id="commentText" placeholder="Votre commentaire..." data-i18n-placeholder="comment_text_placeholder" required rows="4" class="input"></textarea>
+                        </div>
+                        <button type="submit" class="btn btn-primary">
+                            <i class="fas fa-paper-plane"></i> <span data-i18n="comment_submit">Publier</span>
+                        </button>
+                    </form>
+
+                    <div id="commentsList" class="comments-list">
+                        <!-- Injecté par JavaScript -->
+                    </div>
+                </div>
+
+            </div>
+        </div>
+    </main>
+
+    <!-- Footer -->
+    <footer class="footer">
+        <div class="container">
+
+            <!-- Newsletter + Articles similaires -->
+            <div class="footer-widgets">
+                <div class="footer-widget newsletter-widget">
+                    <div class="newsletter-icon">
+                        <i class="fas fa-envelope"></i>
+                    </div>
+                    <h4 class="footer-widget-title" data-i18n="newsletter_widget_title">Newsletter</h4>
+                    <p class="footer-widget-text" data-i18n="newsletter_widget_text">Recevez les derniers articles directement dans votre boîte mail.</p>
+                    <form id="newsletterForm" class="newsletter-form-footer">
+                        <input type="email" id="newsletterEmail" placeholder="votre@email.fr" data-i18n-placeholder="newsletter_email_placeholder" required class="input">
+                        <button type="submit" class="btn btn-primary btn-block" data-i18n="newsletter_subscribe_btn">S'abonner</button>
+                    </form>
+                </div>
+
+                <div class="footer-widget related-widget">
+                    <h4 class="footer-widget-title" data-i18n="related_articles">Articles similaires</h4>
+                    <div id="relatedArticles" class="related-articles-footer">
+                        <!-- Injecté par JavaScript -->
+                    </div>
+                </div>
+            </div>
+
+            <div class="footer-content">
+                <div class="footer-section">
+                    <div class="footer-brand">
+                        <i class="fas fa-bolt"></i>
+                        <span>ELECTROINFO</span>
+                    </div>
+                    <p data-i18n="footer_desc">Votre source d'actualités en électricité industrielle.</p>
+                </div>
+
+                <div class="footer-section">
+                    <h4 data-i18n="footer_nav">Navigation</h4>
+                    <ul class="footer-links">
+                        <li><a href="/" data-i18n="nav_home">Accueil</a></li>
+                        <li><a href="/articles" data-i18n="nav_articles">Articles</a></li>
+                        <li><a href="/courses" data-i18n="nav_courses">Cours</a></li>
+                        <li><a href="/about" data-i18n="nav_about">À propos</a></li>
+                        <li><a href="/contact" data-i18n="nav_contact">Contact</a></li>
+                        <li><a href="/auth" data-i18n="nav_login">Connexion</a></li>
+                    </ul>
+                </div>
+
+                <div class="footer-section">
+                    <h4 data-i18n="footer_follow">Suivez-nous</h4>
+                    <div class="social-links">
+                        <a href="#" class="social-link"><i class="fab fa-facebook"></i></a>
+                        <a href="#" class="social-link"><i class="fab fa-twitter"></i></a>
+                        <a href="#" class="social-link"><i class="fab fa-linkedin"></i></a>
+                        <a href="#" class="social-link"><i class="fab fa-instagram"></i></a>
+                    </div>
+                </div>
+            </div>
+
+            <div class="footer-bottom">
+                <p><span data-i18n="footer_copyright">© 2025 ElectroInfo. Tous droits réservés.</span></p>
+            </div>
+        </div>
+    </footer>
+
+    <!-- Newsletter Modal -->
+    <div id="newsletterModal" class="modal hidden">
+        <div class="modal-overlay" onclick="closeNewsletterModal()"></div>
+        <div class="modal-content">
+            <button class="modal-close" onclick="closeNewsletterModal()">
+                <i class="fas fa-times"></i>
+            </button>
+            <div class="modal-body">
+                <i class="fas fa-check-circle modal-icon success"></i>
+                <h2 data-i18n="modal_thanks_title">Merci !</h2>
+                <p data-i18n="modal_thanks_desc">Vous êtes maintenant inscrit à notre newsletter.</p>
+            </div>
+        </div>
+    </div>
+
+    <script type="module" src="/article-detail.js"></script>
+
+    <script>
+    (function(){
+        const T={
+                        ewe:{
+                nav_home:'Ŋɔliƒe',
+                nav_articles:'Nuŋlɔɖiwo',
+                nav_courses:'Nunya Ɖeɖewo',
+                nav_about:'Míaƒe Ŋutinyenye',
+                nav_contact:'Ɖoɖo',
+                nav_login:'Yi ŋu',
+                nav_logout:'Tso ŋu',
+                nav_profile:'Míaƒe Ame Ŋutinyenye',
+                nav_admin:'Dɔwɔƒe Ŋutiŋuti',
+                hero_title:'Woezo ElectroInfo ŋu',
+                hero_subtitle:'Mia ƒe lɔlɔ̃ƒe le industrial electricity dɔwɔwɔ me. Nutiawo, nunya ɖeɖewo kple alɔɖeɖewo ame dɔwɔlawo kple wɔlawo ƒe nyuiwo.',
+                hero_btn_articles:'Kpɔ Nuŋlɔɖiwo',
+                hero_btn_courses:'Kpɔ Nunya Ɖeɖewo',
+                features_title:'Alɔɖeɖe si míe wɔ',
+                features_subtitle:'Nusiwo hã ame le electricity dɔwɔwɔ me',
+                feat_news_title:'Nutiawo',
+                feat_news_desc:'Dɔwɔwɔ yeye kple ƒoƒo lea le industrial electricity me, ŋgɔɖoɖo blibo.',
+                feat_courses_title:'Nunya Ɖeɖe Gãwo',
+                feat_courses_desc:'Ɖeɖewo ƒe BAC PRO, BEP, CAP, BTS kple Licence le electricity kple electrotechnique nunya me.',
+                feat_tuto_title:'Alɔse Ɖeɖewo',
+                feat_tuto_desc:'Alɔse ɖeɖewo kple nyatakaka vovowo ɖe electricity teƒewo wɔwɔ nyui ŋuti.',
+                feat_security_title:'Teƒe Nyui Dɔwɔwɔ',
+                feat_security_desc:'Normes, nyatakakawo kple dɔ wɔwɔ nyui ɖe teƒe nyui me.',
+                feat_newsletter_title:'Nuŋlɔɖi Tso Mí Gbɔ',
+                feat_newsletter_desc:'Ƒu nuŋlɔɖi yeye kple nutiawo siwo yɔu le ne email me.',
+                feat_community_title:'Haɖegbɔgbɔ',
+                feat_community_desc:'Ze ŋu ɖo haɖegbɔgbɔ si le electricity dɔwɔla kple wɔla dome.',
+                latest_title:'Nuŋlɔɖi Yeye Siwo',
+                latest_subtitle:'Kpɔ míaƒe nuŋlɔɖi yeye siwo',
+                view_all:'Kpɔ nuŋlɔɖi katã',
+                cta_title:'Nɔ ŋgɔ eye wòkpɔ nutiawo',
+                cta_subtitle:'Ze ŋu ɖo míaƒe nuŋlɔɖi tso mí gbɔ me ƒu nutiawo yeye kple nunya ɖeɖewo yeye',
+                newsletter_placeholder:'wò@email.com',
+                newsletter_btn:'Ŋu Do',
+                footer_desc:'Míaƒe lɔlɔ̃ƒe le electricity kple electronics dɔwɔwɔ me. Míe gbɔ volt, ampère kple watt nyuie.',
+                footer_nav:'Biabia Ŋutifafa',
+                footer_resources:'Alɔɖeɖewo',
+                footer_legal:'Ameŋutinyenye Nyatakakawo',
+                footer_follow:'Dze míadzi',
+                footer_privacy:'Ame Ŋutinyenye Ƒe Teƒe',
+                footer_terms:'Zãzã Ƒe Nyatakakawo',
+                footer_legal_mentions:'Kɔkɔɛ Nyatakakawo',
+                footer_cookies:'Cookie Ŋutiŋuti',
+                footer_copyright:'© 2025 ElectroInfo. Dɔ katã kpɔe.',
+                articles_page_title:'Nuŋlɔɖi Katã',
+                articles_page_subtitle:'Kpɔ míaƒe nuŋlɔɖiwo le industrial electricity, dɔwɔwɔ yeye, teƒe nyui dɔwɔwɔ kple alɔse ɖeɖewo ŋuti',
+                search_placeholder:'Ba nuŋlɔɖi...',
+                filter_all:'Katã',
+                filter_innovation:'Dɔwɔwɔ Yeye',
+                filter_security:'Teƒe Nyui',
+                filter_new:'Nú Yeye',
+                filter_tuto:'Alɔse Ɖeɖe',
+                filter_domotique:'Xɔ Ŋutiŋuti',
+                sort_label:'Ɖo enu:',
+                sort_recent:'Yeye siwo ŋgɔ',
+                sort_old:'Dɔna siwo ŋgɔ',
+                sort_popular:'Ame dada kpɔwo ŋgɔ',
+                sort_title:'Ŋkɔ (A-Z)',
+                loading_articles:'Nuŋlɔɖiwo ɖe dɔme...',
+                sidebar_popular:'Nuŋlɔɖi Dada Kpɔwo',
+                sidebar_courses:'Nunya Ɖeɖe kple Biabiawo',
+                sidebar_courses_levels:'BAC PRO · BEP · CAP · BTS · Licence',
+                sidebar_courses_btn:'Kpɔ nunya ɖeɖewo →',
+                sidebar_newsletter:'Nuŋlɔɖi Tso Mí Gbɔ',
+                sidebar_newsletter_desc:'Nɔ ŋgɔ eye wòkpɔ electricity ƒe nutiawo yeye',
+                sidebar_newsletter_btn:'Ŋu Do',
+                sidebar_about:'Míaƒe Ŋutinyenye',
+                sidebar_about_text:'Woezo míaƒe lɔlɔ̃ƒe me. Afi sia, míe gbɔ volt, ampère kple watt nyuie.',
+                loading_article:'Nuŋlɔɖi ɖe dɔme...',
+                article_not_found:'Nuŋlɔɖi Meɖo O',
+                article_not_found_desc:'Nusɔsɔ, nuŋlɔɖi sia meɖo o, alo wowɔ ne yi.',
+                back_home:'Tso Ŋɔliƒe Gbɔ',
+                reading_time_suffix:' aɖabaƒoƒo ŋuti',
+                views_suffix:' kpɔkpɔwo',
+                share_copy:'Kɔpi link la',
+                share_twitter:'Ɖo Twitter dzi',
+                share_linkedin:'Ɖo LinkedIn dzi',
+                share_whatsapp:'Ɖo WhatsApp dzi',
+                tags_title:'Ŋkɔbowo',
+                comments_title:'Susuwo',
+                comment_name_placeholder:'Wò ŋkɔ',
+                comment_email_placeholder:'Wò email',
+                comment_text_placeholder:'Ŋlɔ wò susu fii...',
+                comment_submit:'Ɖo Agbe Me',
+                newsletter_widget_title:'Nuŋlɔɖi Tso Mí Gbɔ',
+                newsletter_widget_text:'Ƒu nuŋlɔɖi yeye le ne email me.',
+                newsletter_email_placeholder:'wò@email.com',
+                newsletter_subscribe_btn:'Ŋu Do',
+                related_articles:'Nuŋlɔɖi Si Ɖo Edzi',
+                modal_newsletter_title:'Ze Ŋu Ɖo Míaƒe Nuŋlɔɖi Tso Mí Gbɔ Me',
+                modal_newsletter_desc:'Ƒu nutiawo yeye le ne email me.',
+                modal_newsletter_btn:'Ŋu Do',
+                modal_thanks_title:'Akpe!',
+                modal_thanks_desc:'Woze wò ŋu ɖo míaƒe nuŋlɔɖi me.',
+                theme_dark:'Gbãgbã',
+                theme_light:'Ɣeyiɣi',
+            },
+            fr:{
+                nav_home:"Accueil",nav_articles:"Articles",nav_courses:"Cours",
+                nav_about:"À propos",nav_contact:"Contact",nav_login:"Connexion",
+                loading_article:"Chargement de l'article...",
+                article_not_found:"Article introuvable",
+                article_not_found_desc:"Désolé, cet article n'existe pas ou a été supprimé.",
+                back_home:"Retour à l'accueil",
+                tags_title:"Tags",comments_title:"Commentaires",
+                comment_name_placeholder:"Votre nom",comment_email_placeholder:"Votre email",
+                comment_text_placeholder:"Votre commentaire...",comment_submit:"Publier",
+                newsletter_widget_title:"Newsletter",
+                newsletter_widget_text:"Recevez les derniers articles directement dans votre boîte mail.",
+                newsletter_email_placeholder:"votre@email.fr",newsletter_subscribe_btn:"S'abonner",
+                related_articles:"Articles similaires",
+                footer_nav:"Navigation",footer_follow:"Suivez-nous",
+                footer_desc:"Votre source d'actualités en électricité industrielle.",
+                footer_copyright:"© 2025 ElectroInfo. Tous droits réservés.",
+                modal_thanks_title:"Merci !",modal_thanks_desc:"Vous êtes maintenant inscrit à notre newsletter.",
+                theme_dark:"Sombre",
+            },
+            en:{
+                nav_home:"Home",nav_articles:"Articles",nav_courses:"Courses",
+                nav_about:"About",nav_contact:"Contact",nav_login:"Login",
+                loading_article:"Loading article...",
+                article_not_found:"Article not found",
+                article_not_found_desc:"Sorry, this article does not exist or has been deleted.",
+                back_home:"Back to Home",
+                tags_title:"Tags",comments_title:"Comments",
+                comment_name_placeholder:"Your name",comment_email_placeholder:"Your email",
+                comment_text_placeholder:"Your comment...",comment_submit:"Post",
+                newsletter_widget_title:"Newsletter",
+                newsletter_widget_text:"Receive the latest articles directly in your inbox.",
+                newsletter_email_placeholder:"your@email.com",newsletter_subscribe_btn:"Subscribe",
+                related_articles:"Related Articles",
+                footer_nav:"Navigation",footer_follow:"Follow Us",
+                footer_desc:"Your source of news in industrial electricity.",
+                footer_copyright:"© 2025 ElectroInfo. All rights reserved.",
+                modal_thanks_title:"Thank you!",modal_thanks_desc:"You are now subscribed to our newsletter.",
+                theme_dark:"Dark",
+            }
+        };
+        const LABELS={ewe:'🌍 Eʋe',fr:'🇫🇷 FR',en:'🇬🇧 EN'};
+        const KEY='electroinfo_lang';
+        window.setLang=function(lang){
+            localStorage.setItem(KEY,lang);
+            const d=T[lang];if(!d)return;
+            document.querySelectorAll('[data-i18n]').forEach(el=>{
+                const k=el.getAttribute('data-i18n');
+                if(d[k]!==undefined)el.textContent=d[k];
+            });
+            document.querySelectorAll('[data-i18n-placeholder]').forEach(el=>{
+                const k=el.getAttribute('data-i18n-placeholder');
+                if(d[k]!==undefined)el.placeholder=d[k];
+            });
+            const btn=document.getElementById('langCurrentBtn');
+            if(btn)btn.textContent=LABELS[lang];
+            document.querySelectorAll('.lang-option').forEach(o=>{
+                o.classList.toggle('lang-active',o.dataset.lang===lang);
+            });
+            document.documentElement.lang=lang==='ewe'?'ee':lang;
+            const dd=document.getElementById('langDropdown');
+            if(dd)dd.classList.remove('open');
+        };
+        window.toggleLangDropdown=function(){
+            const dd=document.getElementById('langDropdown');
+            if(dd)dd.classList.toggle('open');
+        };
+        document.addEventListener('click',function(e){
+            if(!e.target.closest('#langSwitcher')){
+                const dd=document.getElementById('langDropdown');
+                if(dd)dd.classList.remove('open');
+            }
+        });
+        document.addEventListener('DOMContentLoaded',function(){
+            const saved=localStorage.getItem(KEY)||'ewe';
+            setLang(saved);
+        });
+    })();
+    </script>
+
+</body>
+</html>

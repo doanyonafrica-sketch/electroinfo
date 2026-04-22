@@ -1,0 +1,999 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Moteur AST – 2 Sens de Marche</title>
+<style>
+@import url('https://fonts.googleapis.com/css2?family=Rajdhani:wght@400;600;700&family=Inconsolata:wght@400;700&display=swap');
+:root{
+  --bg:#0b0f16; --panel:#131820; --card:#1a2232;
+  --b0:#1e2a3e; --b1:#2e3f5c;
+  --L1:#ff3a3a; --L2:#f5a623; --L3:#2ecc71;
+  --acc:#00e5ff; --grn:#00e676; --red:#ff1744; --org:#ff6f00; --yel:#ffd740;
+  --txt:#d0daf0; --dim:#4a5a7a; --dim2:#6b7e9f;
+  --off:#1e2a3e;
+}
+*{margin:0;padding:0;box-sizing:border-box;}
+body{background:var(--bg);color:var(--txt);font-family:'Rajdhani',sans-serif;height:100vh;display:flex;flex-direction:column;overflow:hidden;}
+
+/* HEADER */
+header{background:linear-gradient(90deg,#070b12,#111826,#070b12);border-bottom:2px solid var(--b1);padding:8px 20px;display:flex;align-items:center;gap:16px;flex-shrink:0;}
+.logo{font-size:1.05rem;font-weight:700;color:var(--acc);letter-spacing:3px;}
+.sub{font-size:.68rem;color:var(--dim2);}
+.hdr-right{margin-left:auto;display:flex;align-items:center;gap:12px;}
+.badge{padding:5px 16px;border-radius:4px;font-size:.78rem;font-weight:700;letter-spacing:2px;border:1px solid;transition:all .3s;}
+.b-stop{color:var(--dim2);border-color:var(--dim);background:transparent;}
+.b-av{color:var(--grn);border-color:var(--grn);background:rgba(0,230,118,.07);box-shadow:0 0 14px rgba(0,230,118,.25);}
+.b-re{color:var(--org);border-color:var(--org);background:rgba(255,111,0,.07);box-shadow:0 0 14px rgba(255,111,0,.25);}
+.b-fault{color:var(--red);border-color:var(--red);background:rgba(255,23,68,.12);animation:blink .5s infinite;}
+@keyframes blink{0%,100%{opacity:1}50%{opacity:.35}}
+
+/* VIEW TABS */
+.tabs{display:flex;background:var(--b0);border:1px solid var(--b1);border-radius:6px;overflow:hidden;}
+.tab{padding:6px 18px;font-family:'Rajdhani',sans-serif;font-size:.8rem;font-weight:700;letter-spacing:1px;cursor:pointer;border:none;background:transparent;color:var(--dim2);transition:all .2s;}
+.tab.on{background:var(--acc);color:#000;}
+
+/* MAIN */
+.main{display:flex;flex:1;overflow:hidden;}
+.canvas{flex:1;overflow:auto;padding:12px;}
+
+/* INFO PANEL */
+.info{width:260px;background:var(--panel);border-left:1px solid var(--b0);display:flex;flex-direction:column;overflow-y:auto;flex-shrink:0;}
+.sec{padding:12px 14px;border-bottom:1px solid var(--b0);}
+.sec-t{font-size:.58rem;letter-spacing:3px;color:var(--acc);font-weight:700;margin-bottom:8px;text-transform:uppercase;font-family:'Inconsolata',monospace;}
+
+/* MOTOR DISPLAY */
+.rpm-big{font-size:1.8rem;font-weight:700;font-family:'Inconsolata',monospace;color:var(--dim);transition:all .5s;text-align:center;}
+.rpm-big.run{color:var(--acc);text-shadow:0 0 18px rgba(0,229,255,.4);}
+.dir-lbl{text-align:center;font-size:1rem;margin-top:4px;transition:all .3s;}
+.stat-grid{display:grid;grid-template-columns:1fr 1fr;gap:5px;margin-top:8px;}
+.stat-box{background:rgba(0,0,0,.35);border-radius:4px;padding:5px 4px;text-align:center;}
+.sv{font-family:'Inconsolata',monospace;font-size:.88rem;color:var(--acc);display:block;font-weight:700;}
+.sl{color:var(--dim2);font-size:.56rem;}
+
+/* PHASE PILLS */
+.ph-row{display:flex;gap:3px;margin-top:8px;}
+.ph{flex:1;padding:4px 2px;border-radius:3px;text-align:center;font-size:.6rem;font-weight:700;font-family:'Inconsolata',monospace;border:1px solid;transition:all .3s;}
+.ph-L1{color:var(--L1);border-color:#4a1010;background:rgba(255,58,58,.04);}
+.ph-L2{color:var(--L2);border-color:#4a3010;background:rgba(245,166,35,.04);}
+.ph-L3{color:var(--L3);border-color:#0a4020;background:rgba(46,204,113,.04);}
+.ph-L1.live{background:rgba(255,58,58,.2);border-color:var(--L1);box-shadow:0 0 7px rgba(255,58,58,.3);}
+.ph-L2.live{background:rgba(245,166,35,.2);border-color:var(--L2);box-shadow:0 0 7px rgba(245,166,35,.3);}
+.ph-L3.live{background:rgba(46,204,113,.2);border-color:var(--L3);box-shadow:0 0 7px rgba(46,204,113,.3);}
+
+/* EXPLAIN */
+.explain{background:rgba(0,229,255,.04);border:1px solid rgba(0,229,255,.1);border-radius:6px;padding:10px 12px;font-size:.73rem;line-height:1.65;color:var(--txt);}
+.explain strong{color:var(--acc);}
+.ok{color:var(--grn);}.warn{color:var(--yel);}.err{color:var(--red);}
+
+/* CONTACTOR CARDS */
+.cont-row{display:grid;grid-template-columns:1fr 1fr 1fr;gap:6px;}
+.cont-card{background:var(--card);border:1px solid var(--b0);border-radius:6px;padding:8px 5px;text-align:center;transition:all .3s;}
+.cont-card.av-on{border-color:var(--grn);box-shadow:0 0 10px rgba(0,230,118,.15);}
+.cont-card.re-on{border-color:var(--org);box-shadow:0 0 10px rgba(255,111,0,.15);}
+.cont-card.fault{border-color:var(--red);box-shadow:0 0 10px rgba(255,23,68,.15);}
+.cn{font-family:'Inconsolata',monospace;font-size:.78rem;font-weight:700;color:var(--dim2);}
+.cont-card.av-on .cn{color:var(--grn);}.cont-card.re-on .cn{color:var(--org);}.cont-card.fault .cn{color:var(--red);}
+.cs{font-size:.6rem;color:var(--dim);margin-top:2px;}
+.led{width:14px;height:14px;border-radius:50%;background:var(--off);border:2px solid var(--b1);margin:5px auto 0;transition:all .3s;}
+.cont-card.av-on .led{background:var(--grn);border-color:var(--grn);box-shadow:0 0 8px rgba(0,230,118,.5);}
+.cont-card.re-on .led{background:var(--org);border-color:var(--org);box-shadow:0 0 8px rgba(255,111,0,.5);}
+
+/* SVG INTERACTIVITY */
+svg .clickable{cursor:pointer;transition:opacity .15s;}
+svg .clickable:hover{opacity:.85;}
+svg .clickable:active{opacity:.6;}
+
+/* scrollbar */
+::-webkit-scrollbar{width:4px;} ::-webkit-scrollbar-track{background:var(--bg);} ::-webkit-scrollbar-thumb{background:var(--b1);border-radius:3px;}
+
+/* WIRE ANIMATION */
+@keyframes flow{to{stroke-dashoffset:-15;}}
+</style>
+</head>
+<body>
+
+<header>
+  <div>
+    <div class="logo">⚡ MOTEUR AST – 2 SENS DE MARCHE</div>
+    <div class="sub">Simulation interactive — Cliquez directement sur le schéma</div>
+  </div>
+  <div class="hdr-right">
+    <div class="tabs">
+      <button class="tab on" id="tab-pw" onclick="switchTab('pw')">⚡ PUISSANCE</button>
+      <button class="tab"    id="tab-cm" onclick="switchTab('cm')">🔧 COMMANDE</button>
+    </div>
+    <div class="badge b-stop" id="badge">■ ARRÊT</div>
+  </div>
+</header>
+
+<div class="main">
+  <div class="canvas" id="canvas">
+
+    <!-- ══════════════════════════════════════
+         SCHÉMA PUISSANCE
+    ══════════════════════════════════════ -->
+    <svg id="svg-pw" viewBox="0 0 860 560" style="width:100%;height:auto;display:block;" xmlns="http://www.w3.org/2000/svg">
+      <defs>
+        <pattern id="g" width="24" height="24" patternUnits="userSpaceOnUse"><circle cx="12" cy="12" r=".8" fill="#1a2232"/></pattern>
+        <filter id="glo"><feGaussianBlur stdDeviation="4" result="b"/><feMerge><feMergeNode in="b"/><feMergeNode in="SourceGraphic"/></feMerge></filter>
+        <filter id="glo2"><feGaussianBlur stdDeviation="7" result="b"/><feMerge><feMergeNode in="b"/><feMergeNode in="SourceGraphic"/></feMerge></filter>
+      </defs>
+      <rect width="860" height="560" fill="#0b0f16"/>
+      <rect width="860" height="560" fill="url(#g)"/>
+
+      <!-- TITRE -->
+      <text x="430" y="548" text-anchor="middle" font-family="Rajdhani" font-size="11" fill="#1e2a3e" letter-spacing="4">SCHÉMA DE PUISSANCE — MOTEUR ASYNCHRONE TRIPHASÉ 2 SENS DE MARCHE</text>
+
+      <!-- ══ BARRES TRIPHASÉES ══ -->
+      <line x1="80"  y1="32" x2="750" y2="32"  stroke="#ff3a3a" stroke-width="5" stroke-linecap="round"/>
+      <line x1="80"  y1="58" x2="750" y2="58"  stroke="#f5a623" stroke-width="5" stroke-linecap="round"/>
+      <line x1="80"  y1="84" x2="750" y2="84"  stroke="#2ecc71" stroke-width="5" stroke-linecap="round"/>
+      <text x="18" y="36"  font-family="Rajdhani" font-size="14" font-weight="700" fill="#ff3a3a">L1</text>
+      <text x="18" y="62"  font-family="Rajdhani" font-size="14" font-weight="700" fill="#f5a623">L2</text>
+      <text x="18" y="88"  font-family="Rajdhani" font-size="14" font-weight="700" fill="#2ecc71">L3</text>
+      <text x="20" y="48"  font-family="Inconsolata" font-size="9" fill="#ff3a3a">400V</text>
+      <text x="758" y="36" font-family="Inconsolata" font-size="9" fill="#ff3a3a">L1</text>
+      <text x="758" y="62" font-family="Inconsolata" font-size="9" fill="#f5a623">L2</text>
+      <text x="758" y="88" font-family="Inconsolata" font-size="9" fill="#2ecc71">L3</text>
+
+      <!-- ══ DISJONCTEUR Q1 (cliquable pour couper) ══ -->
+      <g id="pw-q1" class="clickable" onclick="toggleQ1()" title="Disjoncteur Q1 – cliquer pour ouvrir/fermer">
+        <rect x="100" y="20" width="36" height="76" rx="4" fill="#141920" stroke="#2e3f5c" stroke-width="2"/>
+        <text x="118" y="14" font-family="Inconsolata" font-size="9" fill="#6b7e9f" text-anchor="middle">Q1</text>
+        <line x1="118" y1="32" x2="118" y2="46" stroke="#ff3a3a" stroke-width="2.5"/>
+        <rect id="q1-sw1" x="110" y="44" width="16" height="7" rx="2" fill="#00e676"/>
+        <line x1="118" y1="51" x2="118" y2="58" stroke="#ff3a3a" stroke-width="2.5"/>
+        <line x1="118" y1="58" x2="118" y2="70" stroke="#f5a623" stroke-width="2.5"/>
+        <rect id="q1-sw2" x="110" y="68" width="16" height="7" rx="2" fill="#00e676"/>
+        <line x1="118" y1="75" x2="118" y2="84" stroke="#f5a623" stroke-width="2.5"/>
+        <line x1="118" y1="84" x2="118" y2="92" stroke="#2ecc71" stroke-width="2.5"/>
+        <rect id="q1-sw3" x="110" y="90" width="16" height="7" rx="2" fill="#00e676"/>
+        <line x1="118" y1="97" x2="118" y2="105" stroke="#2ecc71" stroke-width="2.5"/>
+        <text x="118" y="108" text-anchor="middle" font-family="Inconsolata" font-size="7" fill="#2e3f5c" id="q1-lbl">FERMÉ</text>
+      </g>
+
+      <!-- ══ KM1 AVANCE ══ -->
+      <!-- Descentes depuis barres -->
+      <line id="w-L1-km1" x1="220" y1="32" x2="220" y2="118" stroke="#1e2a3e" stroke-width="3"/>
+      <line id="w-L2-km1" x1="265" y1="58" x2="265" y2="118" stroke="#1e2a3e" stroke-width="3"/>
+      <line id="w-L3-km1" x1="310" y1="84" x2="310" y2="118" stroke="#1e2a3e" stroke-width="3"/>
+
+      <!-- Boîte KM1 cliquable -->
+      <g id="pw-km1" class="clickable" onclick="clickKM1()" title="KM1 Avance – cliquer pour enclencher/déclencher">
+        <rect id="km1-box" x="192" y="116" width="145" height="115" rx="7" fill="#131820" stroke="#1e2a3e" stroke-width="2"/>
+        <text x="264" y="110" text-anchor="middle" font-family="Rajdhani" font-size="10" fill="#4a5a7a" letter-spacing="1">KM1 – AVANCE</text>
+        <text x="264" y="242" text-anchor="middle" font-family="Rajdhani" font-size="8" fill="#4a5a7a">▲ cliquer</text>
+
+        <!-- Contacts puissance KM1 -->
+        <line x1="220" y1="118" x2="220" y2="138" stroke="#ff3a3a" stroke-width="3"/>
+        <rect id="km1-c1" x="211" y="136" width="18" height="6" rx="2" fill="#1e2a3e"/>
+        <line id="km1-o1" x1="220" y1="162" x2="220" y2="180" stroke="#1e2a3e" stroke-width="3"/>
+        <line x1="265" y1="118" x2="265" y2="138" stroke="#f5a623" stroke-width="3"/>
+        <rect id="km1-c2" x="256" y="136" width="18" height="6" rx="2" fill="#1e2a3e"/>
+        <line id="km1-o2" x1="265" y1="162" x2="265" y2="180" stroke="#1e2a3e" stroke-width="3"/>
+        <line x1="310" y1="118" x2="310" y2="138" stroke="#2ecc71" stroke-width="3"/>
+        <rect id="km1-c3" x="301" y="136" width="18" height="6" rx="2" fill="#1e2a3e"/>
+        <line id="km1-o3" x1="310" y1="162" x2="310" y2="180" stroke="#1e2a3e" stroke-width="3"/>
+
+        <!-- Pont mobile -->
+        <rect id="km1-br" x="207" y="152" width="115" height="8" rx="3" fill="#1e2a3e" opacity=".7"/>
+
+        <!-- Bobine -->
+        <rect id="km1-coil" x="228" y="198" width="72" height="24" rx="5" fill="#0b0f16" stroke="#1e2a3e" stroke-width="1.5"/>
+        <circle id="km1-led" cx="235" cy="210" r="5" fill="#1e2a3e"/>
+        <text x="264" y="214" text-anchor="middle" font-family="Inconsolata" font-size="9" fill="#4a5a7a" id="km1-coil-lbl">KM1</text>
+      </g>
+
+      <!-- ══ KM2 REVERS ══ -->
+      <line id="w-L1-km2" x1="490" y1="32" x2="490" y2="118" stroke="#1e2a3e" stroke-width="3"/>
+      <line id="w-L3-km2" x1="535" y1="84" x2="535" y2="118" stroke="#1e2a3e" stroke-width="3"/>
+      <line id="w-L2-km2" x1="580" y1="58" x2="580" y2="118" stroke="#1e2a3e" stroke-width="3"/>
+
+      <g id="pw-km2" class="clickable" onclick="clickKM2()" title="KM2 Revers – cliquer pour enclencher/déclencher">
+        <rect id="km2-box" x="462" y="116" width="145" height="115" rx="7" fill="#131820" stroke="#1e2a3e" stroke-width="2"/>
+        <text x="534" y="110" text-anchor="middle" font-family="Rajdhani" font-size="10" fill="#4a5a7a" letter-spacing="1">KM2 – REVERS</text>
+        <text x="534" y="242" text-anchor="middle" font-family="Rajdhani" font-size="8" fill="#4a5a7a">▲ cliquer</text>
+
+        <line x1="490" y1="118" x2="490" y2="138" stroke="#ff3a3a" stroke-width="3"/>
+        <rect id="km2-c1" x="481" y="136" width="18" height="6" rx="2" fill="#1e2a3e"/>
+        <line id="km2-o1" x1="490" y1="162" x2="490" y2="180" stroke="#1e2a3e" stroke-width="3"/>
+        <line x1="535" y1="118" x2="535" y2="138" stroke="#2ecc71" stroke-width="3"/>
+        <rect id="km2-c2" x="526" y="136" width="18" height="6" rx="2" fill="#1e2a3e"/>
+        <line id="km2-o2" x1="535" y1="162" x2="535" y2="180" stroke="#1e2a3e" stroke-width="3"/>
+        <line x1="580" y1="118" x2="580" y2="138" stroke="#f5a623" stroke-width="3"/>
+        <rect id="km2-c3" x="571" y="136" width="18" height="6" rx="2" fill="#1e2a3e"/>
+        <line id="km2-o3" x1="580" y1="162" x2="580" y2="180" stroke="#1e2a3e" stroke-width="3"/>
+
+        <rect id="km2-br" x="477" y="152" width="115" height="8" rx="3" fill="#1e2a3e" opacity=".7"/>
+
+        <rect id="km2-coil" x="498" y="198" width="72" height="24" rx="5" fill="#0b0f16" stroke="#1e2a3e" stroke-width="1.5"/>
+        <circle id="km2-led" cx="505" cy="210" r="5" fill="#1e2a3e"/>
+        <text x="534" y="214" text-anchor="middle" font-family="Inconsolata" font-size="9" fill="#4a5a7a" id="km2-coil-lbl">KM2</text>
+      </g>
+
+      <!-- ══ RELAIS THERMIQUE FR (cliquable pour déclencher/reset) ══ -->
+      <line id="w-km1-fr1" x1="220" y1="228" x2="220" y2="260" stroke="#1e2a3e" stroke-width="3"/>
+      <line id="w-km1-fr2" x1="265" y1="228" x2="265" y2="260" stroke="#1e2a3e" stroke-width="3"/>
+      <line id="w-km1-fr3" x1="310" y1="228" x2="310" y2="260" stroke="#1e2a3e" stroke-width="3"/>
+      <line id="w-km2-fr1" x1="490" y1="228" x2="490" y2="260" stroke="#1e2a3e" stroke-width="3"/>
+      <line id="w-km2-fr2" x1="535" y1="228" x2="535" y2="260" stroke="#1e2a3e" stroke-width="3"/>
+      <line id="w-km2-fr3" x1="580" y1="228" x2="580" y2="260" stroke="#1e2a3e" stroke-width="3"/>
+
+      <g id="pw-fr" class="clickable" onclick="clickFR()" title="Relais thermique FR – cliquer pour déclencher / RESET">
+        <rect id="fr-box" x="192" y="258" width="405" height="58" rx="6" fill="#131820" stroke="#1e2a3e" stroke-width="2"/>
+        <text x="394" y="253" text-anchor="middle" font-family="Rajdhani" font-size="10" fill="#4a5a7a" letter-spacing="1">FR – RELAIS THERMIQUE ▲ clic = surcharge / reset</text>
+        <!-- 6 bilames -->
+        <rect id="fr-b1" x="211" y="267" width="18" height="26" rx="3" fill="#1e2a3e"/>
+        <rect id="fr-b2" x="255" y="267" width="18" height="26" rx="3" fill="#1e2a3e"/>
+        <rect id="fr-b3" x="299" y="267" width="18" height="26" rx="3" fill="#1e2a3e"/>
+        <rect id="fr-b4" x="480" y="267" width="18" height="26" rx="3" fill="#1e2a3e"/>
+        <rect id="fr-b5" x="524" y="267" width="18" height="26" rx="3" fill="#1e2a3e"/>
+        <rect id="fr-b6" x="568" y="267" width="18" height="26" rx="3" fill="#1e2a3e"/>
+        <!-- Bouton reset visible -->
+        <rect id="fr-reset-btn" x="365" y="264" width="58" height="22" rx="11" fill="#1a2232" stroke="#2e3f5c" stroke-width="1.5"/>
+        <text x="394" y="279" text-anchor="middle" font-family="Rajdhani" font-size="10" fill="#6b7e9f" id="fr-lbl">NORMAL</text>
+      </g>
+
+      <!-- Fils FR → bus moteur -->
+      <line id="w-fr-m1" x1="220" y1="316" x2="220" y2="358" stroke="#1e2a3e" stroke-width="3"/>
+      <line id="w-fr-m2" x1="265" y1="316" x2="265" y2="358" stroke="#1e2a3e" stroke-width="3"/>
+      <line id="w-fr-m3" x1="310" y1="316" x2="310" y2="358" stroke="#1e2a3e" stroke-width="3"/>
+      <line id="w-fr-m4" x1="490" y1="316" x2="490" y2="358" stroke="#1e2a3e" stroke-width="3"/>
+      <line id="w-fr-m5" x1="535" y1="316" x2="535" y2="358" stroke="#1e2a3e" stroke-width="3"/>
+      <line id="w-fr-m6" x1="580" y1="316" x2="580" y2="358" stroke="#1e2a3e" stroke-width="3"/>
+
+      <!-- Bus horizontal moteur -->
+      <line id="w-bus" x1="220" y1="358" x2="580" y2="358" stroke="#1e2a3e" stroke-width="2.5"/>
+      <!-- Bornes U V W -->
+      <line id="w-U" x1="355" y1="358" x2="355" y2="388" stroke="#1e2a3e" stroke-width="3"/>
+      <line id="w-V" x1="400" y1="358" x2="400" y2="388" stroke="#1e2a3e" stroke-width="3"/>
+      <line id="w-W" x1="445" y1="358" x2="445" y2="388" stroke="#1e2a3e" stroke-width="3"/>
+
+      <!-- ══ MOTEUR ══ -->
+      <g id="motor-grp">
+        <rect x="310" y="388" width="180" height="110" rx="10" fill="#0d1320" stroke="#1e2a3e" stroke-width="2"/>
+        <circle cx="400" cy="443" r="42" fill="none" stroke="#1e2a3e" stroke-width="2" id="m-circ"/>
+        <!-- Bobinages stator -->
+        <path id="m-wu" d="M372,424 Q382,416 392,424 Q402,432 412,424 Q422,416 432,424" fill="none" stroke="#1e2a3e" stroke-width="2"/>
+        <path id="m-wv" d="M372,442 Q382,434 392,442 Q402,450 412,442 Q422,434 432,442" fill="none" stroke="#1e2a3e" stroke-width="2"/>
+        <path id="m-ww" d="M372,460 Q382,452 392,460 Q402,468 412,460 Q422,452 432,460" fill="none" stroke="#1e2a3e" stroke-width="2"/>
+        <!-- Rotor -->
+        <line id="r-a" x1="400" y1="423" x2="400" y2="463" stroke="#1e2a3e" stroke-width="2.5"/>
+        <line id="r-b" x1="380" y1="443" x2="420" y2="443" stroke="#1e2a3e" stroke-width="2.5"/>
+        <circle cx="400" cy="443" r="20" fill="none" stroke="#131820" stroke-width="1.5"/>
+        <!-- Arbre -->
+        <rect x="490" y="438" width="44" height="10" rx="4" fill="#1e2a3e" id="m-shaft"/>
+        <!-- Flèche direction -->
+        <text id="m-arrow" x="400" y="508" text-anchor="middle" font-family="Rajdhani" font-size="22" fill="#1e2a3e">●</text>
+        <text x="400" y="525" text-anchor="middle" font-family="Rajdhani" font-size="9" fill="#4a5a7a" letter-spacing="2">M – 3~  7.5kW  400V  1500tr/min</text>
+        <!-- Bornes moteur -->
+        <circle cx="355" cy="390" r="6" fill="#ff3a3a" id="b-U"/>
+        <text x="355" y="408" text-anchor="middle" font-family="Inconsolata" font-size="9" fill="#ff3a3a">U</text>
+        <circle cx="400" cy="390" r="6" fill="#f5a623" id="b-V"/>
+        <text x="400" y="408" text-anchor="middle" font-family="Inconsolata" font-size="9" fill="#f5a623">V</text>
+        <circle cx="445" cy="390" r="6" fill="#2ecc71" id="b-W"/>
+        <text x="445" y="408" text-anchor="middle" font-family="Inconsolata" font-size="9" fill="#2ecc71">W</text>
+      </g>
+
+      <!-- Terre -->
+      <line x1="310" y1="490" x2="310" y2="510" stroke="#2ecc71" stroke-width="1.5"/>
+      <line x1="298" y1="510" x2="322" y2="510" stroke="#2ecc71" stroke-width="1.5"/>
+      <line x1="302" y1="515" x2="318" y2="515" stroke="#2ecc71" stroke-width="1.2"/>
+      <line x1="306" y1="520" x2="314" y2="520" stroke="#2ecc71" stroke-width="1"/>
+      <text x="310" y="534" text-anchor="middle" font-family="Rajdhani" font-size="8" fill="#2ecc71">PE</text>
+
+      <!-- Annotation permutation -->
+      <text x="430" y="108" text-anchor="middle" font-family="Rajdhani" font-size="9" fill="#2e3f5c">KM1 : L1→U  L2→V  L3→W  |  KM2 : L3→U  L2→V  L1→W  (permutation L1↔L3 → inversion sens)</text>
+
+      <!-- Encadré aide puissance -->
+      <rect x="660" y="260" width="188" height="215" rx="8" fill="#0d1320" stroke="#1e2a3e" stroke-width="1.5"/>
+      <text x="754" y="278" text-anchor="middle" font-family="Rajdhani" font-size="10" fill="#00e5ff" letter-spacing="2">MANIPULATION</text>
+      <text x="670" y="298" font-family="Rajdhani" font-size="9" fill="#4a5a7a">▲ Q1 : Disjoncteur ON/OFF</text>
+      <text x="670" y="314" font-family="Rajdhani" font-size="9" fill="#4a5a7a">▲ KM1 : Contacteur Avance</text>
+      <text x="670" y="330" font-family="Rajdhani" font-size="9" fill="#4a5a7a">▲ KM2 : Contacteur Revers</text>
+      <text x="670" y="346" font-family="Rajdhani" font-size="9" fill="#4a5a7a">▲ FR  : Surcharge / Reset</text>
+      <line x1="668" y1="354" x2="840" y2="354" stroke="#1e2a3e" stroke-width="1"/>
+      <text x="670" y="370" font-family="Rajdhani" font-size="8.5" fill="#2e3f5c">⚠ Cliquer KM1 et KM2 en</text>
+      <text x="670" y="383" font-family="Rajdhani" font-size="8.5" fill="#2e3f5c">même temps → COURT-CIRCUIT !</text>
+      <text x="670" y="396" font-family="Rajdhani" font-size="8.5" fill="#2e3f5c">(verrouillage mécanique ici)</text>
+      <line x1="668" y1="405" x2="840" y2="405" stroke="#1e2a3e" stroke-width="1"/>
+      <text x="670" y="420" font-family="Rajdhani" font-size="8.5" fill="#2e3f5c">Mode pédagogique :</text>
+      <text x="670" y="433" font-family="Rajdhani" font-size="8.5" fill="#2e3f5c">sur ce schéma PAS de</text>
+      <text x="670" y="446" font-family="Rajdhani" font-size="8.5" fill="#2e3f5c">verrouillage → vous pouvez</text>
+      <text x="670" y="459" font-family="Rajdhani" font-size="8.5" fill="#2e3f5c">voir le danger vous-même.</text>
+      <text x="670" y="472" font-family="Rajdhani" font-size="8.5" fill="#00e5ff">⇒ Vue Commande : verrouillé</text>
+    </svg>
+
+    <!-- ══════════════════════════════════════
+         SCHÉMA COMMANDE
+    ══════════════════════════════════════ -->
+    <svg id="svg-cm" viewBox="0 0 860 520" style="width:100%;height:auto;display:none;" xmlns="http://www.w3.org/2000/svg">
+      <defs><pattern id="g2" width="24" height="24" patternUnits="userSpaceOnUse"><circle cx="12" cy="12" r=".8" fill="#1a2232"/></pattern></defs>
+      <rect width="860" height="520" fill="#0b0f16"/>
+      <rect width="860" height="520" fill="url(#g2)"/>
+      <text x="430" y="512" text-anchor="middle" font-family="Rajdhani" font-size="11" fill="#1e2a3e" letter-spacing="4">SCHÉMA DE COMMANDE 24V DC — VERROUILLAGE ÉLECTRIQUE MUTUEL</text>
+
+      <!-- RAILS -->
+      <line x1="30"  y1="36" x2="830" y2="36"  stroke="#ffd740" stroke-width="4" stroke-linecap="round"/>
+      <text x="8"   y="40"  font-family="Inconsolata" font-size="14" fill="#ffd740" font-weight="700">+</text>
+      <text x="8"   y="52"  font-family="Inconsolata" font-size="8"  fill="#ffd740">24V</text>
+      <line x1="30"  y1="472" x2="830" y2="472" stroke="#5b8cff" stroke-width="4" stroke-linecap="round"/>
+      <text x="8"   y="476" font-family="Inconsolata" font-size="14" fill="#5b8cff" font-weight="700">–</text>
+
+      <!-- ══════════════════════════════
+           COLONNE GAUCHE : Circuit KM1
+      ══════════════════════════════ -->
+
+      <!-- +24V → FR NC -->
+      <line id="c1-top" x1="160" y1="36" x2="160" y2="72" stroke="#1e2a3e" stroke-width="3"/>
+
+      <!-- === FR NC côté KM1 (cliquable) === -->
+      <g id="cm-fr1" class="clickable" onclick="clickFR()" title="Contact NC du relais FR – Cliquer pour déclencher/reset">
+        <line id="c1-fr-in" x1="160" y1="72" x2="160" y2="87" stroke="#1e2a3e" stroke-width="3"/>
+        <line x1="146" y1="87" x2="174" y2="87" stroke="#6b7e9f" stroke-width="2"/>
+        <line id="c1-fr-bar" x1="160" y1="87" x2="160" y2="100" stroke="#4a5a7a" stroke-width="2.5" stroke-dasharray="4,3"/>
+        <line x1="146" y1="100" x2="174" y2="100" stroke="#6b7e9f" stroke-width="2"/>
+        <rect x="142" y="84" width="36" height="19" rx="3" fill="transparent" stroke="none"/>
+        <text x="182" y="95" font-family="Inconsolata" font-size="8" fill="#6b7e9f">FR-NC</text>
+        <line id="c1-fr-out" x1="160" y1="100" x2="160" y2="122" stroke="#1e2a3e" stroke-width="3"/>
+      </g>
+
+      <!-- === Contact NF KM2 verrouillage === -->
+      <g id="cm-lk2" title="Contact NF KM2 (verrouillage)">
+        <line id="c1-lk-in" x1="160" y1="122" x2="160" y2="138" stroke="#1e2a3e" stroke-width="3"/>
+        <rect id="cm-lk2-bg" x="143" y="138" width="34" height="18" rx="4" fill="#1a1208" stroke="#ff6f00" stroke-width="1.5"/>
+        <line id="c1-lk-lame" x1="160" y1="138" x2="160" y2="156" stroke="#ff6f00" stroke-width="2.5"/>
+        <text x="184" y="149" font-family="Inconsolata" font-size="8" fill="#ff6f00">NF KM2</text>
+        <text x="184" y="159" font-family="Inconsolata" font-size="7" fill="#4a5a7a">verrou.</text>
+        <line id="c1-lk-out" x1="160" y1="156" x2="160" y2="176" stroke="#1e2a3e" stroke-width="3"/>
+      </g>
+
+      <!-- === Bouton STOP NF (cliquable) === -->
+      <g id="cm-stop1" class="clickable" onclick="cmdSTOP()" title="Bouton STOP – Cliquer pour arrêter">
+        <line id="c1-st-in" x1="160" y1="176" x2="160" y2="191" stroke="#1e2a3e" stroke-width="3"/>
+        <rect x="132" y="191" width="56" height="32" rx="6" fill="#1e0808" stroke="#ff1744" stroke-width="2.5" id="c1-st-bg"/>
+        <text x="160" y="211" text-anchor="middle" font-family="Rajdhani" font-size="13" fill="#ff4444" font-weight="700">STOP</text>
+        <!-- symbole NF -->
+        <line x1="140" y1="198" x2="180" y2="198" stroke="#ff4444" stroke-width="1.5"/>
+        <line x1="156" y1="192" x2="164" y2="198" stroke="#ff4444" stroke-width="1.5"/>
+        <line id="c1-st-out" x1="160" y1="223" x2="160" y2="248" stroke="#1e2a3e" stroke-width="3"/>
+      </g>
+
+      <!-- Nœud jonction (bouton AV ‖ auto-maintien KM1) -->
+      <circle id="c1-node" cx="160" cy="248" r="5" fill="#1e2a3e"/>
+
+      <!-- === Bouton AVANCE NO (cliquable) === -->
+      <g id="cm-av" class="clickable" onclick="cmdAV()" title="Bouton AVANCE – Cliquer pour démarrer en avance">
+        <line id="c1-av-in" x1="160" y1="253" x2="160" y2="268" stroke="#1e2a3e" stroke-width="3"/>
+        <rect x="126" y="268" width="68" height="34" rx="6" fill="#060e08" stroke="#00e676" stroke-width="2.5" id="c1-av-bg"/>
+        <text x="160" y="290" text-anchor="middle" font-family="Rajdhani" font-size="13" fill="#00e676" font-weight="700">AVANCE</text>
+        <!-- symbole NO -->
+        <line x1="138" y1="277" x2="182" y2="277" stroke="#00e676" stroke-width="1.5" stroke-dasharray="5,3"/>
+        <line x1="155" y1="270" x2="165" y2="277" stroke="#00e676" stroke-width="1.5"/>
+        <line id="c1-av-out" x1="160" y1="302" x2="160" y2="320" stroke="#1e2a3e" stroke-width="3"/>
+      </g>
+
+      <!-- Auto-maintien KM1 en parallèle -->
+      <line id="c1-am-h1" x1="160" y1="248" x2="100" y2="248" stroke="#1e2a3e" stroke-width="2.5"/>
+      <line id="c1-am-v"  x1="100" y1="248" x2="100" y2="320" stroke="#1e2a3e" stroke-width="2.5"/>
+      <line id="c1-am-h2" x1="100" y1="320" x2="160" y2="320" stroke="#1e2a3e" stroke-width="2.5"/>
+      <rect id="c1-am-bg" x="82"  y="270" width="36" height="22" rx="4" fill="#0a1408" stroke="#00e676" stroke-width="1.2"/>
+      <line x1="86" y1="281" x2="114" y2="281" stroke="#00e676" stroke-width="1.2" stroke-dasharray="4,2"/>
+      <text x="100" y="278" text-anchor="middle" font-family="Inconsolata" font-size="7" fill="#00e676">KM1</text>
+      <text x="80"  y="299" font-family="Inconsolata" font-size="7" fill="#4a5a7a">auto</text>
+
+      <!-- Bobine KM1 -->
+      <line id="c1-bob-in" x1="160" y1="320" x2="160" y2="342" stroke="#1e2a3e" stroke-width="3"/>
+      <rect id="c1-coil-bg" x="124" y="342" width="72" height="36" rx="7" fill="#0b0f16" stroke="#1e2a3e" stroke-width="2"/>
+      <circle id="c1-coil-led" cx="133" cy="360" r="6" fill="#1e2a3e"/>
+      <text id="c1-coil-lbl" x="160" y="364" text-anchor="middle" font-family="Inconsolata" font-size="12" fill="#4a5a7a" font-weight="700">KM1</text>
+      <line id="c1-bob-out" x1="160" y1="378" x2="160" y2="472" stroke="#1e2a3e" stroke-width="3"/>
+
+      <!-- ══════════════════════════════
+           COLONNE DROITE : Circuit KM2
+      ══════════════════════════════ -->
+
+      <line id="c2-top" x1="560" y1="36" x2="560" y2="72" stroke="#1e2a3e" stroke-width="3"/>
+
+      <!-- === FR NC côté KM2 === -->
+      <g id="cm-fr2" class="clickable" onclick="clickFR()" title="Contact NC du relais FR – Cliquer pour déclencher/reset">
+        <line id="c2-fr-in" x1="560" y1="72" x2="560" y2="87" stroke="#1e2a3e" stroke-width="3"/>
+        <line x1="546" y1="87" x2="574" y2="87" stroke="#6b7e9f" stroke-width="2"/>
+        <line id="c2-fr-bar" x1="560" y1="87" x2="560" y2="100" stroke="#4a5a7a" stroke-width="2.5" stroke-dasharray="4,3"/>
+        <line x1="546" y1="100" x2="574" y2="100" stroke="#6b7e9f" stroke-width="2"/>
+        <text x="580" y="95" font-family="Inconsolata" font-size="8" fill="#6b7e9f">FR-NC</text>
+        <line id="c2-fr-out" x1="560" y1="100" x2="560" y2="122" stroke="#1e2a3e" stroke-width="3"/>
+      </g>
+
+      <!-- === Contact NF KM1 verrouillage === -->
+      <g id="cm-lk1" title="Contact NF KM1 (verrouillage)">
+        <line id="c2-lk-in" x1="560" y1="122" x2="560" y2="138" stroke="#1e2a3e" stroke-width="3"/>
+        <rect id="cm-lk1-bg" x="543" y="138" width="34" height="18" rx="4" fill="#060e08" stroke="#00e676" stroke-width="1.5"/>
+        <line id="c2-lk-lame" x1="560" y1="138" x2="560" y2="156" stroke="#00e676" stroke-width="2.5"/>
+        <text x="584" y="149" font-family="Inconsolata" font-size="8" fill="#00e676">NF KM1</text>
+        <text x="584" y="159" font-family="Inconsolata" font-size="7" fill="#4a5a7a">verrou.</text>
+        <line id="c2-lk-out" x1="560" y1="156" x2="560" y2="176" stroke="#1e2a3e" stroke-width="3"/>
+      </g>
+
+      <!-- === Bouton STOP NF côté KM2 === -->
+      <g id="cm-stop2" class="clickable" onclick="cmdSTOP()" title="Bouton STOP – Cliquer pour arrêter">
+        <line id="c2-st-in" x1="560" y1="176" x2="560" y2="191" stroke="#1e2a3e" stroke-width="3"/>
+        <rect x="532" y="191" width="56" height="32" rx="6" fill="#1e0808" stroke="#ff1744" stroke-width="2.5" id="c2-st-bg"/>
+        <text x="560" y="211" text-anchor="middle" font-family="Rajdhani" font-size="13" fill="#ff4444" font-weight="700">STOP</text>
+        <line x1="540" y1="198" x2="580" y2="198" stroke="#ff4444" stroke-width="1.5"/>
+        <line x1="556" y1="192" x2="564" y2="198" stroke="#ff4444" stroke-width="1.5"/>
+        <line id="c2-st-out" x1="560" y1="223" x2="560" y2="248" stroke="#1e2a3e" stroke-width="3"/>
+      </g>
+
+      <circle id="c2-node" cx="560" cy="248" r="5" fill="#1e2a3e"/>
+
+      <!-- === Bouton REVERS NO (cliquable) === -->
+      <g id="cm-re" class="clickable" onclick="cmdRE()" title="Bouton REVERS – Cliquer pour démarrer en revers">
+        <line id="c2-re-in" x1="560" y1="253" x2="560" y2="268" stroke="#1e2a3e" stroke-width="3"/>
+        <rect x="524" y="268" width="72" height="34" rx="6" fill="#100600" stroke="#ff6f00" stroke-width="2.5" id="c2-re-bg"/>
+        <text x="560" y="290" text-anchor="middle" font-family="Rajdhani" font-size="13" fill="#ff6f00" font-weight="700">REVERS</text>
+        <line x1="538" y1="277" x2="582" y2="277" stroke="#ff6f00" stroke-width="1.5" stroke-dasharray="5,3"/>
+        <line x1="555" y1="270" x2="565" y2="277" stroke="#ff6f00" stroke-width="1.5"/>
+        <line id="c2-re-out" x1="560" y1="302" x2="560" y2="320" stroke="#1e2a3e" stroke-width="3"/>
+      </g>
+
+      <!-- Auto-maintien KM2 -->
+      <line id="c2-am-h1" x1="560" y1="248" x2="620" y2="248" stroke="#1e2a3e" stroke-width="2.5"/>
+      <line id="c2-am-v"  x1="620" y1="248" x2="620" y2="320" stroke="#1e2a3e" stroke-width="2.5"/>
+      <line id="c2-am-h2" x1="620" y1="320" x2="560" y2="320" stroke="#1e2a3e" stroke-width="2.5"/>
+      <rect id="c2-am-bg" x="602" y="270" width="36" height="22" rx="4" fill="#100600" stroke="#ff6f00" stroke-width="1.2"/>
+      <line x1="606" y1="281" x2="634" y2="281" stroke="#ff6f00" stroke-width="1.2" stroke-dasharray="4,2"/>
+      <text x="620" y="278" text-anchor="middle" font-family="Inconsolata" font-size="7" fill="#ff6f00">KM2</text>
+      <text x="640" y="299" font-family="Inconsolata" font-size="7" fill="#4a5a7a">auto</text>
+
+      <!-- Bobine KM2 -->
+      <line id="c2-bob-in" x1="560" y1="320" x2="560" y2="342" stroke="#1e2a3e" stroke-width="3"/>
+      <rect id="c2-coil-bg" x="524" y="342" width="72" height="36" rx="7" fill="#0b0f16" stroke="#1e2a3e" stroke-width="2"/>
+      <circle id="c2-coil-led" cx="533" cy="360" r="6" fill="#1e2a3e"/>
+      <text id="c2-coil-lbl" x="560" y="364" text-anchor="middle" font-family="Inconsolata" font-size="12" fill="#4a5a7a" font-weight="700">KM2</text>
+      <line id="c2-bob-out" x1="560" y1="378" x2="560" y2="472" stroke="#1e2a3e" stroke-width="3"/>
+
+      <!-- ══ LÉGENDE schéma commande ══ -->
+      <rect x="680" y="52" width="168" height="230" rx="7" fill="#0d1320" stroke="#1e2a3e" stroke-width="1.5"/>
+      <text x="764" y="70" text-anchor="middle" font-family="Rajdhani" font-size="10" fill="#00e5ff" letter-spacing="2">LÉGENDE</text>
+      <rect x="692" y="80"  width="22" height="14" rx="3" fill="#1e0808" stroke="#ff1744" stroke-width="1.5"/><text x="722" y="92"  font-family="Inconsolata" font-size="8" fill="#6b7e9f">Bouton NF – STOP</text>
+      <rect x="692" y="100" width="22" height="14" rx="3" fill="#060e08" stroke="#00e676" stroke-width="1.5"/><text x="722" y="112" font-family="Inconsolata" font-size="8" fill="#6b7e9f">Bouton NO – AVANCE</text>
+      <rect x="692" y="120" width="22" height="14" rx="3" fill="#100600" stroke="#ff6f00" stroke-width="1.5"/><text x="722" y="132" font-family="Inconsolata" font-size="8" fill="#6b7e9f">Bouton NO – REVERS</text>
+      <rect x="692" y="140" width="22" height="14" rx="3" fill="#1a1208" stroke="#ff6f00" stroke-width="1.2"/><text x="722" y="152" font-family="Inconsolata" font-size="8" fill="#6b7e9f">Contact NF verrou.</text>
+      <rect x="692" y="160" width="22" height="14" rx="3" fill="#0b0f16" stroke="#6b7e9f" stroke-width="1"/> <text x="722" y="172" font-family="Inconsolata" font-size="8" fill="#6b7e9f">Contact NF FR</text>
+      <rect x="692" y="180" width="22" height="14" rx="3" fill="#0b0f16" stroke="#00e5ff" stroke-width="1.5"/><text x="722" y="192" font-family="Inconsolata" font-size="8" fill="#6b7e9f">Bobine contacteur</text>
+      <rect x="692" y="200" width="22" height="14" rx="3" fill="#060e08" stroke="#00e676" stroke-width="1"/><text x="722" y="212" font-family="Inconsolata" font-size="8" fill="#6b7e9f">Contact NO auto-maint.</text>
+      <line x1="688" y1="222" x2="840" y2="222" stroke="#1e2a3e" stroke-width="1"/>
+      <line x1="688" y1="230" x2="695" y2="230" stroke="#ffd740" stroke-width="2.5"/><text x="700" y="234" font-family="Inconsolata" font-size="8" fill="#6b7e9f">Courant circule</text>
+      <line x1="688" y1="245" x2="695" y2="245" stroke="#1e2a3e" stroke-width="2.5"/><text x="700" y="249" font-family="Inconsolata" font-size="8" fill="#4a5a7a">Pas de courant</text>
+      <line x1="688" y1="260" x2="695" y2="260" stroke="#ff1744" stroke-width="2.5" stroke-dasharray="4,3"/><text x="700" y="264" font-family="Inconsolata" font-size="8" fill="#6b7e9f">Contact ouvert (coupé)</text>
+      <line x1="688" y1="268" x2="840" y2="268" stroke="#1e2a3e" stroke-width="1"/>
+
+      <!-- Principe auto-maintien -->
+      <rect x="680" y="295" width="168" height="120" rx="7" fill="#080d18" stroke="#1e3050" stroke-width="1"/>
+      <text x="764" y="312" text-anchor="middle" font-family="Rajdhani" font-size="9" fill="#00e5ff" letter-spacing="1">AUTO-MAINTIEN</text>
+      <text x="688" y="328" font-family="Rajdhani" font-size="8.5" fill="#4a5a7a">① Appuyer AVANCE</text>
+      <text x="688" y="341" font-family="Rajdhani" font-size="8.5" fill="#4a5a7a">② KM1 excité → NO KM1 se ferme</text>
+      <text x="688" y="354" font-family="Rajdhani" font-size="8.5" fill="#4a5a7a">③ Bypasss le bouton AVANCE</text>
+      <text x="688" y="367" font-family="Rajdhani" font-size="8.5" fill="#4a5a7a">④ Relâcher → KM1 reste actif</text>
+      <text x="688" y="380" font-family="Rajdhani" font-size="8.5" fill="#4a5a7a">⑤ Appuyer STOP → KM1 tombe</text>
+      <text x="688" y="397" font-family="Rajdhani" font-size="9" fill="#00e5ff">↻ Essayez !</text>
+
+      <!-- État direct dans le schéma -->
+      <rect x="680" y="428" width="168" height="60" rx="7" fill="#0b0f16" stroke="#1e2a3e" stroke-width="1"/>
+      <text id="cm-s1" x="764" y="448" text-anchor="middle" font-family="Inconsolata" font-size="11" fill="#4a5a7a">KM1 : désexcité</text>
+      <text id="cm-s2" x="764" y="465" text-anchor="middle" font-family="Inconsolata" font-size="11" fill="#4a5a7a">KM2 : désexcité</text>
+      <text id="cm-s3" x="764" y="480" text-anchor="middle" font-family="Inconsolata" font-size="9"  fill="#4a5a7a">FR : normal</text>
+    </svg>
+
+  </div><!-- /canvas -->
+
+  <!-- ══ INFO PANEL ══ -->
+  <div class="info">
+    <div class="sec">
+      <div class="sec-t">◈ Moteur</div>
+      <div style="background:var(--card);border:1px solid var(--b0);border-radius:7px;padding:11px;">
+        <div class="rpm-big" id="rpmD">0 tr/min</div>
+        <div class="dir-lbl" id="dirD">●</div>
+        <div class="stat-grid">
+          <div class="stat-box"><span class="sv" id="sI">0.0 A</span><span class="sl">Courant</span></div>
+          <div class="stat-box"><span class="sv" id="sP">0.0 kW</span><span class="sl">Puissance</span></div>
+          <div class="stat-box"><span class="sv" id="sC">0.0 N·m</span><span class="sl">Couple</span></div>
+          <div class="stat-box"><span class="sv" id="sG">0.0%</span><span class="sl">Glissement</span></div>
+        </div>
+        <div class="ph-row">
+          <div class="ph ph-L1" id="ppU">U</div>
+          <div class="ph ph-L2" id="ppV">V</div>
+          <div class="ph ph-L3" id="ppW">W</div>
+        </div>
+      </div>
+    </div>
+
+    <div class="sec">
+      <div class="sec-t">◉ Contacteurs</div>
+      <div class="cont-row">
+        <div class="cont-card" id="cc-km1"><div class="cn">KM1</div><div class="cs" id="cc-km1-s">Ouvert</div><div class="led"></div></div>
+        <div class="cont-card" id="cc-km2"><div class="cn">KM2</div><div class="cs" id="cc-km2-s">Ouvert</div><div class="led"></div></div>
+        <div class="cont-card" id="cc-fr" ><div class="cn">FR</div> <div class="cs" id="cc-fr-s" >Normal</div><div class="led" style="background:var(--grn);border-color:var(--grn)"></div></div>
+      </div>
+    </div>
+
+    <div class="sec">
+      <div class="sec-t">📚 Explication</div>
+      <div class="explain" id="expl">
+        <strong>Moteur à l'arrêt.</strong><br><br>
+        Cliquez directement sur les composants dans le schéma.<br><br>
+        Vue <strong>Puissance</strong> : libre (pas de verrouillage, pour voir le danger).<br>
+        Vue <strong>Commande</strong> : verrouillage électrique actif.
+      </div>
+    </div>
+
+    <div class="sec">
+      <div class="sec-t">ℹ️ Aide rapide</div>
+      <div style="font-size:.72rem;color:var(--dim2);line-height:1.65;">
+        <div style="margin-bottom:6px;padding:5px 8px;background:var(--card);border-radius:4px;border-left:3px solid var(--grn);">
+          <strong style="color:var(--grn)">Vue Puissance</strong><br>
+          Cliquer sur <b>Q1</b>, <b>KM1</b>, <b>KM2</b>, <b>FR</b> directement sur le schéma.
+        </div>
+        <div style="padding:5px 8px;background:var(--card);border-radius:4px;border-left:3px solid var(--acc);">
+          <strong style="color:var(--acc)">Vue Commande</strong><br>
+          Cliquer sur <b>STOP</b>, <b>AVANCE</b>, <b>REVERS</b>, les contacts <b>FR-NC</b> directement sur le schéma.
+        </div>
+      </div>
+    </div>
+  </div>
+</div><!-- /main -->
+
+<script>
+// ═══════════════════════════════════════════════
+// ÉTAT GLOBAL
+// ═══════════════════════════════════════════════
+let ST = 'STOP'; // STOP | AV | RE | FAULT
+let q1On = true;
+let frTripped = false;
+let km1Force = false; // pour vue puissance (manipulation libre)
+let km2Force = false;
+let currentRPM = 0, targetRPM = 0, rotAngle = 0;
+let rotAnim = null, rpmTimer = null;
+
+const C = {
+  off:'#1e2a3e', L1:'#ff3a3a', L2:'#f5a623', L3:'#2ecc71',
+  live:'#ffd740', cyan:'#00e5ff', grn:'#00e676', org:'#ff6f00'
+};
+
+// ═══════════════════════════════════════════════
+// TAB
+// ═══════════════════════════════════════════════
+function switchTab(t) {
+  document.getElementById('svg-pw').style.display = t==='pw' ? 'block' : 'none';
+  document.getElementById('svg-cm').style.display = t==='cm' ? 'block' : 'none';
+  document.getElementById('tab-pw').classList.toggle('on', t==='pw');
+  document.getElementById('tab-cm').classList.toggle('on', t==='cm');
+}
+
+// ═══════════════════════════════════════════════
+// COMMANDES (depuis schéma commande — avec verrouillage)
+// ═══════════════════════════════════════════════
+function cmdAV() {
+  if (frTripped) { flashExpl('FR déclenché – RESET d\'abord !'); return; }
+  if (!q1On)     { flashExpl('Disjoncteur Q1 ouvert !'); return; }
+  if (ST==='AV') return;
+  ST = 'AV'; updateAll();
+}
+function cmdRE() {
+  if (frTripped) { flashExpl('FR déclenché – RESET d\'abord !'); return; }
+  if (!q1On)     { flashExpl('Disjoncteur Q1 ouvert !'); return; }
+  if (ST==='RE') return;
+  ST = 'RE'; updateAll();
+}
+function cmdSTOP() {
+  ST = 'STOP'; updateAll();
+}
+
+// ═══════════════════════════════════════════════
+// CLICS DIRECTS SUR VUE PUISSANCE (libre, pédagogie)
+// ═══════════════════════════════════════════════
+function toggleQ1() {
+  q1On = !q1On;
+  if (!q1On) { ST = 'STOP'; }
+  updateAll();
+}
+
+function clickKM1() {
+  // Sur vue puissance : manipulation libre (pas de verrouillage = danger démontré)
+  if (!q1On) { flashExpl('Q1 ouvert — alimentez le circuit d\'abord.'); return; }
+  if (frTripped) { flashExpl('FR déclenché — RESET d\'abord.'); return; }
+  if (ST === 'AV') { ST = 'STOP'; }
+  else {
+    if (ST === 'RE') {
+      // Pas de verrouillage sur vue puissance → court-circuit !
+      flashExpl('⚡ COURT-CIRCUIT ! KM1 et KM2 simultanés → destructeur ! C\'est pourquoi le verrouillage électrique est indispensable.');
+    }
+    ST = 'AV';
+  }
+  updateAll();
+}
+
+function clickKM2() {
+  if (!q1On) { flashExpl('Q1 ouvert — alimentez le circuit d\'abord.'); return; }
+  if (frTripped) { flashExpl('FR déclenché — RESET d\'abord.'); return; }
+  if (ST === 'RE') { ST = 'STOP'; }
+  else {
+    if (ST === 'AV') {
+      flashExpl('⚡ COURT-CIRCUIT ! KM1 et KM2 simultanés → destructeur ! C\'est pourquoi le verrouillage électrique est indispensable.');
+    }
+    ST = 'RE';
+  }
+  updateAll();
+}
+
+function clickFR() {
+  if (frTripped) {
+    // RESET
+    frTripped = false;
+    ST = 'STOP';
+    flashExpl('✓ FR réarmé. Vous pouvez redémarrer le moteur.');
+  } else {
+    // Déclencher surcharge
+    frTripped = true;
+    ST = 'FAULT';
+    flashExpl('⚠ Surcharge ! Relais FR déclenché. Le moteur s\'arrête. Cliquer FR à nouveau pour RESET.');
+  }
+  updateAll();
+}
+
+function flashExpl(msg) {
+  document.getElementById('expl').innerHTML = msg;
+}
+
+// ═══════════════════════════════════════════════
+// UPDATE TOUT
+// ═══════════════════════════════════════════════
+function updateAll() {
+  updatePowerSVG();
+  updateCmdSVG();
+  updateMotorVis();
+  updateInfoPanel();
+  updateRPMAnim();
+  updateRotation();
+  updateExplain();
+}
+
+// ═══════════════════════════════════════════════
+// FILS — helper
+// ═══════════════════════════════════════════════
+function wire(id, col, anim=false) {
+  const e = document.getElementById(id); if (!e) return;
+  e.style.stroke = col;
+  if (anim && col !== C.off) {
+    e.style.strokeDasharray = '10 5';
+    e.style.animation = 'flow .38s linear infinite';
+  } else {
+    e.style.strokeDasharray = 'none';
+    e.style.animation = 'none';
+  }
+}
+function attr(id, a, v) { const e=document.getElementById(id); if(e) e.setAttribute(a,v); }
+
+// ═══════════════════════════════════════════════
+// VUE PUISSANCE
+// ═══════════════════════════════════════════════
+function updatePowerSVG() {
+  const av = ST==='AV', re = ST==='RE';
+  const on = (av||re) && !frTripped && q1On;
+
+  // Q1 couleur
+  ['q1-sw1','q1-sw2','q1-sw3'].forEach(id => attr(id,'fill',q1On?'#00e676':'#ff1744'));
+  attr('q1-lbl','textContent', null); // handled by DOM text node directly
+  document.getElementById('q1-lbl').textContent = q1On ? 'FERMÉ' : 'OUVERT';
+  document.getElementById('q1-lbl').setAttribute('fill', q1On ? '#2e3f5c' : '#ff1744');
+
+  // Barres alimentées ?
+  const barAlpha = q1On ? '1' : '0.25';
+  ['bar-L1','bar-L2','bar-L3'].forEach(id => {
+    const e=document.getElementById(id);
+    if(e) e.setAttribute('opacity', barAlpha);
+  });
+
+  // Descentes vers KM1
+  wire('w-L1-km1', av&&q1On ? C.L1 : C.off, av&&q1On);
+  wire('w-L2-km1', av&&q1On ? C.L2 : C.off, av&&q1On);
+  wire('w-L3-km1', av&&q1On ? C.L3 : C.off, av&&q1On);
+
+  // KM1 boîte
+  attr('km1-box',  'stroke', av ? '#00e676' : '#1e2a3e');
+  attr('km1-br',   'fill',   av ? '#00e676' : C.off);
+  attr('km1-br',   'y',      av ? '142' : '152');
+  attr('km1-coil', 'stroke', av ? '#00e676' : '#1e2a3e');
+  attr('km1-led',  'fill',   av ? '#00e676' : C.off);
+  document.getElementById('km1-coil-lbl').setAttribute('fill', av ? '#00e676' : '#4a5a7a');
+  // sorties KM1
+  wire('km1-o1', on&&av ? C.live : C.off, on&&av);
+  wire('km1-o2', on&&av ? C.live : C.off, on&&av);
+  wire('km1-o3', on&&av ? C.live : C.off, on&&av);
+
+  // Descentes vers KM2 (phases permutées L1→T3, L3→T1)
+  wire('w-L1-km2', re&&q1On ? C.L1 : C.off, re&&q1On);
+  wire('w-L3-km2', re&&q1On ? C.L3 : C.off, re&&q1On);
+  wire('w-L2-km2', re&&q1On ? C.L2 : C.off, re&&q1On);
+
+  // KM2 boîte
+  attr('km2-box',  'stroke', re ? C.org : '#1e2a3e');
+  attr('km2-br',   'fill',   re ? C.org : C.off);
+  attr('km2-br',   'y',      re ? '142' : '152');
+  attr('km2-coil', 'stroke', re ? C.org : '#1e2a3e');
+  attr('km2-led',  'fill',   re ? C.org : C.off);
+  document.getElementById('km2-coil-lbl').setAttribute('fill', re ? C.org : '#4a5a7a');
+  wire('km2-o1', on&&re ? C.live : C.off, on&&re);
+  wire('km2-o2', on&&re ? C.live : C.off, on&&re);
+  wire('km2-o3', on&&re ? C.live : C.off, on&&re);
+
+  // KM1→FR
+  wire('w-km1-fr1', on&&av ? C.live : C.off, on&&av);
+  wire('w-km1-fr2', on&&av ? C.live : C.off, on&&av);
+  wire('w-km1-fr3', on&&av ? C.live : C.off, on&&av);
+  // KM2→FR
+  wire('w-km2-fr1', on&&re ? C.live : C.off, on&&re);
+  wire('w-km2-fr2', on&&re ? C.live : C.off, on&&re);
+  wire('w-km2-fr3', on&&re ? C.live : C.off, on&&re);
+
+  // FR bilames
+  const fc = frTripped ? '#ff1744' : (on ? C.org : C.off);
+  ['fr-b1','fr-b2','fr-b3','fr-b4','fr-b5','fr-b6'].forEach(id => attr(id,'fill',fc));
+  attr('fr-box','stroke', frTripped ? '#ff1744' : '#1e2a3e');
+  document.getElementById('fr-lbl').textContent = frTripped ? '⚠ DÉCLENCHÉ – cliquer RESET' : 'NORMAL – cliquer=surcharge';
+  document.getElementById('fr-lbl').setAttribute('fill', frTripped ? '#ff1744' : '#6b7e9f');
+
+  // FR→moteur
+  const mc = on && !frTripped ? C.cyan : C.off;
+  const ma = on && !frTripped;
+  ['w-fr-m1','w-fr-m2','w-fr-m3','w-fr-m4','w-fr-m5','w-fr-m6','w-bus','w-U','w-V','w-W'].forEach(id=>wire(id,mc,ma));
+
+  // Contacts KM1 c1/c2/c3 couleur
+  attr('km1-c1','fill', av ? C.grn : C.off);
+  attr('km1-c2','fill', av ? C.grn : C.off);
+  attr('km1-c3','fill', av ? C.grn : C.off);
+  attr('km2-c1','fill', re ? C.org : C.off);
+  attr('km2-c2','fill', re ? C.org : C.off);
+  attr('km2-c3','fill', re ? C.org : C.off);
+}
+
+// ═══════════════════════════════════════════════
+// VUE COMMANDE
+// ═══════════════════════════════════════════════
+function cw(id, col, anim=false) { wire(id, col, anim); } // alias
+
+function updateCmdSVG() {
+  const av = ST==='AV', re = ST==='RE', ok = !frTripped && q1On;
+  const Y = '#ffd740'; // couleur courant 24V
+
+  // ── Circuit KM1 ──
+  const alive1 = av && ok;
+
+  // +→FR-NC
+  cw('c1-top',   ok ? Y : C.off, alive1);
+  cw('c1-fr-in', ok ? Y : C.off, alive1);
+  cw('c1-fr-out',ok ? Y : C.off, alive1);
+  // Lame FR-NC : ouverte (rouge barré) si FR déclenché
+  const fl1 = document.getElementById('c1-fr-bar');
+  if (fl1) {
+    fl1.style.stroke = frTripped ? '#ff1744' : '#6b7e9f';
+    fl1.style.strokeDasharray = frTripped ? '6,3' : '4,3';
+  }
+
+  // Verrou NF KM2 : ouvert si KM2 actif
+  const lk1pass = !re;
+  cw('c1-lk-in',  ok&&lk1pass ? Y : C.off, alive1);
+  cw('c1-lk-out', ok&&lk1pass ? Y : C.off, alive1);
+  const lk1c = document.getElementById('c1-lk-lame');
+  if (lk1c) {
+    lk1c.style.stroke = re ? '#ff1744' : C.org;
+    lk1c.style.strokeDasharray = re ? '8,4' : 'none';
+    lk1c.style.opacity = re ? '0.5' : '1';
+  }
+  attr('cm-lk2-bg','stroke', re ? '#ff1744' : C.org);
+  attr('cm-lk2-bg','fill',   re ? 'rgba(255,23,68,0.1)' : '#1a1208');
+
+  // STOP
+  cw('c1-st-in',  ok&&lk1pass ? Y : C.off, alive1);
+  cw('c1-st-out', ok&&lk1pass ? Y : C.off, alive1);
+  attr('c1-st-bg','fill', alive1 ? 'rgba(255,23,68,0.18)' : '#1e0808');
+
+  // Nœud
+  attr('c1-node','fill', alive1 ? Y : C.off);
+
+  // Bouton AV + auto-maintien
+  cw('c1-av-in',  alive1 ? Y : C.off, alive1);
+  cw('c1-av-out', alive1 ? Y : C.off, alive1);
+  cw('c1-am-h1',  alive1 ? Y : C.off, alive1);
+  cw('c1-am-v',   alive1 ? Y : C.off, alive1);
+  cw('c1-am-h2',  alive1 ? Y : C.off, alive1);
+  attr('c1-av-bg','fill',   av ? 'rgba(0,230,118,.22)' : '#060e08');
+  attr('c1-av-bg','stroke', av ? '#00e676' : '#00e676');
+  attr('c1-am-bg','fill',   av ? 'rgba(0,230,118,.12)' : '#0a1408');
+
+  // Bobine KM1
+  cw('c1-bob-in',  alive1 ? Y : C.off, alive1);
+  cw('c1-bob-out', alive1 ? '#5b8cff' : C.off, alive1);
+  attr('c1-coil-bg','stroke',  av ? C.grn : '#1e2a3e');
+  attr('c1-coil-led','fill',   av ? C.grn : C.off);
+  document.getElementById('c1-coil-lbl').setAttribute('fill', av ? C.grn : '#4a5a7a');
+
+  // ── Circuit KM2 ──
+  const alive2 = re && ok;
+  const lk2pass = !av;
+
+  cw('c2-top',   ok ? Y : C.off, alive2);
+  cw('c2-fr-in', ok ? Y : C.off, alive2);
+  cw('c2-fr-out',ok ? Y : C.off, alive2);
+  const fl2 = document.getElementById('c2-fr-bar');
+  if (fl2) {
+    fl2.style.stroke = frTripped ? '#ff1744' : '#6b7e9f';
+    fl2.style.strokeDasharray = frTripped ? '6,3' : '4,3';
+  }
+
+  const lk2c = document.getElementById('c2-lk-lame');
+  if (lk2c) {
+    lk2c.style.stroke = av ? '#ff1744' : C.grn;
+    lk2c.style.strokeDasharray = av ? '8,4' : 'none';
+    lk2c.style.opacity = av ? '0.5' : '1';
+  }
+  attr('cm-lk1-bg','stroke', av ? '#ff1744' : C.grn);
+  attr('cm-lk1-bg','fill',   av ? 'rgba(255,23,68,0.1)' : '#060e08');
+
+  cw('c2-lk-in',  ok&&lk2pass ? Y : C.off, alive2);
+  cw('c2-lk-out', ok&&lk2pass ? Y : C.off, alive2);
+  cw('c2-st-in',  ok&&lk2pass ? Y : C.off, alive2);
+  cw('c2-st-out', ok&&lk2pass ? Y : C.off, alive2);
+  attr('c2-st-bg','fill', alive2 ? 'rgba(255,23,68,0.18)' : '#1e0808');
+
+  attr('c2-node','fill', alive2 ? Y : C.off);
+
+  cw('c2-re-in',  alive2 ? Y : C.off, alive2);
+  cw('c2-re-out', alive2 ? Y : C.off, alive2);
+  cw('c2-am-h1',  alive2 ? Y : C.off, alive2);
+  cw('c2-am-v',   alive2 ? Y : C.off, alive2);
+  cw('c2-am-h2',  alive2 ? Y : C.off, alive2);
+  attr('c2-re-bg','fill',   re ? 'rgba(255,111,0,.22)' : '#100600');
+  attr('c2-re-bg','stroke', re ? C.org : C.org);
+  attr('c2-am-bg','fill',   re ? 'rgba(255,111,0,.12)' : '#100600');
+
+  cw('c2-bob-in',  alive2 ? Y : C.off, alive2);
+  cw('c2-bob-out', alive2 ? '#5b8cff' : C.off, alive2);
+  attr('c2-coil-bg','stroke',  re ? C.org : '#1e2a3e');
+  attr('c2-coil-led','fill',   re ? C.org : C.off);
+  document.getElementById('c2-coil-lbl').setAttribute('fill', re ? C.org : '#4a5a7a');
+
+  // Texte état dans svg commande
+  const s1=document.getElementById('cm-s1'), s2=document.getElementById('cm-s2'), s3=document.getElementById('cm-s3');
+  if(s1){s1.textContent=`KM1 : ${av?'EXCITÉ ●':'désexcité'}`;s1.setAttribute('fill',av?C.grn:'#4a5a7a');}
+  if(s2){s2.textContent=`KM2 : ${re?'EXCITÉ ●':'désexcité'}`;s2.setAttribute('fill',re?C.org:'#4a5a7a');}
+  if(s3){s3.textContent=frTripped?'FR : DÉCLENCHÉ ⚠ – cliquer pour reset':'FR : normal';s3.setAttribute('fill',frTripped?'#ff1744':'#4a5a7a');}
+}
+
+// ═══════════════════════════════════════════════
+// MOTEUR VISUEL
+// ═══════════════════════════════════════════════
+function updateMotorVis() {
+  const av=ST==='AV', re=ST==='RE', on=(av||re)&&!frTripped&&q1On;
+  attr('m-circ','stroke', on ? C.cyan : '#1e2a3e');
+  attr('m-wu','stroke', on&&av ? C.L1 : (on ? C.L3 : '#1e2a3e'));
+  attr('m-wv','stroke', on ? C.L2 : '#1e2a3e');
+  attr('m-ww','stroke', on&&av ? C.L3 : (on ? C.L1 : '#1e2a3e'));
+  attr('m-shaft','fill', on ? C.cyan : '#1e2a3e');
+  const arr = document.getElementById('m-arrow');
+  if (!on) { arr.textContent='●'; arr.setAttribute('fill','#1e2a3e'); }
+  else if (av) { arr.textContent='↻'; arr.setAttribute('fill',C.grn); }
+  else          { arr.textContent='↺'; arr.setAttribute('fill',C.org); }
+  // Phase pills
+  if (on&&av) { setPP('ppU','U←L1','ph-L1'); setPP('ppV','V←L2','ph-L2'); setPP('ppW','W←L3','ph-L3'); }
+  else if(on&&re){setPP('ppU','U←L3','ph-L3'); setPP('ppV','V←L2','ph-L2'); setPP('ppW','W←L1','ph-L1');}
+  else { setPP('ppU','U','ph-L1',false); setPP('ppV','V','ph-L2',false); setPP('ppW','W','ph-L3',false); }
+}
+function setPP(id,txt,cls,live=true){
+  const e=document.getElementById(id); if(!e)return;
+  e.textContent=txt; e.className='ph '+cls+(live?' live':'');
+}
+
+// ═══════════════════════════════════════════════
+// INFO PANEL
+// ═══════════════════════════════════════════════
+function updateInfoPanel() {
+  const av=ST==='AV', re=ST==='RE';
+  // Badge
+  const b=document.getElementById('badge');
+  if(ST==='FAULT'){b.className='badge b-fault';b.textContent='⚠ DÉFAUT';}
+  else if(!q1On){b.className='badge b-fault';b.textContent='⚡ Q1 OUVERT';}
+  else if(av){b.className='badge b-av';b.textContent='▶ AVANCE';}
+  else if(re){b.className='badge b-re';b.textContent='◀ REVERS';}
+  else{b.className='badge b-stop';b.textContent='■ ARRÊT';}
+  // Cont cards
+  document.getElementById('cc-km1').className='cont-card'+(av?' av-on':'');
+  document.getElementById('cc-km1-s').textContent=av?'Fermé ✓':'Ouvert';
+  document.getElementById('cc-km2').className='cont-card'+(re?' re-on':'');
+  document.getElementById('cc-km2-s').textContent=re?'Fermé ✓':'Ouvert';
+  document.getElementById('cc-fr').className='cont-card'+(frTripped?' fault':'');
+  document.getElementById('cc-fr-s').textContent=frTripped?'Déclenché ⚠':'Normal';
+}
+
+// ═══════════════════════════════════════════════
+// RPM
+// ═══════════════════════════════════════════════
+function updateRPMAnim() {
+  if(rpmTimer) clearInterval(rpmTimer);
+  const on=(ST==='AV'||ST==='RE')&&!frTripped&&q1On;
+  targetRPM = on ? 1450 : 0;
+  rpmTimer = setInterval(() => {
+    const d = targetRPM - currentRPM;
+    currentRPM = Math.abs(d)<4 ? targetRPM : currentRPM + d*0.09;
+    const r = currentRPM/1450;
+    document.getElementById('rpmD').textContent = Math.round(currentRPM)+' tr/min';
+    document.getElementById('rpmD').className = 'rpm-big'+(currentRPM>80?' run':'');
+    document.getElementById('sI').textContent = (r*16.2+(r>0?1.5:0)).toFixed(1)+' A';
+    document.getElementById('sP').textContent = (r*7.5).toFixed(1)+' kW';
+    document.getElementById('sC').textContent = (r*49.4).toFixed(1)+' N·m';
+    document.getElementById('sG').textContent = (currentRPM>0?((1500-currentRPM)/1500*100).toFixed(1):'0.0')+'%';
+    const d2=document.getElementById('dirD');
+    if(currentRPM>80){d2.textContent=ST==='AV'?'↻ Sens AV':'↺ Sens AR';d2.style.color=ST==='AV'?'var(--grn)':'var(--org)';}
+    else{d2.textContent='●';d2.style.color='var(--dim)';}
+    if(currentRPM===targetRPM&&currentRPM===0)clearInterval(rpmTimer);
+  },80);
+}
+
+// ═══════════════════════════════════════════════
+// ROTATION ROTOR
+// ═══════════════════════════════════════════════
+function updateRotation() {
+  if(rotAnim) cancelAnimationFrame(rotAnim);
+  const on=(ST==='AV'||ST==='RE')&&!frTripped&&q1On;
+  if(!on) return;
+  const dir=ST==='AV'?1:-1;
+  function spin(){
+    rotAngle += dir*4*(currentRPM/1450);
+    const cx=400,cy=443,r=18,rad=rotAngle*Math.PI/180;
+    const ra=document.getElementById('r-a'), rb=document.getElementById('r-b');
+    if(!ra)return;
+    ra.setAttribute('x1',cx+r*Math.sin(rad)); ra.setAttribute('y1',cy-r*Math.cos(rad));
+    ra.setAttribute('x2',cx-r*Math.sin(rad)); ra.setAttribute('y2',cy+r*Math.cos(rad));
+    const r2=rad+Math.PI/2;
+    rb.setAttribute('x1',cx+r*Math.sin(r2)); rb.setAttribute('y1',cy-r*Math.cos(r2));
+    rb.setAttribute('x2',cx-r*Math.sin(r2)); rb.setAttribute('y2',cy+r*Math.cos(r2));
+    rotAnim = requestAnimationFrame(spin);
+  }
+  spin();
+}
+
+// ═══════════════════════════════════════════════
+// EXPLICATION
+// ═══════════════════════════════════════════════
+function updateExplain() {
+  const box = document.getElementById('expl');
+  if (!q1On) {
+    box.innerHTML = '⚡ <strong>Q1 ouvert.</strong><br>Le disjoncteur général est déclenché. Cliquer sur Q1 dans le schéma pour le refermer.';
+    return;
+  }
+  if (frTripped) {
+    box.innerHTML = '<span class="err">⚠ SURCHARGE – FR déclenché.</span><br><br>Le contact NC de FR est ouvert → bobines hors tension → moteur à l\'arrêt.<br><br>Cliquer sur <strong>FR</strong> dans le schéma pour réarmer.';
+    return;
+  }
+  if (ST==='AV') {
+    box.innerHTML = '<span class="ok">▶ MARCHE AVANT</span><br><br><strong>KM1 excité.</strong><br>Circuit : +24V → FR-NC → NF KM2 → STOP → AVANCE (ou auto KM1) → bobine KM1 → 0V.<br><br>Phases moteur : <strong>L1→U, L2→V, L3→W</strong><br>NF KM2 dans circuit KM1 → <span class="warn">KM2 verrouillé.</span>';
+  } else if (ST==='RE') {
+    box.innerHTML = '<span class="warn">◀ MARCHE ARRIÈRE</span><br><br><strong>KM2 excité.</strong><br>Phases permutées : <strong>L3→U, L2→V, L1→W</strong> — L1↔L3 inversées → sens inversé.<br>NF KM1 dans circuit KM2 → <span class="warn">KM1 verrouillé.</span>';
+  } else {
+    box.innerHTML = '<strong>Moteur à l\'arrêt.</strong><br><br>Utilisez <strong>⚡ PUISSANCE</strong> pour manipuler Q1, KM1, KM2, FR librement.<br><br>Utilisez <strong>🔧 COMMANDE</strong> pour cliquer sur AVANCE, REVERS, STOP avec verrouillage.';
+  }
+}
+
+// CSS keyframe injection
+const s=document.createElement('style');
+s.textContent='@keyframes flow{to{stroke-dashoffset:-15;}}';
+document.head.appendChild(s);
+
+// INIT
+updateAll();
+</script>
+</body>
+</html>

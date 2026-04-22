@@ -1,0 +1,404 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Simulation — Deux sens de marche | ElectroInfo</title>
+
+    <!-- ✅ TOUJOURS inclure retour.js en premier -->
+    <script src="../simulations/retour.js"></script>
+
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
+
+    <style>
+        * { box-sizing: border-box; margin: 0; padding: 0; }
+
+        body {
+            font-family: system-ui, -apple-system, sans-serif;
+            background: #f1f5f9;
+            color: #1e293b;
+            min-height: 100vh;
+        }
+
+        .sim-container {
+            max-width: 900px;
+            margin: 0 auto;
+            padding: 2rem 1rem;
+        }
+
+        /* ── TITRE ── */
+        .sim-title {
+            text-align: center;
+            margin-bottom: 2rem;
+        }
+
+        .sim-title h1 {
+            font-size: 1.8rem;
+            font-weight: 800;
+            color: #1e40af;
+            margin-bottom: 0.5rem;
+        }
+
+        .sim-title p {
+            color: #64748b;
+            font-size: 1rem;
+        }
+
+        /* ── PANNEAU DE COMMANDE ── */
+        .control-panel {
+            background: white;
+            border-radius: 16px;
+            padding: 1.5rem;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.08);
+            margin-bottom: 1.5rem;
+        }
+
+        .control-panel h2 {
+            font-size: 1.1rem;
+            font-weight: 700;
+            color: #374151;
+            margin-bottom: 1rem;
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+
+        .buttons-row {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 0.75rem;
+            margin-bottom: 1rem;
+        }
+
+        .sim-btn {
+            padding: 0.7rem 1.4rem;
+            border: none;
+            border-radius: 10px;
+            font-size: 0.95rem;
+            font-weight: 700;
+            cursor: pointer;
+            transition: all 0.2s;
+            display: inline-flex;
+            align-items: center;
+            gap: 0.5rem;
+            -webkit-tap-highlight-color: transparent;
+            min-height: 44px;
+        }
+
+        .btn-marche1  { background: #16a34a; color: white; }
+        .btn-marche2  { background: #2563eb; color: white; }
+        .btn-arret    { background: #dc2626; color: white; }
+
+        .sim-btn:hover  { opacity: 0.85; transform: translateY(-2px); }
+        .sim-btn:active { transform: scale(0.97); }
+        .sim-btn:disabled { opacity: 0.4; cursor: not-allowed; transform: none; }
+
+        /* ── SCHÉMA MOTEUR ── */
+        .motor-display {
+            background: #0f172a;
+            border-radius: 16px;
+            padding: 2rem;
+            text-align: center;
+            margin-bottom: 1.5rem;
+            min-height: 200px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            gap: 1rem;
+        }
+
+        .motor-circle {
+            width: 120px;
+            height: 120px;
+            border-radius: 50%;
+            border: 4px solid #334155;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 3rem;
+            transition: all 0.5s ease;
+            position: relative;
+        }
+
+        .motor-circle.spinning-cw {
+            border-color: #16a34a;
+            box-shadow: 0 0 30px rgba(22,163,74,0.5);
+            animation: spin-cw 1s linear infinite;
+        }
+
+        .motor-circle.spinning-ccw {
+            border-color: #2563eb;
+            box-shadow: 0 0 30px rgba(37,99,235,0.5);
+            animation: spin-ccw 1s linear infinite;
+        }
+
+        .motor-circle.stopped {
+            border-color: #dc2626;
+            box-shadow: 0 0 10px rgba(220,38,38,0.3);
+        }
+
+        @keyframes spin-cw  { from { transform: rotate(0deg); }   to { transform: rotate(360deg); } }
+        @keyframes spin-ccw { from { transform: rotate(0deg); }   to { transform: rotate(-360deg); } }
+
+        .motor-status {
+            font-size: 1.1rem;
+            font-weight: 700;
+            padding: 0.4rem 1.2rem;
+            border-radius: 20px;
+            transition: all 0.3s;
+        }
+
+        .status-arret   { background: #374151; color: #9ca3af; }
+        .status-marche1 { background: #14532d; color: #86efac; }
+        .status-marche2 { background: #1e3a8a; color: #93c5fd; }
+
+        .motor-arrow {
+            font-size: 2rem;
+            transition: all 0.5s;
+        }
+
+        /* ── CONTACTEURS ── */
+        .contacteurs {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(140px, 1fr));
+            gap: 1rem;
+            margin-bottom: 1.5rem;
+        }
+
+        .contacteur {
+            background: white;
+            border-radius: 12px;
+            padding: 1rem;
+            text-align: center;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.06);
+            border: 2px solid #e2e8f0;
+            transition: all 0.3s;
+        }
+
+        .contacteur.actif {
+            border-color: #16a34a;
+            background: #f0fdf4;
+        }
+
+        .contacteur.actif-blue {
+            border-color: #2563eb;
+            background: #eff6ff;
+        }
+
+        .contacteur-label {
+            font-size: 0.8rem;
+            font-weight: 600;
+            color: #64748b;
+            text-transform: uppercase;
+            letter-spacing: 0.05em;
+            margin-bottom: 0.5rem;
+        }
+
+        .contacteur-led {
+            width: 20px;
+            height: 20px;
+            border-radius: 50%;
+            background: #d1d5db;
+            margin: 0 auto 0.5rem;
+            transition: all 0.3s;
+            box-shadow: 0 0 0px transparent;
+        }
+
+        .contacteur.actif .contacteur-led {
+            background: #16a34a;
+            box-shadow: 0 0 10px rgba(22,163,74,0.6);
+        }
+
+        .contacteur.actif-blue .contacteur-led {
+            background: #2563eb;
+            box-shadow: 0 0 10px rgba(37,99,235,0.6);
+        }
+
+        .contacteur-nom {
+            font-size: 1rem;
+            font-weight: 700;
+            color: #1e293b;
+        }
+
+        /* ── EXPLICATION ── */
+        .explication {
+            background: white;
+            border-radius: 16px;
+            padding: 1.5rem;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.06);
+            border-left: 4px solid #3b82f6;
+        }
+
+        .explication h3 {
+            font-size: 1rem;
+            font-weight: 700;
+            color: #1e40af;
+            margin-bottom: 0.75rem;
+        }
+
+        .explication p {
+            color: #475569;
+            line-height: 1.7;
+            font-size: 0.95rem;
+        }
+
+        /* ── RESPONSIVE ── */
+        @media (max-width: 480px) {
+            .sim-title h1 { font-size: 1.4rem; }
+            .buttons-row  { flex-direction: column; }
+            .sim-btn      { width: 100%; justify-content: center; }
+            .motor-circle { width: 90px; height: 90px; font-size: 2.2rem; }
+        }
+    </style>
+</head>
+<body>
+
+<div class="sim-container">
+
+    <!-- TITRE -->
+    <div class="sim-title">
+        <h1><i class="fas fa-sync-alt"></i> Deux sens de marche</h1>
+        <p>Simulation d'un moteur triphasé avec inversion du sens de rotation</p>
+    </div>
+
+    <!-- PANNEAU DE COMMANDE -->
+    <div class="control-panel">
+        <h2><i class="fas fa-sliders-h"></i> Panneau de commande</h2>
+        <div class="buttons-row">
+            <button class="sim-btn btn-marche1" onclick="demarrerSens1()" id="btnS1">
+                <i class="fas fa-play"></i> Marche Sens 1 (KM1)
+            </button>
+            <button class="sim-btn btn-marche2" onclick="demarrerSens2()" id="btnS2">
+                <i class="fas fa-play"></i> Marche Sens 2 (KM2)
+            </button>
+            <button class="sim-btn btn-arret" onclick="arreter()" id="btnArret">
+                <i class="fas fa-stop"></i> Arrêt
+            </button>
+        </div>
+        <small style="color:#9ca3af; font-size:0.8rem;">
+            ⚠️ Le verrouillage électrique empêche KM1 et KM2 d'être actifs en même temps.
+        </small>
+    </div>
+
+    <!-- SCHÉMA MOTEUR -->
+    <div class="motor-display">
+        <div class="motor-circle stopped" id="motorCircle">⚙️</div>
+        <div class="motor-status status-arret" id="motorStatus">ARRÊT</div>
+        <div class="motor-arrow" id="motorArrow">—</div>
+    </div>
+
+    <!-- ÉTAT DES CONTACTEURS -->
+    <div class="contacteurs">
+        <div class="contacteur" id="ctKM1">
+            <div class="contacteur-label">Contacteur</div>
+            <div class="contacteur-led"></div>
+            <div class="contacteur-nom">KM1</div>
+        </div>
+        <div class="contacteur" id="ctKM2">
+            <div class="contacteur-label">Contacteur</div>
+            <div class="contacteur-led"></div>
+            <div class="contacteur-nom">KM2</div>
+        </div>
+        <div class="contacteur" id="ctKA1">
+            <div class="contacteur-label">Verrouillage</div>
+            <div class="contacteur-led"></div>
+            <div class="contacteur-nom">KA1 / KA2</div>
+        </div>
+    </div>
+
+    <!-- EXPLICATION DYNAMIQUE -->
+    <div class="explication">
+        <h3><i class="fas fa-info-circle"></i> Explication</h3>
+        <p id="explicationTexte">
+            Appuyez sur <strong>Marche Sens 1</strong> ou <strong>Marche Sens 2</strong> pour démarrer le moteur.
+            Le verrouillage électrique (contacts NC) empêche les deux contacteurs d'être alimentés simultanément.
+        </p>
+    </div>
+
+</div>
+
+<script>
+    // ── État de la simulation ──────────────────────────────────────────
+    let etat = 'arret'; // 'arret' | 'sens1' | 'sens2'
+
+    const explications = {
+        arret: `Appuyez sur <strong>Marche Sens 1</strong> ou <strong>Marche Sens 2</strong> pour démarrer le moteur. Le verrouillage électrique (contacts NC) empêche les deux contacteurs d'être alimentés simultanément.`,
+        sens1: `<strong>KM1 est enclenché.</strong> Le moteur tourne dans le sens 1 (sens horaire). Le contact NC de KM1 dans le circuit de KM2 est ouvert — il est donc impossible d'enclencher KM2 sans arrêter d'abord le moteur. C'est le <strong>verrouillage électrique</strong>.`,
+        sens2: `<strong>KM2 est enclenché.</strong> Le moteur tourne dans le sens 2 (sens antihoraire). Deux phases sont inversées (ex: L1↔L3), ce qui inverse le champ tournant et donc le sens de rotation. Le contact NC de KM2 dans le circuit de KM1 est ouvert.`
+    };
+
+    function demarrerSens1() {
+        if (etat === 'sens1') return;
+        if (etat === 'sens2') { arreter(); setTimeout(demarrerSens1, 300); return; }
+        etat = 'sens1';
+        mettreAJourUI();
+    }
+
+    function demarrerSens2() {
+        if (etat === 'sens2') return;
+        if (etat === 'sens1') { arreter(); setTimeout(demarrerSens2, 300); return; }
+        etat = 'sens2';
+        mettreAJourUI();
+    }
+
+    function arreter() {
+        etat = 'arret';
+        mettreAJourUI();
+    }
+
+    function mettreAJourUI() {
+        const circle  = document.getElementById('motorCircle');
+        const status  = document.getElementById('motorStatus');
+        const arrow   = document.getElementById('motorArrow');
+        const km1     = document.getElementById('ctKM1');
+        const km2     = document.getElementById('ctKM2');
+        const ka1     = document.getElementById('ctKA1');
+        const expl    = document.getElementById('explicationTexte');
+        const btnS1   = document.getElementById('btnS1');
+        const btnS2   = document.getElementById('btnS2');
+
+        // Reset
+        circle.className = 'motor-circle';
+        km1.className = 'contacteur';
+        km2.className = 'contacteur';
+        ka1.className = 'contacteur';
+
+        if (etat === 'sens1') {
+            circle.classList.add('spinning-cw');
+            status.className = 'motor-status status-marche1';
+            status.textContent = 'MARCHE — SENS 1';
+            arrow.textContent = '↻ Sens horaire';
+            arrow.style.color = '#86efac';
+            km1.classList.add('actif');
+            ka1.classList.add('actif');
+            btnS1.disabled = true;
+            btnS2.disabled = false;
+
+        } else if (etat === 'sens2') {
+            circle.classList.add('spinning-ccw');
+            status.className = 'motor-status status-marche2';
+            status.textContent = 'MARCHE — SENS 2';
+            arrow.textContent = '↺ Sens antihoraire';
+            arrow.style.color = '#93c5fd';
+            km2.classList.add('actif-blue');
+            ka1.classList.add('actif-blue');
+            btnS1.disabled = false;
+            btnS2.disabled = true;
+
+        } else {
+            circle.classList.add('stopped');
+            status.className = 'motor-status status-arret';
+            status.textContent = 'ARRÊT';
+            arrow.textContent = '—';
+            arrow.style.color = '#94a3b8';
+            btnS1.disabled = false;
+            btnS2.disabled = false;
+        }
+
+        expl.innerHTML = explications[etat];
+    }
+</script>
+
+</body>
+</html>
